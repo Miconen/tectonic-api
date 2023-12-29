@@ -16,7 +16,23 @@ import "net/http"
 // @Failure 500 {object} Error
 // @Router /api/v1/rsn [GET]
 func GetRSN(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	p := map[string]string{
+		"guild_id": r.URL.Query().Get("guild_id"),
+		"rsn":      r.URL.Query().Get("rsn"),
+	}
+
+	h := func(r *http.Request) (interface{}, error) {
+
+		user := User{
+			UserId:  p["user_id"],
+			GuildId: p["guild_id"],
+			Points:  789,
+		}
+
+		return user, nil
+	}
+
+	httpHandler(w, r, h, p)
 }
 
 // @Summary Link an RSN to a user
@@ -34,7 +50,23 @@ func GetRSN(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} Error
 // @Router /api/v1/rsn [POST]
 func CreateRSN(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	p := map[string]string{
+		"guild_id": r.URL.Query().Get("guild_id"),
+		"rsn":      r.URL.Query().Get("rsn"),
+	}
+
+	h := func(r *http.Request) (interface{}, error) {
+
+		user := User{
+			UserId:  p["user_id"],
+			GuildId: p["guild_id"],
+			Points:  789,
+		}
+
+		return user, nil
+	}
+
+	httpHandler(w, r, h, p)
 }
 
 // @Summary Remove RSN from guild and user
@@ -51,5 +83,21 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} Error
 // @Router /api/v1/rsn [DELETE]
 func RemoveRSN(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	p := map[string]string{
+		"guild_id": r.URL.Query().Get("guild_id"),
+		"rsn":      r.URL.Query().Get("rsn"),
+	}
+
+	h := func(r *http.Request) (interface{}, error) {
+
+		user := User{
+			UserId:  p["user_id"],
+			GuildId: p["guild_id"],
+			Points:  789,
+		}
+
+		return user, nil
+	}
+
+	httpHandler(w, r, h, p)
 }

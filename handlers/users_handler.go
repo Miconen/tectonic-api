@@ -14,9 +14,30 @@ import "net/http"
 // @Failure 404 {object} Error
 // @Failure 429 {object} Error
 // @Failure 500 {object} Error
-// @Router /api/v1/users [GET]
+// @Router /v1/users [GET]
 func GetUsers(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	p := map[string]string{
+		"guild_id": r.URL.Query().Get("guild_id"),
+		"user_ids": r.URL.Query().Get("user_ids"),
+	}
+
+	h := func(r *http.Request) (interface{}, error) {
+
+		users := Users{}
+		for i := 0; i < 10; i++ {
+			user := User{
+				UserId:  p["user_ids"],
+				GuildId: p["guild_id"],
+				Points:  789,
+			}
+
+			users.Users = append(users.Users, user)
+		}
+
+		return users, nil
+	}
+
+	httpHandler(w, r, h, p)
 }
 
 // @Summary Update multiple users information
@@ -32,7 +53,28 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} Error
 // @Failure 429 {object} Error
 // @Failure 500 {object} Error
-// @Router /api/v1/users [PUT]
+// @Router /v1/users [PUT]
 func UpdateUsers(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	p := map[string]string{
+		"guild_id": r.URL.Query().Get("guild_id"),
+		"user_ids": r.URL.Query().Get("user_ids"),
+	}
+
+	h := func(r *http.Request) (interface{}, error) {
+
+		users := Users{}
+		for i := 0; i < 10; i++ {
+			user := User{
+				UserId:  p["user_ids"],
+				GuildId: p["guild_id"],
+				Points:  789,
+			}
+
+			users.Users = append(users.Users, user)
+		}
+
+		return users, nil
+	}
+
+	httpHandler(w, r, h, p)
 }
