@@ -1,19 +1,17 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: Go
+name: Continuous Integration
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: [push, pull_request]
 
 jobs:
 
-  build:
+  test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout
     - uses: actions/checkout@v3
 
     - name: Set up Go
