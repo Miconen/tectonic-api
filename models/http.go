@@ -3,9 +3,9 @@ package models
 // Guild Model
 // @Description Model of guild data
 type Guild struct {
-	GuildId     string `json:"guild_id"`
-	Multiplier  int    `json:"multiplier"`
-	PbChannelId string `json:"pb_channel_id"`
+	GuildId     string     `json:"guild_id"`
+	Multiplier  int        `json:"multiplier"`
+	PbChannelId NullString `json:"pb_channel_id"`
 }
 
 // User Model
@@ -19,7 +19,7 @@ type User struct {
 // Users Model
 // @Description Model of active guild members
 type Users struct {
-	Users []User `json:"users"`
+	Users []User `json:"users,omitempty"`
 }
 
 // Time Model
@@ -32,10 +32,8 @@ type Time struct {
 	Team     Users  `json:"team"`
 }
 
-// Error Model
-// @Description HTTP Error model with content, error and code
-type Error struct {
-	Content string `json:"content"`
-	Error   string `json:"error"`
-	Code    int    `json:"code"`
+// Body Model
+// @Description HTTP Body model for all responses
+type Body struct {
+	Content interface{} `json:"content,omitempty"`
 }
