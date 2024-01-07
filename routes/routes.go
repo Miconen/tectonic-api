@@ -18,8 +18,6 @@ func NewAPIBuilder() *APIBuilder {
 	}
 }
 
-type HandlerMetadata struct{}
-
 func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	r := b.router.PathPrefix("/api/v1").Subrouter()
 
