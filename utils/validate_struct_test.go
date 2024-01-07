@@ -49,6 +49,34 @@ func TestValidateStruct(t *testing.T) {
 			pass: true,
 		},
 		{
+			name: "AllFieldsSetZeroValue",
+			data: Data{
+				X:            0,
+				Y:            2,
+				Str:          "test",
+				ptr:          &ptrString,
+				structMember: impl,
+				ifMember:     Impl{implField: map[string]string{"key": "value"}},
+				mapMember:    map[string]interface{}{"key": "value"},
+				sliceMember:  []string{"element"},
+			},
+			pass: true,
+		},
+		{
+			name: "AllFieldsSetEmptyString",
+			data: Data{
+				X:            1,
+				Y:            2,
+				Str:          "",
+				ptr:          &ptrString,
+				structMember: impl,
+				ifMember:     Impl{implField: map[string]string{"key": "value"}},
+				mapMember:    map[string]interface{}{"key": "value"},
+				sliceMember:  []string{"element"},
+			},
+			pass: true,
+		},
+		{
 			name: "MissingFields1",
 			data: Data{X: 1}, // Only 'X' field set, others are unset
 			pass: false,
