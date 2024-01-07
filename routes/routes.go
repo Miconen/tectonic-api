@@ -24,12 +24,10 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	// User
 	r.HandleFunc("/user", handlers.GetUser).Methods("GET")
 	r.HandleFunc("/user", handlers.CreateUser).Methods("POST")
-	r.HandleFunc("/user", handlers.UpdateUser).Methods("PUT")
 	r.HandleFunc("/user", handlers.RemoveUser).Methods("DELETE")
 
 	// Users
 	r.HandleFunc("/users", handlers.GetUsers).Methods("GET")
-	r.HandleFunc("/users", handlers.UpdateUsers).Methods("PUT")
 
 	// RSN
 	r.HandleFunc("/rsn", handlers.GetRSN).Methods("GET")
@@ -39,7 +37,6 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	// Guild
 	r.HandleFunc("/guild", handlers.GetGuild).Methods("GET")
 	r.HandleFunc("/guild", handlers.CreateGuild).Methods("POST")
-	r.HandleFunc("/guild", handlers.UpdateGuild).Methods("PUT")
 	r.HandleFunc("/guild", handlers.RemoveGuild).Methods("DELETE")
 
 	// Leaderboard
@@ -50,7 +47,8 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	r.HandleFunc("/time", handlers.RemoveTime).Methods("DELETE")
 
 	// Update Times Channel
-	r.HandleFunc("/time", handlers.UpdateTimesChannel).Methods("PUT")
+	r.HandleFunc("/guild/times", handlers.UpdateTimesChannel).Methods("PUT")
+	r.HandleFunc("/guild/multiplier", handlers.UpdateMultiplier).Methods("PUT")
 
 	// Serve Swagger UI
 	r.PathPrefix("/").Handler(httpSwagger.WrapHandler)
