@@ -1,6 +1,12 @@
 package handlers
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+	"os"
+	"tectonic-api/database"
+	"tectonic-api/models"
+)
 
 // @Summary Get multiple users
 // @Description Get multiple users details by unique user Snowflakes (IDs)
@@ -23,15 +29,10 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		users := Users{}
-		for i := 0; i < 10; i++ {
-			user := User{
-				UserId:  p["user_ids"],
-				GuildId: p["guild_id"],
-				Points:  789,
-			}
-
-			users.Users = append(users.Users, user)
+		users, err := database.FetchUsers(p["guild_id"])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
+			return nil, err
 		}
 
 		return users, nil
@@ -62,9 +63,9 @@ func UpdateUsers(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		users := Users{}
+		users := models.Users{}
 		for i := 0; i < 10; i++ {
-			user := User{
+			user := models.User{
 				UserId:  p["user_ids"],
 				GuildId: p["guild_id"],
 				Points:  789,

@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"tectonic-api/models"
 )
 
 // @Summary Add a new best time to guild
@@ -43,9 +44,9 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 
-		team := Users{}
+		team := models.Users{}
 		for i := 0; i < 10; i++ {
-			user := User{
+			user := models.User{
 				UserId:  "Hello",
 				GuildId: "World",
 				Points:  789,
@@ -54,7 +55,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 			team.Users = append(team.Users, user)
 		}
 
-		time := Time{
+		time := models.Time{
 			Time:     timeInt,
 			BossName: p["boss_name"],
 			RunId:    runIdInt,
@@ -105,9 +106,9 @@ func RemoveTime(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 
-		team := Users{}
+		team := models.Users{}
 		for i := 0; i < 10; i++ {
-			user := User{
+			user := models.User{
 				UserId:  "Hello",
 				GuildId: "World",
 				Points:  789,
@@ -116,7 +117,7 @@ func RemoveTime(w http.ResponseWriter, r *http.Request) {
 			team.Users = append(team.Users, user)
 		}
 
-		time := Time{
+		time := models.Time{
 			Time:     timeInt,
 			BossName: p["boss_name"],
 			RunId:    runIdInt,
@@ -168,9 +169,9 @@ func UpdateTimesChannel(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 
-		team := Users{}
+		team := models.Users{}
 		for i := 0; i < 10; i++ {
-			user := User{
+			user := models.User{
 				UserId:  "Hello",
 				GuildId: "World",
 				Points:  789,
@@ -179,7 +180,7 @@ func UpdateTimesChannel(w http.ResponseWriter, r *http.Request) {
 			team.Users = append(team.Users, user)
 		}
 
-		time := Time{
+		time := models.Time{
 			Time:     timeInt,
 			BossName: p["boss_name"],
 			RunId:    runIdInt,

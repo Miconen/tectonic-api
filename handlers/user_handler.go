@@ -1,7 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"tectonic-api/database"
+	"tectonic-api/models"
 )
 
 // @Summary Get a user by ID
@@ -25,10 +29,10 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		user := User{
-			UserId:  p["user_id"],
-			GuildId: p["guild_id"],
-			Points:  789,
+		user, err := database.FetchUser(p["guild_id"], p["user_id"])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
+			return nil, err
 		}
 
 		return user, nil
@@ -59,13 +63,13 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		user := User{
-			UserId:  p["user_id"],
-			GuildId: p["guild_id"],
-			Points:  789,
+		err := database.InsertUser(p["guild_id"], p["user_id"])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error inserting user: %v\n", err)
+			return nil, err
 		}
 
-		return user, nil
+		return models.User{GuildId: p["guild_id"], UserId: p["user_id"], Points: 0}, nil
 	}
 
 	httpHandler(w, r, h, p)
@@ -93,7 +97,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		user := User{
+		user := models.User{
 			UserId:  p["user_id"],
 			GuildId: p["guild_id"],
 			Points:  789,
@@ -126,7 +130,7 @@ func RemoveUser(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		user := User{
+		user := models.User{
 			UserId:  p["user_id"],
 			GuildId: p["guild_id"],
 			Points:  789,

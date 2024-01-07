@@ -1,18 +1,21 @@
 package handlers
 
-import "net/http"
+import (
+	"net/http"
+	"tectonic-api/models"
+)
 
 // @Summary Get a guild by ID
 // @Description Get guild details by unique guild Snowflake (ID)
 // @Tags Guild
 // @Produce json
 // @Param guild_id query string false "Guild ID"
-// @Success 200 {object} Guild
-// @Failure 400 {object} Error
-// @Failure 403 {object} Error
-// @Failure 404 {object} Error
-// @Failure 429 {object} Error
-// @Failure 500 {object} Error
+// @Success 200 {object} models.Guild
+// @Failure 400 {object} models.Error
+// @Failure 403 {object} models.Error
+// @Failure 404 {object} models.Error
+// @Failure 429 {object} models.Error
+// @Failure 500 {object} models.Error
 // @Router /v1/guild [GET]
 func GetGuild(w http.ResponseWriter, r *http.Request) {
 	p := map[string]string{
@@ -21,7 +24,7 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		guild := Guild{
+		guild := models.Guild{
 			GuildId:     p["guild_id"],
 			Multiplier:  1,
 			PbChannelId: "123",
@@ -53,7 +56,7 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		guild := Guild{
+		guild := models.Guild{
 			GuildId:     p["guild_id"],
 			Multiplier:  1,
 			PbChannelId: "123",
@@ -85,7 +88,7 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		guild := Guild{
+		guild := models.Guild{
 			GuildId:     p["guild_id"],
 			Multiplier:  1,
 			PbChannelId: "123",
@@ -116,7 +119,7 @@ func RemoveGuild(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		guild := Guild{
+		guild := models.Guild{
 			GuildId:     p["guild_id"],
 			Multiplier:  1,
 			PbChannelId: "123",

@@ -1,6 +1,9 @@
 package handlers
 
-import "net/http"
+import (
+	"net/http"
+	"tectonic-api/models"
+)
 
 // @Summary Get RSN related information by guild and user ID
 // @Description Get RSN related details by unique guild and user Snowflake (ID)
@@ -23,7 +26,7 @@ func GetRSN(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		user := User{
+		user := models.User{
 			UserId:  p["user_id"],
 			GuildId: p["guild_id"],
 			Points:  789,
@@ -57,7 +60,7 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		user := User{
+		user := models.User{
 			UserId:  p["user_id"],
 			GuildId: p["guild_id"],
 			Points:  789,
@@ -90,7 +93,7 @@ func RemoveRSN(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		user := User{
+		user := models.User{
 			UserId:  p["user_id"],
 			GuildId: p["guild_id"],
 			Points:  789,

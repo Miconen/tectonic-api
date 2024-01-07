@@ -1,6 +1,9 @@
 package handlers
 
-import "net/http"
+import (
+	"net/http"
+	"tectonic-api/models"
+)
 
 // @Summary Get a guilds leaderboard by ID
 // @Description Get guilds leaderboard details by unique guild Snowflake (ID)
@@ -21,9 +24,9 @@ func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 
 	h := func(r *http.Request) (interface{}, error) {
 
-		users := Users{}
+		users := models.Users{}
 		for i := 0; i < 10; i++ {
-			user := User{
+			user := models.User{
 				UserId:  "Hello World",
 				GuildId: p["guild_id"],
 				Points:  789,
