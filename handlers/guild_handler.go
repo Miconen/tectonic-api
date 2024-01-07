@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"tectonic-api/database"
 	"tectonic-api/models"
 )
 
@@ -10,27 +13,30 @@ import (
 // @Tags Guild
 // @Produce json
 // @Param guild_id query string false "Guild ID"
-// @Success 200 {object} models.Guild
-// @Failure 400 {object} models.Error
-// @Failure 403 {object} models.Error
-// @Failure 404 {object} models.Error
-// @Failure 429 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Success 200 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 403 {object} models.Response
+// @Failure 404 {object} models.Response
+// @Failure 429 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /v1/guild [GET]
 func GetGuild(w http.ResponseWriter, r *http.Request) {
 	p := map[string]string{
 		"guild_id": r.URL.Query().Get("guild_id"),
 	}
 
-	h := func(r *http.Request) (interface{}, error) {
+	h := func(r *http.Request) (models.Body, int, error) {
 
 		guild := models.Guild{
-			GuildId:     p["guild_id"],
-			Multiplier:  1,
-			PbChannelId: "123",
+			GuildId: p["guild_id"],
+		}
+		guild, err := database.SelectGuild(p)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error selecting guild: %v\n", err)
+			return models.Body{}, http.StatusInternalServerError, err
 		}
 
-		return guild, nil
+		return models.Body{Content: guild}, http.StatusOK, nil
 	}
 
 	httpHandler(w, r, h, p)
@@ -41,60 +47,30 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 // @Tags Guild
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Success 200 {object} Guild
-// @Success 201 {object} Guild
-// @Failure 400 {object} Error
-// @Failure 403 {object} Error
-// @Failure 404 {object} Error
-// @Failure 429 {object} Error
-// @Failure 500 {object} Error
+// @Success 201 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 403 {object} models.Response
+// @Failure 404 {object} models.Response
+// @Failure 429 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /v1/guild [POST]
 func CreateGuild(w http.ResponseWriter, r *http.Request) {
 	p := map[string]string{
 		"guild_id": r.URL.Query().Get("guild_id"),
 	}
 
-	h := func(r *http.Request) (interface{}, error) {
+	h := func(r *http.Request) (models.Body, int, error) {
 
 		guild := models.Guild{
-			GuildId:     p["guild_id"],
-			Multiplier:  1,
-			PbChannelId: "123",
+			GuildId: p["guild_id"],
+		}
+		err := database.InsertGuild(guild)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error creating guild: %v\n", err)
+			return models.Body{}, http.StatusInternalServerError, err
 		}
 
-		return guild, nil
-	}
-
-	httpHandler(w, r, h, p)
-}
-
-// @Summary Update a guilds information
-// @Description Update a guild in our backend by unique guild Snowflake (ID)
-// @Tags Guild
-// @Produce json
-// @Param guild_id path string true "Guild ID"
-// @Success 200 {object} Guild
-// @Success 201 {object} Guild
-// @Failure 400 {object} Error
-// @Failure 403 {object} Error
-// @Failure 404 {object} Error
-// @Failure 429 {object} Error
-// @Failure 500 {object} Error
-// @Router /v1/guild [PUT]
-func UpdateGuild(w http.ResponseWriter, r *http.Request) {
-	p := map[string]string{
-		"guild_id": r.URL.Query().Get("guild_id"),
-	}
-
-	h := func(r *http.Request) (interface{}, error) {
-
-		guild := models.Guild{
-			GuildId:     p["guild_id"],
-			Multiplier:  1,
-			PbChannelId: "123",
-		}
-
-		return guild, nil
+		return models.Body{}, http.StatusCreated, nil
 	}
 
 	httpHandler(w, r, h, p)
@@ -105,27 +81,99 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 // @Tags Guild
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Success 200 {object} Guild
-// @Failure 400 {object} Error
-// @Failure 403 {object} Error
-// @Failure 404 {object} Error
-// @Failure 429 {object} Error
-// @Failure 500 {object} Error
+// @Success 204 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 403 {object} models.Response
+// @Failure 404 {object} models.Response
+// @Failure 429 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /v1/guild [DELETE]
 func RemoveGuild(w http.ResponseWriter, r *http.Request) {
 	p := map[string]string{
 		"guild_id": r.URL.Query().Get("guild_id"),
 	}
 
-	h := func(r *http.Request) (interface{}, error) {
+	h := func(r *http.Request) (models.Body, int, error) {
 
-		guild := models.Guild{
-			GuildId:     p["guild_id"],
-			Multiplier:  1,
-			PbChannelId: "123",
+		err := database.DeleteGuild(p)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error deleting guild: %v\n", err)
+			return models.Body{}, http.StatusInternalServerError, err
 		}
 
-		return guild, nil
+		return models.Body{}, http.StatusNoContent, nil
+	}
+
+	httpHandler(w, r, h, p)
+}
+
+// @Summary Update times channel from guild
+// @Description Update where time related embeds are located in our backend by unique guild Snowflake (ID)
+// @Tags Guild
+// @Produce json
+// @Param guild_id path string true "Guild ID"
+// @Success 204 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 403 {object} models.Response
+// @Failure 404 {object} models.Response
+// @Failure 429 {object} models.Response
+// @Failure 500 {object} models.Response
+// @Router /v1/guild/times [PUT]
+func UpdateTimesChannel(w http.ResponseWriter, r *http.Request) {
+	p := map[string]string{
+		"guild_id":      r.URL.Query().Get("guild_id"),
+		"pb_channel_id": r.URL.Query().Get("pb_channel_id"),
+	}
+
+	h := func(r *http.Request) (models.Body, int, error) {
+
+		c := map[string]interface{}{
+			"pb_channel_id": p["pb_channel_id"],
+		}
+
+		err := database.UpdateGuild(p["guild_id"], c)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error updating channel: %v\n", err)
+			return models.Body{}, http.StatusInternalServerError, err
+		}
+
+		return models.Body{}, http.StatusNoContent, nil
+	}
+
+	httpHandler(w, r, h, p)
+}
+
+// @Summary Update multiplier for guild
+// @Description Update guild point multiplier by guild Snowflake (ID)
+// @Tags Guild
+// @Produce json
+// @Param guild_id path string true "Guild ID"
+// @Success 204 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 403 {object} models.Response
+// @Failure 404 {object} models.Response
+// @Failure 429 {object} models.Response
+// @Failure 500 {object} models.Response
+// @Router /v1/guild/times [PUT]
+func UpdateMultiplier(w http.ResponseWriter, r *http.Request) {
+	p := map[string]string{
+		"guild_id":   r.URL.Query().Get("guild_id"),
+		"multiplier": r.URL.Query().Get("multiplier"),
+	}
+
+	h := func(r *http.Request) (models.Body, int, error) {
+
+		c := map[string]interface{}{
+			"multiplier": p["multiplier"],
+		}
+
+		err := database.UpdateGuild(p["guild_id"], c)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error updating multiplier: %v\n", err)
+			return models.Body{}, http.StatusInternalServerError, err
+		}
+
+		return models.Body{}, http.StatusNoContent, nil
 	}
 
 	httpHandler(w, r, h, p)

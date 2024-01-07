@@ -11,12 +11,12 @@ import (
 // @Produce json
 // @Param guild_id query string false "Guild ID"
 // @Param user_id query string false "User ID"
-// @Success 200 {object} User
-// @Failure 400 {object} Error
-// @Failure 403 {object} Error
-// @Failure 404 {object} Error
-// @Failure 429 {object} Error
-// @Failure 500 {object} Error
+// @Success 200 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 403 {object} models.Response
+// @Failure 404 {object} models.Response
+// @Failure 429 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /api/v1/rsn [GET]
 func GetRSN(w http.ResponseWriter, r *http.Request) {
 	p := map[string]string{
@@ -24,7 +24,7 @@ func GetRSN(w http.ResponseWriter, r *http.Request) {
 		"rsn":      r.URL.Query().Get("rsn"),
 	}
 
-	h := func(r *http.Request) (interface{}, error) {
+	h := func(r *http.Request) (models.Body, int, error) {
 
 		user := models.User{
 			UserId:  p["user_id"],
@@ -32,7 +32,7 @@ func GetRSN(w http.ResponseWriter, r *http.Request) {
 			Points:  789,
 		}
 
-		return user, nil
+		return models.Body{Content: user}, http.StatusOK, nil
 	}
 
 	httpHandler(w, r, h, p)
@@ -44,13 +44,12 @@ func GetRSN(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param guild_id path string true "Guild ID"
 // @Param user_id path string true "User ID"
-// @Success 200 {object} User
-// @Success 201 {object} Guild
-// @Failure 400 {object} Error
-// @Failure 403 {object} Error
-// @Failure 404 {object} Error
-// @Failure 429 {object} Error
-// @Failure 500 {object} Error
+// @Success 201 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 403 {object} models.Response
+// @Failure 404 {object} models.Response
+// @Failure 429 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /api/v1/rsn [POST]
 func CreateRSN(w http.ResponseWriter, r *http.Request) {
 	p := map[string]string{
@@ -58,7 +57,7 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 		"rsn":      r.URL.Query().Get("rsn"),
 	}
 
-	h := func(r *http.Request) (interface{}, error) {
+	h := func(r *http.Request) (models.Body, int, error) {
 
 		user := models.User{
 			UserId:  p["user_id"],
@@ -66,7 +65,7 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 			Points:  789,
 		}
 
-		return user, nil
+		return models.Body{Content: user}, http.StatusCreated, nil
 	}
 
 	httpHandler(w, r, h, p)
@@ -78,12 +77,12 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param guild_id path string true "Guild ID"
 // @Param user_id path string true "User ID"
-// @Success 200 {object} User
-// @Failure 400 {object} Error
-// @Failure 403 {object} Error
-// @Failure 404 {object} Error
-// @Failure 429 {object} Error
-// @Failure 500 {object} Error
+// @Success 200 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 403 {object} models.Response
+// @Failure 404 {object} models.Response
+// @Failure 429 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /api/v1/rsn [DELETE]
 func RemoveRSN(w http.ResponseWriter, r *http.Request) {
 	p := map[string]string{
@@ -91,7 +90,7 @@ func RemoveRSN(w http.ResponseWriter, r *http.Request) {
 		"rsn":      r.URL.Query().Get("rsn"),
 	}
 
-	h := func(r *http.Request) (interface{}, error) {
+	h := func(r *http.Request) (models.Body, int, error) {
 
 		user := models.User{
 			UserId:  p["user_id"],
@@ -99,7 +98,7 @@ func RemoveRSN(w http.ResponseWriter, r *http.Request) {
 			Points:  789,
 		}
 
-		return user, nil
+		return models.Body{Content: user}, http.StatusNoContent, nil
 	}
 
 	httpHandler(w, r, h, p)

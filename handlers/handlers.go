@@ -8,23 +8,26 @@ import (
 )
 
 // Function types for method-specific logic
-type Handler func(r *http.Request) (interface{}, error)
-
-// Helper function to write a 500 Internal Server Error response with error message
-func writeInternalServerError(w http.ResponseWriter, errMsg string) {
-	errorResponse := models.Error{
-		Content: errMsg,
-		Error:   "Internal Server Error",
-		Code:    http.StatusInternalServerError,
-	}
-	writeErrorResponse(w, errorResponse)
-}
+type Handler func(r *http.Request) (models.Body, int, error)
 
 // Helper function to write an error response in JSON format
-func writeErrorResponse(w http.ResponseWriter, err models.Error) {
-	w.WriteHeader(err.Code)
+func writeErrorResponse(w http.ResponseWriter, e string, s int) {
+	err := models.Body{Content: e}
+	w.WriteHeader(s)
 	json.NewEncoder(w).Encode(err)
 }
+
+// func get404() {
+// 	err = utils.ValidateStruct(res)
+// 	if err != nil {
+// 		errorResponse := models.Response{
+// 			Content: "User not found",
+// 			Code:    http.StatusNotFound,
+// 		}
+// 		writeErrorResponse(w, errorResponse)
+// 		return
+// 	}
+// }
 
 func httpHandler(w http.ResponseWriter, r *http.Request, h Handler, p map[string]string) {
 	w.Header().Set("Content-Type", "application/json")
@@ -35,41 +38,25 @@ func httpHandler(w http.ResponseWriter, r *http.Request, h Handler, p map[string
 			continue
 		}
 
-		errorResponse := models.Error{
-			Content: "Missing required parameters",
-			Error:   "Bad Request",
-			Code:    http.StatusBadRequest,
-		}
-		writeErrorResponse(w, errorResponse)
+		writeErrorResponse(w, "Missing required parameters", http.StatusBadRequest)
 		return
 	}
 
 	// Call the method-specific logic function and handle errors
-	res, err := h(r)
+	res, code, err := h(r)
 	if err != nil {
-		writeInternalServerError(w, err.Error())
+		writeErrorResponse(w, err.Error(), code)
 		return
 	}
-
-	// err = utils.ValidateStruct(res)
-	// if err != nil {
-	// 	errorResponse := models.Error{
-	// 		Content: "User not found",
-	// 		Error:   "Not Found",
-	// 		Code:    http.StatusNotFound,
-	// 	}
-	// 	writeErrorResponse(w, errorResponse)
-	// 	return
-	// }
 
 	// Marshal response data into JSON
 	userJSON, err := json.Marshal(res)
 	if err != nil {
-		writeInternalServerError(w, err.Error())
+		writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// Write the JSON response
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(code)
 	w.Write(userJSON)
 }
