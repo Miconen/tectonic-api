@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"tectonic-api/models"
-	// "tectonic-api/utils"
+	"tectonic-api/utils"
 )
 
 // Function types for method-specific logic
@@ -30,8 +30,6 @@ func writeErrorResponse(w http.ResponseWriter, e string, s int) {
 // }
 
 func httpHandler(w http.ResponseWriter, r *http.Request, h Handler, p map[string]string) {
-	w.Header().Set("Content-Type", "application/json")
-
 	// Check if required parameters are missing based on the handler logic
 	for _, v := range p {
 		if v != "" {
@@ -49,14 +47,6 @@ func httpHandler(w http.ResponseWriter, r *http.Request, h Handler, p map[string
 		return
 	}
 
-	// Marshal response data into JSON
-	userJSON, err := json.Marshal(res)
-	if err != nil {
-		writeErrorResponse(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Write the JSON response
-	w.WriteHeader(code)
-	w.Write(userJSON)
+	// Write JSON response
+    utils.JsonWriter(res).ServeHttp(w, r)
 }
