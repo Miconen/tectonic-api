@@ -31,5 +31,11 @@ services:
       ports:
           - 5433:8080
 
+#added for frontend container stack to connect to
+networks:
+  api-network:
+    name: api-network
+
 volumes:
   postgres_data:
+    

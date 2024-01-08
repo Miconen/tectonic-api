@@ -54,6 +54,7 @@ func GetRSN(w http.ResponseWriter, r *http.Request) {
 func CreateRSN(w http.ResponseWriter, r *http.Request) {
 	p := map[string]string{
 		"guild_id": r.URL.Query().Get("guild_id"),
+		"user_id":  r.URL.Query().Get("user_id"),
 		"rsn":      r.URL.Query().Get("rsn"),
 	}
 
