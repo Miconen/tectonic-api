@@ -19,11 +19,11 @@ func ExampleParseParametersURL() {
 		fmt.Print(err.Error())
 	}
 
-    fmt.Printf("user_id: %s\n", params["user_id"])
-    fmt.Printf("guild_id: %s\n", params["guild_id"])
-    // output:
-    // user_id: 10
-    // guild_id: 9
+	fmt.Printf("user_id: %s\n", params["user_id"])
+	fmt.Printf("guild_id: %s\n", params["guild_id"])
+	// output:
+	// user_id: 10
+	// guild_id: 9
 }
 
 func TestParseParametersSuccess(t *testing.T) {

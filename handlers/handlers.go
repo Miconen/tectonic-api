@@ -48,5 +48,5 @@ func httpHandler(w http.ResponseWriter, r *http.Request, h Handler, p map[string
 	}
 
 	// Write JSON response
-    utils.JsonWriter(res).ServeHttp(w, r)
+	utils.JsonWriter(res).ServeHttp(w, r)
 }
