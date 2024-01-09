@@ -1,42 +1,9 @@
 basePath: /api
 definitions:
-  handlers.Error:
-    description: HTTP Error model with content, error and code
+  models.Body:
+    description: HTTP Body model for all responses
     properties:
-      code:
-        type: integer
-      content:
-        type: string
-      error:
-        type: string
-    type: object
-  handlers.Guild:
-    description: Model of guild data
-    properties:
-      guild_id:
-        type: string
-      multiplier:
-        type: integer
-      pb_channel_id:
-        type: string
-    type: object
-  handlers.User:
-    description: Model of active guild member
-    properties:
-      guild_id:
-        type: string
-      points:
-        type: integer
-      user_id:
-        type: string
-    type: object
-  handlers.Users:
-    description: Model of active guild members
-    properties:
-      users:
-        items:
-          $ref: '#/definitions/handlers.User'
-        type: array
+      content: {}
     type: object
 host: localhost:8080
 info:
@@ -60,33 +27,38 @@ paths:
         name: user_id
         required: true
         type: string
+      - description: RSN
+        in: path
+        name: rsn
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.User'
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
       summary: Remove RSN from guild and user
       tags:
       - RSN
@@ -107,27 +79,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.User'
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
       summary: Get RSN related information by guild and user ID
       tags:
       - RSN
@@ -145,37 +117,42 @@ paths:
         name: user_id
         required: true
         type: string
+      - description: RSN
+        in: path
+        name: rsn
+        required: true
+        type: string
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.User'
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/handlers.Guild'
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
       summary: Link an RSN to a user
       tags:
       - RSN
@@ -191,30 +168,30 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "204":
+          description: No Content
           schema:
-            $ref: '#/definitions/handlers.Guild'
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
       summary: Delete a guild
       tags:
       - Guild
@@ -231,27 +208,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.Guild'
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
       summary: Get a guild by ID
       tags:
       - Guild
@@ -266,39 +243,40 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.Guild'
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/handlers.Guild'
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
       summary: Create / Initialize a guild
       tags:
       - Guild
+  /v1/guild/multiplier:
     put:
-      description: Update a guild in our backend by unique guild Snowflake (ID)
+      description: Update guild point multiplier by guild Snowflake (ID)
       parameters:
       - description: Guild ID
         in: path
@@ -308,35 +286,71 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "204":
+          description: No Content
           schema:
-            $ref: '#/definitions/handlers.Guild'
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/handlers.Guild'
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Update a guilds information
+            $ref: '#/definitions/models.Body'
+      summary: Update multiplier for guild
+      tags:
+      - Guild
+  /v1/guild/times:
+    put:
+      description: Update where time related embeds are located in our backend by
+        unique guild Snowflake (ID)
+      parameters:
+      - description: Guild ID
+        in: path
+        name: guild_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/models.Body'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Body'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/models.Body'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Body'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Body'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Body'
+      summary: Update times channel from guild
       tags:
       - Guild
   /v1/leaderboard:
@@ -353,27 +367,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.Users'
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
       summary: Get a guilds leaderboard by ID
       tags:
       - Leaderboard
@@ -389,30 +403,30 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "204":
+          description: No Content
           schema:
-            type: string
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
       summary: Remove time from guilds best times
       tags:
       - Time
@@ -428,78 +442,35 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            type: string
         "201":
           description: Created
           schema:
-            type: string
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
       summary: Add a new best time to guild
-      tags:
-      - Time
-    put:
-      description: Update where time related embeds are located in our backend by
-        unique guild Snowflake (ID)
-      parameters:
-      - description: Guild ID
-        in: path
-        name: guild_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "201":
-          description: Created
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "429":
-          description: Too Many Requests
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Update times channel from guild
       tags:
       - Time
   /v1/user:
@@ -520,30 +491,30 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "204":
+          description: No Content
           schema:
-            $ref: '#/definitions/handlers.User'
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
       summary: Delete a user from guild
       tags:
       - User
@@ -564,27 +535,27 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.User'
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
       summary: Get a user by ID
       tags:
       - User
@@ -604,82 +575,35 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.User'
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/handlers.User'
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Create / Initialize a puild
-      tags:
-      - User
-    put:
-      description: Update a guild in our backend by unique guild Snowflake (ID)
-      parameters:
-      - description: Guild ID
-        in: path
-        name: guild_id
-        required: true
-        type: string
-      - description: User ID
-        in: path
-        name: user_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.User'
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/handlers.User'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "429":
-          description: Too Many Requests
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Update a guilds information
+            $ref: '#/definitions/models.Body'
+      summary: Create / Initialize a new user
       tags:
       - User
   /v1/users:
@@ -700,75 +624,28 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.Users'
+            $ref: '#/definitions/models.Body'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "429":
           description: Too Many Requests
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/models.Body'
       summary: Get multiple users
-      tags:
-      - Users
-    put:
-      description: Update multiple users by unique user Snowflakes (IDs)
-      parameters:
-      - description: Guild ID
-        in: path
-        name: guild_id
-        required: true
-        type: string
-      - description: User IDs
-        in: path
-        name: user_ids
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.Users'
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/handlers.Users'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "429":
-          description: Too Many Requests
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Update multiple users information
       tags:
       - Users
 swagger: "2.0"

@@ -11,12 +11,13 @@ import (
 // @Tags Time
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Success 201 {object} models.Response
-// @Failure 400 {object} models.Response
-// @Failure 403 {object} models.Response
-// @Failure 404 {object} models.Response
-// @Failure 429 {object} models.Response
-// @Failure 500 {object} models.Response
+// @Success 201 {object} models.Body
+// @Failure 400 {object} models.Body
+// @Failure 403 {object} models.Body
+// @Failure 404 {object} models.Body
+// @Failure 409 {object} models.Body
+// @Failure 429 {object} models.Body
+// @Failure 500 {object} models.Body
 // @Router /v1/time [POST]
 func CreateTime(w http.ResponseWriter, r *http.Request) {
 	p := map[string]string{
@@ -74,12 +75,12 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 // @Tags Time
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Success 204 {object} models.Response
-// @Failure 400 {object} models.Response
-// @Failure 403 {object} models.Response
-// @Failure 404 {object} models.Response
-// @Failure 429 {object} models.Response
-// @Failure 500 {object} models.Response
+// @Success 204 {object} models.Body
+// @Failure 400 {object} models.Body
+// @Failure 403 {object} models.Body
+// @Failure 404 {object} models.Body
+// @Failure 429 {object} models.Body
+// @Failure 500 {object} models.Body
 // @Router /v1/time [DELETE]
 func RemoveTime(w http.ResponseWriter, r *http.Request) {
 	p := map[string]string{
