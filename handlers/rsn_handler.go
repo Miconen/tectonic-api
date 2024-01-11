@@ -66,7 +66,14 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.InsertRsn(p)
+	wid, err := utils.GetWomId(p["rsn"])
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
+	}
+
+	err = database.InsertRsn(p, wid)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating RSN: %v\n", err)
 		// TODO: Handle 404 Not Found errors

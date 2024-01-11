@@ -32,8 +32,8 @@ func SelectRsn(f map[string]string) (models.RSN, error) {
 	return rsn, nil
 }
 
-func InsertRsn(f map[string]string) error {
-	query := psql.Insert("rsn").Columns("guild_id", "user_id", "rsn").Values(f["guild_id"], f["user_id"], f["rsn"])
+func InsertRsn(f map[string]string, wid string) error {
+	query := psql.Insert("rsn").Columns("guild_id", "user_id", "rsn", "wom_id").Values(f["guild_id"], f["user_id"], f["rsn"], wid)
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return err
