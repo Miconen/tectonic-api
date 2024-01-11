@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 	"tectonic-api/database"
-	"tectonic-api/models"
+	"tectonic-api/utils"
 )
 
 // @Summary Get multiple users
@@ -22,21 +22,22 @@ import (
 // @Failure 500 {object} models.Response
 // @Router /v1/users [GET]
 func GetUsers(w http.ResponseWriter, r *http.Request) {
-	p := map[string]string{
-		"guild_id": r.URL.Query().Get("guild_id"),
-		"user_ids": r.URL.Query().Get("user_ids"),
+	status := http.StatusOK
+
+	p, err := utils.ParseParametersURL(r, "guild_id", "user_ids")
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
 	}
 
-	h := func(r *http.Request) (models.Body, int, error) {
-
-		users, err := database.SelectUsers("users", p)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
-			return models.Body{}, http.StatusInternalServerError, err
-		}
-
-		return models.Body{Content: users}, http.StatusOK, nil
+	users, err := database.SelectUsers(p)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
+		status = http.StatusInternalServerError
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		return
 	}
 
-	httpHandler(w, r, h, p)
+	utils.JsonWriter(users).IntoHTTP(status)(w, r)
 }
