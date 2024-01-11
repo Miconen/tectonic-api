@@ -8,8 +8,8 @@ import (
 	"github.com/Masterminds/squirrel"
 )
 
-func SelectUser(f map[string]string) (models.User, error) {
-	query := psql.Select("*").From("users")
+func SelectRsn(f map[string]string) (models.RSN, error) {
+	query := psql.Select("*").From("rsn")
 
 	for key, value := range f {
 		query = query.Where(squirrel.Eq{key: value})
@@ -17,23 +17,23 @@ func SelectUser(f map[string]string) (models.User, error) {
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return models.User{}, err
+		return models.RSN{}, err
 	}
 
 	row := db.QueryRow(context.Background(), sql, args...)
 
-	var user models.User
+	var rsn models.RSN
 
-	err = row.Scan(&user.UserId, &user.GuildId, &user.Points)
+	err = row.Scan(&rsn.RSN, &rsn.WomId, &rsn.UserId, &rsn.GuildId)
 	if err != nil {
-		return models.User{}, err
+		return models.RSN{}, err
 	}
 
-	return user, nil
+	return rsn, nil
 }
 
-func InsertUser(f map[string]string) error {
-	query := psql.Insert("users").Columns("guild_id", "user_id").Values(f["guild_id"], f["user_id"])
+func InsertRsn(f map[string]string) error {
+	query := psql.Insert("rsn").Columns("guild_id", "user_id", "rsn").Values(f["guild_id"], f["user_id"], f["rsn"])
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return err
@@ -51,8 +51,8 @@ func InsertUser(f map[string]string) error {
 	return nil
 }
 
-func DeleteUser(f map[string]string) error {
-	query := psql.Delete("users")
+func DeleteRsn(f map[string]string) error {
+	query := psql.Delete("rsn")
 
 	for key, value := range f {
 		query = query.Where(squirrel.Eq{key: value})

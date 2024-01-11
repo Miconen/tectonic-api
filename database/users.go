@@ -2,16 +2,19 @@ package database
 
 import (
 	"context"
+	"strings"
 	"tectonic-api/models"
 
 	"github.com/Masterminds/squirrel"
 )
 
-func SelectUsers(table string, filter map[string]string) (models.Users, error) {
-	query := squirrel.Select("*").From(table)
+func SelectUsers(f map[string]string) (models.Users, error) {
+	userIds := strings.Split(f["user_ids"], ",")
 
-	for key, value := range filter {
-		query = query.Where(squirrel.Eq{key: value})
+	query := squirrel.Select("*").From("users").Where(squirrel.Eq{"guild_id": f["guild_id"]})
+
+	for _, value := range userIds {
+		query = query.Where(squirrel.Eq{"user_id": value})
 	}
 
 	sql, args, err := query.ToSql()
