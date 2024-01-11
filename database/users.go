@@ -11,11 +11,7 @@ import (
 func SelectUsers(f map[string]string) (models.Users, error) {
 	userIds := strings.Split(f["user_ids"], ",")
 
-	query := squirrel.Select("*").From("users").Where(squirrel.Eq{"guild_id": f["guild_id"]})
-
-	for _, value := range userIds {
-		query = query.Where(squirrel.Eq{"user_id": value})
-	}
+	query := psql.Select("*").From("users").Where(squirrel.Eq{"guild_id": f["guild_id"]}).Where(squirrel.Eq{"user_id": userIds})
 
 	sql, args, err := query.ToSql()
 	if err != nil {
