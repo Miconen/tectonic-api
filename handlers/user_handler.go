@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 	"tectonic-api/database"
-	"tectonic-api/models"
+	"tectonic-api/utils"
 )
 
 // @Summary Get a user by ID
@@ -22,24 +22,24 @@ import (
 // @Failure 500 {object} models.Body
 // @Router /v1/user [GET]
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	p := map[string]string{
-		"guild_id": r.URL.Query().Get("guild_id"),
-		"user_id":  r.URL.Query().Get("user_id"),
+	status := http.StatusOK
+
+	p, err := utils.ParseParametersURL(r, "guild_id", "user_id")
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
 	}
 
-	h := func(r *http.Request) (models.Body, int, error) {
-		user, err := database.SelectUser(p)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
-			return models.Body{}, http.StatusInternalServerError, err
-		}
-
-		res := models.Body{Content: user}
-
-		return res, http.StatusOK, nil
+	user, err := database.SelectUser(p)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error fetching user: %v\n", err)
+		status = http.StatusNotFound
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		return
 	}
 
-	httpHandler(w, r, h, p)
+	utils.JsonWriter(user).IntoHTTP(status)(w, r)
 }
 
 // @Summary Create / Initialize a new user
@@ -48,37 +48,30 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param guild_id path string true "Guild ID"
 // @Param user_id path string true "User ID"
-// @Success 201 {object} models.Body
-// @Failure 400 {object} models.Body
-// @Failure 403 {object} models.Body
-// @Failure 404 {object} models.Body
-// @Failure 409 {object} models.Body
-// @Failure 429 {object} models.Body
-// @Failure 500 {object} models.Body
+// @Success 201 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 403 {object} models.Response
+// @Failure 409 {object} models.Response
+// @Failure 429 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /v1/user [POST]
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	p := map[string]string{
-		"guild_id": r.URL.Query().Get("guild_id"),
-		"user_id":  r.URL.Query().Get("user_id"),
+	status := http.StatusCreated
+
+	p, err := utils.ParseParametersURL(r, "guild_id", "user_id")
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
 	}
 
-	h := func(r *http.Request) (models.Body, int, error) {
-
-		user := models.User{
-			UserId:  p["user_id"],
-			GuildId: p["guild_id"],
-		}
-
-		err := database.InsertUser(user)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error inserting user: %v\n", err)
-			return models.Body{}, http.StatusInternalServerError, err
-		}
-
-		return models.Body{}, http.StatusCreated, nil
+	err = database.InsertUser(p)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error inserting user: %v\n", err)
+		status = http.StatusConflict
 	}
 
-	httpHandler(w, r, h, p)
+	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
 }
 
 // @Summary Delete a user from guild
@@ -95,21 +88,20 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Body
 // @Router /v1/user [DELETE]
 func RemoveUser(w http.ResponseWriter, r *http.Request) {
-	p := map[string]string{
-		"guild_id": r.URL.Query().Get("guild_id"),
-		"user_id":  r.URL.Query().Get("user_id"),
+	status := http.StatusNoContent
+
+	p, err := utils.ParseParametersURL(r, "guild_id", "user_id")
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
 	}
 
-	h := func(r *http.Request) (models.Body, int, error) {
-
-		err := database.DeleteUser(p)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
-			return models.Body{}, http.StatusInternalServerError, err
-		}
-
-		return models.Body{}, http.StatusNoContent, nil
+	err = database.DeleteUser(p)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
+		status = http.StatusNotFound
 	}
 
-	httpHandler(w, r, h, p)
+	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
 }

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 	"tectonic-api/database"
-	"tectonic-api/models"
+	"tectonic-api/utils"
 )
 
 // @Summary Get a guilds leaderboard by ID
@@ -21,20 +21,22 @@ import (
 // @Failure 500 {object} models.Body
 // @Router /v1/leaderboard [GET]
 func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
-	p := map[string]string{
-		"guild_id": r.URL.Query().Get("guild_id"),
+	status := http.StatusOK
+
+	p, err := utils.ParseParametersURL(r, "guild_id")
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
 	}
 
-	h := func(r *http.Request) (models.Body, int, error) {
-
-		leaderboard, err := database.SelectLeaderboard(p)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
-			return models.Body{}, http.StatusInternalServerError, err
-		}
-
-		return models.Body{Content: leaderboard}, http.StatusOK, nil
+	leaderboard, err := database.SelectLeaderboard(p)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
+		status = http.StatusNotFound
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		return
 	}
 
-	httpHandler(w, r, h, p)
+	utils.JsonWriter(leaderboard).IntoHTTP(status)(w, r)
 }

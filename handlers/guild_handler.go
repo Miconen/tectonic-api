@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 	"tectonic-api/database"
-	"tectonic-api/models"
+	"tectonic-api/utils"
 )
 
 // @Summary Get a guild by ID
@@ -21,25 +21,25 @@ import (
 // @Failure 500 {object} models.Body
 // @Router /v1/guild [GET]
 func GetGuild(w http.ResponseWriter, r *http.Request) {
-	p := map[string]string{
-		"guild_id": r.URL.Query().Get("guild_id"),
+	status := http.StatusOK
+
+	p, err := utils.ParseParametersURL(r, "guild_id")
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
 	}
 
-	h := func(r *http.Request) (models.Body, int, error) {
-
-		guild := models.Guild{
-			GuildId: p["guild_id"],
-		}
-		guild, err := database.SelectGuild(p)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error selecting guild: %v\n", err)
-			return models.Body{}, http.StatusInternalServerError, err
-		}
-
-		return models.Body{Content: guild}, http.StatusOK, nil
+	guild, err := database.SelectGuild(p)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error selecting guild: %v\n", err)
+		status = http.StatusNotFound
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		return
 	}
 
-	httpHandler(w, r, h, p)
+	// Write JSON response
+	utils.JsonWriter(guild).IntoHTTP(status)(w, r)
 }
 
 // @Summary Create / Initialize a guild
@@ -47,34 +47,30 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 // @Tags Guild
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Success 201 {object} models.Body
-// @Failure 400 {object} models.Body
-// @Failure 403 {object} models.Body
-// @Failure 404 {object} models.Body
-// @Failure 409 {object} models.Body
-// @Failure 429 {object} models.Body
-// @Failure 500 {object} models.Body
+// @Success 201 {object} models.Response
+// @Failure 400 {object} models.Response
+// @Failure 403 {object} models.Response
+// @Failure 409 {object} models.Response
+// @Failure 429 {object} models.Response
+// @Failure 500 {object} models.Response
 // @Router /v1/guild [POST]
 func CreateGuild(w http.ResponseWriter, r *http.Request) {
-	p := map[string]string{
-		"guild_id": r.URL.Query().Get("guild_id"),
+	status := http.StatusCreated
+
+	p, err := utils.ParseParametersURL(r, "guild_id")
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
 	}
 
-	h := func(r *http.Request) (models.Body, int, error) {
-
-		guild := models.Guild{
-			GuildId: p["guild_id"],
-		}
-		err := database.InsertGuild(guild)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error creating guild: %v\n", err)
-			return models.Body{}, http.StatusInternalServerError, err
-		}
-
-		return models.Body{}, http.StatusCreated, nil
+	err = database.InsertGuild(p["guild_id"])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating guild: %v\n", err)
+		status = http.StatusConflict
 	}
 
-	httpHandler(w, r, h, p)
+	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
 }
 
 // @Summary Delete a guild
@@ -90,22 +86,22 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Body
 // @Router /v1/guild [DELETE]
 func RemoveGuild(w http.ResponseWriter, r *http.Request) {
-	p := map[string]string{
-		"guild_id": r.URL.Query().Get("guild_id"),
+	status := http.StatusNoContent
+
+	p, err := utils.ParseParametersURL(r, "guild_id")
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
 	}
 
-	h := func(r *http.Request) (models.Body, int, error) {
-
-		err := database.DeleteGuild(p)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error deleting guild: %v\n", err)
-			return models.Body{}, http.StatusInternalServerError, err
-		}
-
-		return models.Body{}, http.StatusNoContent, nil
+	err = database.DeleteGuild(p)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error deleting guild: %v\n", err)
+		status = http.StatusNotFound
 	}
 
-	httpHandler(w, r, h, p)
+	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
 }
 
 // @Summary Update times channel from guild
@@ -121,27 +117,28 @@ func RemoveGuild(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Body
 // @Router /v1/guild/times [PUT]
 func UpdateTimesChannel(w http.ResponseWriter, r *http.Request) {
-	p := map[string]string{
-		"guild_id":      r.URL.Query().Get("guild_id"),
-		"pb_channel_id": r.URL.Query().Get("pb_channel_id"),
+	status := http.StatusNoContent
+
+	p, err := utils.ParseParametersURL(r, "guild_id", "pb_channel_id")
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
 	}
 
-	h := func(r *http.Request) (models.Body, int, error) {
-
-		c := map[string]interface{}{
-			"pb_channel_id": p["pb_channel_id"],
-		}
-
-		err := database.UpdateGuild(p["guild_id"], c)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error updating channel: %v\n", err)
-			return models.Body{}, http.StatusInternalServerError, err
-		}
-
-		return models.Body{}, http.StatusNoContent, nil
+	g, f, err := utils.ExtractByClone(p, "guild_id")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	httpHandler(w, r, h, p)
+	err = database.UpdateGuild(g, f)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error updating channel: %v\n", err)
+		status = http.StatusNotFound
+	}
+
+	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
 }
 
 // @Summary Update multiplier for guild
@@ -157,25 +154,27 @@ func UpdateTimesChannel(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Body
 // @Router /v1/guild/multiplier [PUT]
 func UpdateMultiplier(w http.ResponseWriter, r *http.Request) {
-	p := map[string]string{
-		"guild_id":   r.URL.Query().Get("guild_id"),
-		"multiplier": r.URL.Query().Get("multiplier"),
+	status := http.StatusNoContent
+
+	p, err := utils.ParseParametersURL(r, "guild_id", "multiplier")
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
 	}
 
-	h := func(r *http.Request) (models.Body, int, error) {
-
-		c := map[string]interface{}{
-			"multiplier": p["multiplier"],
-		}
-
-		err := database.UpdateGuild(p["guild_id"], c)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error updating multiplier: %v\n", err)
-			return models.Body{}, http.StatusInternalServerError, err
-		}
-
-		return models.Body{}, http.StatusNoContent, nil
+	g, f, err := utils.ExtractByClone(p, "guild_id")
+	if err != nil {
+		status = http.StatusInternalServerError
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
 	}
 
-	httpHandler(w, r, h, p)
+	err = database.UpdateGuild(g, f)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error updating multiplier: %v\n", err)
+		status = http.StatusNotFound
+	}
+
+	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
 }
