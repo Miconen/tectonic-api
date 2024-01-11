@@ -9,7 +9,8 @@ import (
 )
 
 type Wom struct {
-	Id int `json:"id"`
+	Id          int    `json:"id"`
+	DisplayName string `json:"displayName"`
 }
 
 var endpoint = "https://api.wiseoldman.net/v2/players/search?username="
@@ -33,8 +34,12 @@ func GetWomId(rsn string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println(result)
-	fmt.Println(result[0])
+	id := strconv.Itoa(result[0].Id)
+	name := result[0].DisplayName
+	if name != rsn {
+		fmt.Println("Provided RSN doesn't match fetched RSN")
+		return "", errors.New("Provided RSN doesn't match fetched RSN")
+	}
 
-	return strconv.Itoa(result[0].Id), nil
+	return id, nil
 }
