@@ -9,10 +9,10 @@ func ExtractByClone(p map[string]string, key string) (string, map[string]string,
 		return "", p, errors.New("No value found for key")
 	}
 
-	// Create a copy of the original map without the guild_id
+	// Create a copy of the original map without provided key value pair
 	c := make(map[string]string)
 	for k, v := range p {
-		if k != "guild_id" {
+		if k != key {
 			c[k] = v
 		}
 	}
