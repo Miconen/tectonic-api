@@ -63,9 +63,13 @@ func DeleteRsn(f map[string]string) error {
 		return err
 	}
 
-	_, err = db.Exec(context.Background(), sql, args...)
+	commandTag, err := db.Exec(context.Background(), sql, args...)
 	if err != nil {
 		return err
+	}
+
+	if commandTag.RowsAffected() != 1 {
+		return fmt.Errorf("expected 1 row to be affected, got %d", commandTag.RowsAffected())
 	}
 
 	return nil
