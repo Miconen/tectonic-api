@@ -32,6 +32,13 @@ type Time struct {
 	Team     Users  `json:"team"`
 }
 
+type RSN struct {
+	RSN     string `json:"rsn"`
+	WomId   string `json:"wom_id"`
+	UserId  string `json:"user_id"`
+	GuildId string `json:"guild_id"`
+}
+
 // Body Model
 // @Description HTTP Body model for all responses
 type Body struct {
