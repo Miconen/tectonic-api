@@ -16,8 +16,6 @@ func JsonWriter(data any) *jsonWriter {
 }
 
 func (jsonWriter *jsonWriter) ServeHttp(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	// We can pass the response writer directly because it won't write the
 	// response if the marshalling had errors.
 	enc := json.NewEncoder(w)
@@ -25,6 +23,6 @@ func (jsonWriter *jsonWriter) ServeHttp(w http.ResponseWriter, r *http.Request) 
 
 	if err != nil {
 		// Can't write JSON, we have a big problem.
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 }

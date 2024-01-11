@@ -30,6 +30,8 @@ func writeErrorResponse(w http.ResponseWriter, e string, s int) {
 // }
 
 func httpHandler(w http.ResponseWriter, r *http.Request, h Handler, p map[string]string) {
+	w.Header().Set("Content-Type", "application/json")
+
 	// Check if required parameters are missing based on the handler logic
 	for _, v := range p {
 		if v != "" {
