@@ -32,7 +32,7 @@ func SelectUser(f map[string]string) (models.User, error) {
 	return user, nil
 }
 
-func InsertUser(f map[string]string) error {
+func InsertUser(f map[string]string, wid string) error {
 	query := psql.Insert("users").Columns("guild_id", "user_id").Values(f["guild_id"], f["user_id"])
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -46,6 +46,11 @@ func InsertUser(f map[string]string) error {
 
 	if commandTag.RowsAffected() != 1 {
 		return fmt.Errorf("expected 1 row to be affected, got %d", commandTag.RowsAffected())
+	}
+
+	err = InsertRsn(f, wid)
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -48,6 +48,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param guild_id path string true "Guild ID"
 // @Param user_id path string true "User ID"
+// @Param rsn path string true "RSN"
 // @Success 201 {object} models.Response
 // @Failure 400 {object} models.Response
 // @Failure 403 {object} models.Response
@@ -58,14 +59,21 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusCreated
 
-	p, err := utils.ParseParametersURL(r, "guild_id", "user_id")
+	p, err := utils.ParseParametersURL(r, "guild_id", "user_id", "rsn")
 	if err != nil {
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
 		return
 	}
 
-	err = database.InsertUser(p)
+	wid, err := utils.GetWomId(p["rsn"])
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
+	}
+
+	err = database.InsertUser(p, wid)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error inserting user: %v\n", err)
 		status = http.StatusConflict
