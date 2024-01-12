@@ -9,10 +9,17 @@ import (
 )
 
 func SelectUser(f map[string]string) (models.User, error) {
-	query := psql.Select("*").From("users")
+	query := psql.Select("users.*").From("users")
 
-	for key, value := range f {
-		query = query.Where(squirrel.Eq{key: value})
+	switch {
+	case f["rsn"] != "":
+		query = query.Join("rsn ON users.user_id = rsn.user_id AND users.guild_id = rsn.guild_id").Where(squirrel.Eq{"rsn.rsn": f["rsn"]})
+	case f["wom_id"] != "":
+		query = query.Join("rsn ON users.user_id = rsn.user_id AND users.guild_id = rsn.guild_id").Where(squirrel.Eq{"rsn.wom_id": f["wom_id"]})
+	case f["user_id"] != "":
+		query = query.Where(squirrel.Eq{"users.user_id": f["user_id"], "users.guild_id": f["guild_id"]})
+	default:
+		return models.User{}, fmt.Errorf("No valid search key provided")
 	}
 
 	sql, args, err := query.ToSql()
