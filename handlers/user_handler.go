@@ -24,7 +24,14 @@ import (
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusOK
 
-	p, err := utils.ParseParametersURL(r, "guild_id", "user_id")
+	p, err := utils.ParseParametersURL(r, "guild_id")
+	if err != nil {
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
+	}
+
+	_, err = utils.RequireOne(p, "user_id", "rsn", "wom_id")
 	if err != nil {
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
