@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 // Guild Model
 // @Description Model of guild data
 type Guild struct {
@@ -25,11 +27,17 @@ type Users struct {
 // Time Model
 // @Description Model of a fetched time and the team
 type Time struct {
-	Time     int    `json:"time"`
-	BossName string `json:"boss_name"`
-	RunId    int    `json:"run_id"`
-	Date     int    `json:"date"`
-	Team     Users  `json:"team"`
+	Time     int        `json:"time"`
+	BossName string     `json:"boss_name"`
+	RunId    int        `json:"run_id"`
+	Date     time.Time  `json:"date"`
+	Team     []Teammate `json:"team"`
+}
+
+type Teammate struct {
+	RunId   int    `json:"run_id"`
+	GuildId string `json:"guild_id"`
+	UserId  string `json:"user_id"`
 }
 
 type RSN struct {

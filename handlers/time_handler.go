@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
-	"tectonic-api/models"
+	"tectonic-api/database"
 	"tectonic-api/utils"
 )
 
@@ -12,6 +14,9 @@ import (
 // @Tags Time
 // @Produce json
 // @Param guild_id path string true "Guild ID"
+// @Param user_ids path string true "User IDs"
+// @Param time path string true "Time in ticks"
+// @Param boss_name path string true "Boss name"
 // @Success 201 {object} models.Empty
 // @Failure 400 {object} models.Empty
 // @Failure 403 {object} models.Empty
@@ -22,48 +27,19 @@ import (
 func CreateTime(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusCreated
 
-	p, err := utils.ParseParametersURL(r, "time", "boss_name", "run_id", "date", "team")
+	p, err := utils.ParseParametersURL(r, "time", "boss_name", "guild_id", "user_ids")
 	if err != nil {
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
 		return
 	}
 
-	timeInt, err := strconv.Atoi(p["time"])
+	time, err := database.InsertTime(p)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Error inserting time: %v\n", err)
+		status = http.StatusNotFound
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
 		return
-	}
-
-	runIdInt, err := strconv.Atoi(p["date"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	dateInt, err := strconv.Atoi(p["time"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	team := models.Users{}
-	for i := 0; i < 10; i++ {
-		user := models.User{
-			UserId:  "Hello",
-			GuildId: "World",
-			Points:  789,
-		}
-
-		team.Users = append(team.Users, user)
-	}
-
-	time := models.Time{
-		Time:     timeInt,
-		BossName: p["boss_name"],
-		RunId:    runIdInt,
-		Date:     dateInt,
-		Team:     team,
 	}
 
 	utils.JsonWriter(time).IntoHTTP(status)(w, r)

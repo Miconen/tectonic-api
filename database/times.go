@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"tectonic-api/models"
 	"time"
 )
@@ -11,38 +13,57 @@ func SelectTime() (models.Time, error) {
 	return time, nil
 }
 
-func InsertTime(ticks int64, boss string, teamData []map[string]interface{}) error {
-	// Create time entry
+func InsertTime(f map[string]string) (models.Time, error) {
+	teamIds := strings.Split(f["user_ids"], ",")
+
 	timeData := map[string]interface{}{
-		"time":      ticks,
-		"boss_name": boss,
+		"boss_name": f["boss_name"],
 		"date":      time.Now(),
+		"time":      f["time"],
 	}
 
-	sql, args, err := psql.Insert("times").SetMap(timeData).Suffix("RETURNING id").ToSql()
+	sql, args, err := psql.Insert("times").SetMap(timeData).Suffix("RETURNING *").ToSql()
 	if err != nil {
-		return err
+		return models.Time{}, err
 	}
 
-	var time int
-	err = db.QueryRow(context.Background(), sql, args...).Scan(&time)
+	row := db.QueryRow(context.Background(), sql, args...)
+
+	var runId int
+	res := models.Time{Team: []models.Teammate{}}
+	err = row.Scan(&res.Time, &res.BossName, &runId, &res.Date)
 	if err != nil {
-		return err
+		return models.Time{}, err
 	}
+
+	res.RunId = runId
 
 	// Update teamData to include the time_id
-	for i := range teamData {
-		teamData[i]["run_id"] = time
+	var teamArgs []interface{}
+	for _, v := range teamIds {
+		res.Team = append(res.Team, models.Teammate{
+			RunId:   runId,
+			GuildId: f["guild_id"],
+			UserId:  v,
+		})
+		teamArgs = append(teamArgs, runId, f["guild_id"], v)
 	}
 
-	// Create team entries
-	sql, args, err = psql.Insert("teams").Columns("user_id", "guild_id", "run_id").Values(teamData).ToSql()
+	// Construct the SQL query
+	sql = "INSERT INTO teams (run_id, guild_id, user_id) VALUES "
+	for i := 0; i < len(teamIds); i++ {
+		sql += fmt.Sprintf("($%d, $%d, $%d)", i*3+1, i*3+2, i*3+3)
+		if i < len(teamIds)-1 {
+			sql += ", "
+		}
+	}
+
+	_, err = db.Exec(context.Background(), sql, teamArgs...)
 	if err != nil {
-		return err
+		return models.Time{}, err
 	}
 
-	_, err = db.Exec(context.Background(), sql, args...)
-	return err
+	return res, nil
 }
 
 func DeleteTime() {
