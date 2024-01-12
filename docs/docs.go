@@ -43,37 +43,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.RSN"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -114,43 +114,37 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -188,40 +182,40 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "204": {
+                        "description": "No Content",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -249,37 +243,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Guild"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -306,43 +300,37 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -369,37 +357,37 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -428,37 +416,37 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -487,37 +475,37 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -545,37 +533,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Users"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -604,43 +592,37 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -667,37 +649,37 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -718,12 +700,25 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Guild ID",
                         "name": "guild_id",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
                         "description": "User ID",
                         "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "WOM ID",
+                        "name": "wom_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "RSN",
+                        "name": "rsn",
                         "in": "query"
                     }
                 ],
@@ -731,37 +726,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.User"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -789,49 +784,50 @@ const docTemplate = `{
                         "name": "user_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "RSN",
+                        "name": "rsn",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -865,37 +861,37 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -929,37 +925,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Users"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "429": {
                         "description": "Too Many Requests",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/models.Body"
+                            "$ref": "#/definitions/models.Empty"
                         }
                     }
                 }
@@ -967,11 +963,79 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.Body": {
+        "models.Empty": {
             "description": "HTTP Body model for all responses",
+            "type": "object"
+        },
+        "models.Guild": {
+            "description": "Model of guild data",
             "type": "object",
             "properties": {
-                "content": {}
+                "guild_id": {
+                    "type": "string"
+                },
+                "multiplier": {
+                    "type": "integer"
+                },
+                "pb_channel_id": {
+                    "$ref": "#/definitions/models.NullString"
+                }
+            }
+        },
+        "models.NullString": {
+            "type": "object",
+            "properties": {
+                "string": {
+                    "type": "string"
+                },
+                "valid": {
+                    "description": "Valid is true if String is not NULL",
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.RSN": {
+            "type": "object",
+            "properties": {
+                "guild_id": {
+                    "type": "string"
+                },
+                "rsn": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "wom_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.User": {
+            "description": "Model of active guild member",
+            "type": "object",
+            "properties": {
+                "guild_id": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Users": {
+            "description": "Model of active guild members",
+            "type": "object",
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.User"
+                    }
+                }
             }
         }
     }

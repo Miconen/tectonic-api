@@ -44,3 +44,7 @@ type RSN struct {
 type Body struct {
 	Content interface{} `json:"content,omitempty"`
 }
+
+// Body Model
+// @Description HTTP Body model for all responses
+type Empty struct{}

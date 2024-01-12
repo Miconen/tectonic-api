@@ -12,14 +12,16 @@ import (
 // @Description Get user details by unique user Snowflake (ID)
 // @Tags User
 // @Produce json
-// @Param guild_id query string false "Guild ID"
+// @Param guild_id query string true "Guild ID"
 // @Param user_id query string false "User ID"
-// @Success 200 {object} models.Body
-// @Failure 400 {object} models.Body
-// @Failure 403 {object} models.Body
-// @Failure 404 {object} models.Body
-// @Failure 429 {object} models.Body
-// @Failure 500 {object} models.Body
+// @Param wom_id query string false "WOM ID"
+// @Param rsn query string false "RSN"
+// @Success 200 {object} models.User
+// @Failure 400 {object} models.Empty
+// @Failure 403 {object} models.Empty
+// @Failure 404 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
 // @Router /v1/user [GET]
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusOK
@@ -56,12 +58,12 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 // @Param guild_id path string true "Guild ID"
 // @Param user_id path string true "User ID"
 // @Param rsn path string true "RSN"
-// @Success 201 {object} models.Response
-// @Failure 400 {object} models.Response
-// @Failure 403 {object} models.Response
-// @Failure 409 {object} models.Response
-// @Failure 429 {object} models.Response
-// @Failure 500 {object} models.Response
+// @Success 201 {object} models.Empty
+// @Failure 400 {object} models.Empty
+// @Failure 403 {object} models.Empty
+// @Failure 409 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
 // @Router /v1/user [POST]
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusCreated
@@ -95,12 +97,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param guild_id path string true "Guild ID"
 // @Param user_id path string true "User ID"
-// @Success 204 {object} models.Body
-// @Failure 400 {object} models.Body
-// @Failure 403 {object} models.Body
-// @Failure 404 {object} models.Body
-// @Failure 429 {object} models.Body
-// @Failure 500 {object} models.Body
+// @Success 204 {object} models.Empty
+// @Failure 400 {object} models.Empty
+// @Failure 403 {object} models.Empty
+// @Failure 404 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
 // @Router /v1/user [DELETE]
 func RemoveUser(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent

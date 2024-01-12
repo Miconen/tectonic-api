@@ -12,12 +12,12 @@ import (
 // @Tags Time
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Success 201 {object} models.Response
-// @Failure 400 {object} models.Response
-// @Failure 403 {object} models.Response
-// @Failure 409 {object} models.Response
-// @Failure 429 {object} models.Response
-// @Failure 500 {object} models.Response
+// @Success 201 {object} models.Empty
+// @Failure 400 {object} models.Empty
+// @Failure 403 {object} models.Empty
+// @Failure 409 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
 // @Router /v1/time [POST]
 func CreateTime(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusCreated
@@ -74,12 +74,12 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 // @Tags Time
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Success 204 {object} models.Body
-// @Failure 400 {object} models.Body
-// @Failure 403 {object} models.Body
-// @Failure 404 {object} models.Body
-// @Failure 429 {object} models.Body
-// @Failure 500 {object} models.Body
+// @Success 204 {object} models.Empty
+// @Failure 400 {object} models.Empty
+// @Failure 403 {object} models.Empty
+// @Failure 404 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
 // @Router /v1/time [DELETE]
 func RemoveTime(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent

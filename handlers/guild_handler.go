@@ -13,12 +13,12 @@ import (
 // @Tags Guild
 // @Produce json
 // @Param guild_id query string false "Guild ID"
-// @Success 200 {object} models.Body
-// @Failure 400 {object} models.Body
-// @Failure 403 {object} models.Body
-// @Failure 404 {object} models.Body
-// @Failure 429 {object} models.Body
-// @Failure 500 {object} models.Body
+// @Success 200 {object} models.Guild
+// @Failure 400 {object} models.Empty
+// @Failure 403 {object} models.Empty
+// @Failure 404 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
 // @Router /v1/guild [GET]
 func GetGuild(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusOK
@@ -47,12 +47,12 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 // @Tags Guild
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Success 201 {object} models.Response
-// @Failure 400 {object} models.Response
-// @Failure 403 {object} models.Response
-// @Failure 409 {object} models.Response
-// @Failure 429 {object} models.Response
-// @Failure 500 {object} models.Response
+// @Success 201 {object} models.Empty
+// @Failure 400 {object} models.Empty
+// @Failure 403 {object} models.Empty
+// @Failure 409 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
 // @Router /v1/guild [POST]
 func CreateGuild(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusCreated
@@ -78,12 +78,12 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 // @Tags Guild
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Success 204 {object} models.Body
-// @Failure 400 {object} models.Body
-// @Failure 403 {object} models.Body
-// @Failure 404 {object} models.Body
-// @Failure 429 {object} models.Body
-// @Failure 500 {object} models.Body
+// @Success 204 {object} models.Empty
+// @Failure 400 {object} models.Empty
+// @Failure 403 {object} models.Empty
+// @Failure 404 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
 // @Router /v1/guild [DELETE]
 func RemoveGuild(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent
@@ -109,12 +109,12 @@ func RemoveGuild(w http.ResponseWriter, r *http.Request) {
 // @Tags Guild
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Success 204 {object} models.Body
-// @Failure 400 {object} models.Body
-// @Failure 403 {object} models.Body
-// @Failure 404 {object} models.Body
-// @Failure 429 {object} models.Body
-// @Failure 500 {object} models.Body
+// @Success 204 {object} models.Empty
+// @Failure 400 {object} models.Empty
+// @Failure 403 {object} models.Empty
+// @Failure 404 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
 // @Router /v1/guild/times [PUT]
 func UpdateTimesChannel(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent
@@ -146,12 +146,12 @@ func UpdateTimesChannel(w http.ResponseWriter, r *http.Request) {
 // @Tags Guild
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Success 204 {object} models.Body
-// @Failure 400 {object} models.Body
-// @Failure 403 {object} models.Body
-// @Failure 404 {object} models.Body
-// @Failure 429 {object} models.Body
-// @Failure 500 {object} models.Body
+// @Success 204 {object} models.Empty
+// @Failure 400 {object} models.Empty
+// @Failure 403 {object} models.Empty
+// @Failure 404 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
 // @Router /v1/guild/multiplier [PUT]
 func UpdateMultiplier(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent

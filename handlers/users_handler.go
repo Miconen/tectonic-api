@@ -14,12 +14,12 @@ import (
 // @Produce json
 // @Param guild_id query string false "Guild ID"
 // @Param user_ids query string false "User IDs"
-// @Success 200 {object} models.Body
-// @Failure 400 {object} models.Body
-// @Failure 403 {object} models.Body
-// @Failure 404 {object} models.Body
-// @Failure 429 {object} models.Body
-// @Failure 500 {object} models.Body
+// @Success 200 {object} models.Users
+// @Failure 400 {object} models.Empty
+// @Failure 403 {object} models.Empty
+// @Failure 404 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
 // @Router /v1/users [GET]
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusOK
