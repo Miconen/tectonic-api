@@ -14,7 +14,7 @@ import (
 // @Produce json
 // @Param guild_id query string false "Guild ID"
 // @Param user_id query string false "User ID"
-// @Success 200 {object} models.RSN
+// @Success 200 {object} []models.RSN
 // @Failure 400 {object} models.Empty
 // @Failure 403 {object} models.Empty
 // @Failure 404 {object} models.Empty
@@ -31,7 +31,7 @@ func GetRSN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rsn, err := database.SelectRsn(p)
+	rsns, err := database.SelectRsns(p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error selecting RSN: %v\n", err)
 		status = http.StatusNotFound
@@ -39,7 +39,7 @@ func GetRSN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.JsonWriter(rsn).IntoHTTP(status)(w, r)
+	utils.JsonWriter(rsns).IntoHTTP(status)(w, r)
 }
 
 // @Summary Link an RSN to a user

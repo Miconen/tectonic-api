@@ -8,7 +8,7 @@ import (
 	"github.com/Masterminds/squirrel"
 )
 
-func SelectRsn(f map[string]string) (models.RSN, error) {
+func SelectRsns(f map[string]string) ([]models.RSN, error) {
 	query := psql.Select("*").From("rsn")
 
 	for key, value := range f {
@@ -17,19 +17,26 @@ func SelectRsn(f map[string]string) (models.RSN, error) {
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return models.RSN{}, err
+		return []models.RSN{}, err
 	}
 
-	row := db.QueryRow(context.Background(), sql, args...)
-
-	var rsn models.RSN
-
-	err = row.Scan(&rsn.RSN, &rsn.WomId, &rsn.UserId, &rsn.GuildId)
+	rows, err := db.Query(context.Background(), sql, args...)
 	if err != nil {
-		return models.RSN{}, err
+		return []models.RSN{}, err
 	}
 
-	return rsn, nil
+	var rsns []models.RSN
+
+	// Iterate through the rows and scan data into User struct
+	for rows.Next() {
+		var rsn models.RSN
+		if err := rows.Scan(&rsn.UserId, &rsn.GuildId, &rsn.WomId, &rsn.RSN); err != nil {
+			return []models.RSN{}, err
+		}
+		rsns = append(rsns, rsn)
+	}
+
+	return rsns, nil
 }
 
 func InsertRsn(f map[string]string, wid string) error {
