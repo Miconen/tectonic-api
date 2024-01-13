@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"tectonic-api/models"
 	"time"
@@ -39,26 +38,21 @@ func InsertTime(f map[string]string) (models.Time, error) {
 	res.RunId = runId
 
 	// Update teamData to include the time_id
-	var teamArgs []interface{}
 	for _, v := range teamIds {
 		res.Team = append(res.Team, models.Teammate{
 			RunId:   runId,
 			GuildId: f["guild_id"],
 			UserId:  v,
 		})
-		teamArgs = append(teamArgs, runId, f["guild_id"], v)
+	}
+	query := psql.Insert("teams").Columns("run_id", "guild_id", "user_id")
+
+	for _, teammate := range res.Team {
+		query = query.Values(teammate.RunId, teammate.GuildId, teammate.UserId)
 	}
 
-	// Construct the SQL query
-	sql = "INSERT INTO teams (run_id, guild_id, user_id) VALUES "
-	for i := 0; i < len(teamIds); i++ {
-		sql += fmt.Sprintf("($%d, $%d, $%d)", i*3+1, i*3+2, i*3+3)
-		if i < len(teamIds)-1 {
-			sql += ", "
-		}
-	}
-
-	_, err = db.Exec(context.Background(), sql, teamArgs...)
+	sql, args, err = query.ToSql()
+	_, err = db.Exec(context.Background(), sql, args...)
 	if err != nil {
 		return models.Time{}, err
 	}
