@@ -15,7 +15,7 @@ import (
 // @Param guild_id query string false "Guild ID"
 // @Success 200 {object} models.Guild
 // @Failure 400 {object} models.Empty
-// @Failure 403 {object} models.Empty
+// @Failure 401 {object} models.Empty
 // @Failure 404 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
@@ -49,7 +49,7 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 // @Param guild_id path string true "Guild ID"
 // @Success 201 {object} models.Empty
 // @Failure 400 {object} models.Empty
-// @Failure 403 {object} models.Empty
+// @Failure 401 {object} models.Empty
 // @Failure 409 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
@@ -80,7 +80,7 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 // @Param guild_id path string true "Guild ID"
 // @Success 204 {object} models.Empty
 // @Failure 400 {object} models.Empty
-// @Failure 403 {object} models.Empty
+// @Failure 401 {object} models.Empty
 // @Failure 404 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
@@ -111,7 +111,7 @@ func RemoveGuild(w http.ResponseWriter, r *http.Request) {
 // @Param guild_id path string true "Guild ID"
 // @Success 204 {object} models.Empty
 // @Failure 400 {object} models.Empty
-// @Failure 403 {object} models.Empty
+// @Failure 401 {object} models.Empty
 // @Failure 404 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
@@ -148,7 +148,7 @@ func UpdateTimesChannel(w http.ResponseWriter, r *http.Request) {
 // @Param guild_id path string true "Guild ID"
 // @Success 204 {object} models.Empty
 // @Failure 400 {object} models.Empty
-// @Failure 403 {object} models.Empty
+// @Failure 401 {object} models.Empty
 // @Failure 404 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty

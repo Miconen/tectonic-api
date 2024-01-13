@@ -15,7 +15,7 @@ import (
 // @Param guild_id query string false "Guild ID"
 // @Success 200 {object} models.Users
 // @Failure 400 {object} models.Empty
-// @Failure 403 {object} models.Empty
+// @Failure 401 {object} models.Empty
 // @Failure 404 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty

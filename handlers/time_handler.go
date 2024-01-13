@@ -20,7 +20,7 @@ import (
 // @Success 200 {object} models.Empty
 // @Success 201 {object} models.Empty
 // @Failure 400 {object} models.Empty
-// @Failure 403 {object} models.Empty
+// @Failure 401 {object} models.Empty
 // @Failure 409 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
@@ -80,7 +80,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 // @Param guild_id path string true "Guild ID"
 // @Success 204 {object} models.Empty
 // @Failure 400 {object} models.Empty
-// @Failure 403 {object} models.Empty
+// @Failure 401 {object} models.Empty
 // @Failure 404 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty

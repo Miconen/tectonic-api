@@ -18,7 +18,7 @@ import (
 // @Param rsn query string false "RSN"
 // @Success 200 {object} models.User
 // @Failure 400 {object} models.Empty
-// @Failure 403 {object} models.Empty
+// @Failure 401 {object} models.Empty
 // @Failure 404 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
@@ -60,7 +60,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 // @Param rsn path string true "RSN"
 // @Success 201 {object} models.Empty
 // @Failure 400 {object} models.Empty
-// @Failure 403 {object} models.Empty
+// @Failure 401 {object} models.Empty
 // @Failure 409 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
@@ -99,7 +99,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // @Param user_id path string true "User ID"
 // @Success 204 {object} models.Empty
 // @Failure 400 {object} models.Empty
-// @Failure 403 {object} models.Empty
+// @Failure 401 {object} models.Empty
 // @Failure 404 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
