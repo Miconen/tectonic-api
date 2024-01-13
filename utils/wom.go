@@ -34,10 +34,15 @@ func GetWomId(rsn string) (string, error) {
 		return "", err
 	}
 
+	if len(result) == 0 {
+		fmt.Println("RSN not found")
+		return "", errors.New("RSN not found")
+	}
+
 	id := strconv.Itoa(result[0].Id)
 	name := result[0].DisplayName
 	if name != rsn {
-		fmt.Println("Provided RSN doesn't match fetched RSN")
+		fmt.Printf("Provided RSN (%s) doesn't match fetched RSN (%s)\n", rsn, name)
 		return "", errors.New("Provided RSN doesn't match fetched RSN")
 	}
 
