@@ -30,7 +30,7 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guild, err := database.SelectGuild(p)
+	guild, err := database.SelectGuild(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error selecting guild: %v\n", err)
 		status = http.StatusNotFound
@@ -64,7 +64,7 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.InsertGuild(p["guild_id"])
+	err = database.InsertGuild(r.Context(), p["guild_id"])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating guild: %v\n", err)
 		status = http.StatusConflict
@@ -95,7 +95,7 @@ func RemoveGuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.DeleteGuild(p)
+	err = database.DeleteGuild(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error deleting guild: %v\n", err)
 		status = http.StatusNotFound
@@ -132,7 +132,7 @@ func UpdateTimesChannel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.UpdateGuild(g, f)
+	err = database.UpdateGuild(r.Context(), g, f)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error updating channel: %v\n", err)
 		status = http.StatusNotFound
@@ -170,7 +170,7 @@ func UpdateMultiplier(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.UpdateGuild(g, f)
+	err = database.UpdateGuild(r.Context(), g, f)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error updating multiplier: %v\n", err)
 		status = http.StatusNotFound
