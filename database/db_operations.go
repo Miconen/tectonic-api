@@ -7,19 +7,19 @@ import (
 	"reflect"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var psql = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-var db *pgx.Conn
+var pool *pgxpool.Pool
 
-func InitDB() (*pgx.Conn, error) {
-	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+func InitDB() (*pgxpool.Pool, error) {
+	conn, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		return nil, fmt.Errorf("unable to connect to database: %v", err)
 	}
 
-	db = conn // Store the connection in a package-level variable
+	pool = conn // Store the connection in a package-level variable
 
 	return conn, nil
 }
@@ -36,7 +36,13 @@ func SelectOne[T any](table string, filter map[string]string, result interface{}
 		return err
 	}
 
-	row := db.QueryRow(context.Background(), sql, args...)
+	conn, err := pool.Acquire(context.Background())
+	defer conn.Release()
+	if err != nil {
+		return err
+	}
+
+	row := conn.QueryRow(context.Background(), sql, args...)
 
 	// Get type information of the result
 	valueType := reflect.TypeOf(result).Elem()
@@ -75,7 +81,13 @@ func SelectMany[T any](table string, filter map[string]string, result *[]T) erro
 		return err
 	}
 
-	rows, err := db.Query(context.Background(), sql, args...)
+	conn, err := pool.Acquire(context.Background())
+	defer conn.Release()
+	if err != nil {
+		return err
+	}
+
+	rows, err := conn.Query(context.Background(), sql, args...)
 	if err != nil {
 		return err
 	}

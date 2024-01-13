@@ -7,7 +7,7 @@ import (
 	"github.com/Masterminds/squirrel"
 )
 
-func SelectLeaderboard(filter map[string]string) (models.Users, error) {
+func SelectLeaderboard(ctx context.Context, filter map[string]string) (models.Users, error) {
 	query := psql.Select("*").From("users").OrderBy("points DESC").Limit(50)
 
 	for key, value := range filter {
@@ -19,8 +19,14 @@ func SelectLeaderboard(filter map[string]string) (models.Users, error) {
 		return models.Users{}, err
 	}
 
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		return models.Users{}, err
+	}
+	defer conn.Release()
+
 	// Executing the query
-	rows, err := db.Query(context.Background(), sql, args...)
+	rows, err := conn.Query(ctx, sql, args...)
 	if err != nil {
 		return models.Users{}, err
 	}

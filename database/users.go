@@ -8,7 +8,7 @@ import (
 	"github.com/Masterminds/squirrel"
 )
 
-func SelectUsers(f map[string]string) (models.Users, error) {
+func SelectUsers(ctx context.Context, f map[string]string) (models.Users, error) {
 	userIds := strings.Split(f["user_ids"], ",")
 
 	query := psql.Select("*").From("users").Where(squirrel.Eq{"guild_id": f["guild_id"]}).Where(squirrel.Eq{"user_id": userIds})
@@ -18,8 +18,14 @@ func SelectUsers(f map[string]string) (models.Users, error) {
 		return models.Users{}, err
 	}
 
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		return models.Users{}, err
+	}
+	defer conn.Release()
+
 	// Executing the query
-	rows, err := db.Query(context.Background(), sql, args...)
+	rows, err := conn.Query(ctx, sql, args...)
 	if err != nil {
 		return models.Users{}, err
 	}
