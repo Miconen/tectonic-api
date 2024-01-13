@@ -16,7 +16,8 @@ import (
 // @Param guild_id path string true "Guild ID"
 // @Param user_ids path string true "User IDs"
 // @Param time path string true "Time in ticks"
-// @Param boss_name path string true "Boss name"
+// @Param boss path string true "Boss name"
+// @Success 200 {object} models.Empty
 // @Success 201 {object} models.Empty
 // @Failure 400 {object} models.Empty
 // @Failure 403 {object} models.Empty
@@ -27,10 +28,37 @@ import (
 func CreateTime(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusCreated
 
-	p, err := utils.ParseParametersURL(r, "time", "boss_name", "guild_id", "user_ids")
+	p, err := utils.ParseParametersURL(r, "time", "boss", "guild_id", "user_ids")
 	if err != nil {
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
+	}
+
+	t, err := strconv.Atoi(p["time"])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing (%s) to int: %v\n", t, err)
+		status = http.StatusBadRequest
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
+	}
+
+	pb, err := database.CheckPb(p)
+	if err != nil {
+		if pb == -1 {
+			fmt.Fprintf(os.Stderr, "Error fetching pb: %v\n", err)
+			status = http.StatusInternalServerError
+			utils.JsonWriter(err).IntoHTTP(status)(w, r)
+			return
+		}
+		if pb == 0 {
+			fmt.Fprintf(os.Stderr, "Pb is null: %v\n", err)
+		}
+	}
+
+	if pb <= t && pb != 0 {
+		status = http.StatusOK
+		utils.JsonWriter(pb).IntoHTTP(status)(w, r)
 		return
 	}
 
