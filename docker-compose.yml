@@ -22,6 +22,7 @@ services:
       - "8080:8080"
     environment:
         DATABASE_URL: postgresql://postgres:postgres@db:5432/tectonic
+        API_KEY: 123
     depends_on:
       - db
 

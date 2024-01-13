@@ -1,11 +1,14 @@
 package routes
 
 import (
-	"github.com/gorilla/mux"
 	"tectonic-api/handlers"
+	"tectonic-api/middleware"
+
+	"github.com/gorilla/mux"
+
+	_ "tectonic-api/docs"
 
 	httpSwagger "github.com/swaggo/http-swagger"
-	_ "tectonic-api/docs"
 )
 
 type APIBuilder struct {
@@ -20,6 +23,8 @@ func NewAPIBuilder() *APIBuilder {
 
 func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	r := b.router.PathPrefix("/api/v1").Subrouter()
+
+	r.Use(middleware.Authentication)
 
 	// User
 	r.HandleFunc("/user", handlers.GetUser).Methods("GET")
