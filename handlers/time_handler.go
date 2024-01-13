@@ -37,7 +37,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 
 	t, err := strconv.Atoi(p["time"])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing (%s) to int: %v\n", t, err)
+		fmt.Fprintf(os.Stderr, "Error parsing (%s) to int: %v\n", p["time"], err)
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
 		return
