@@ -88,8 +88,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "404":
@@ -124,13 +124,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.RSN'
+            items:
+              $ref: '#/definitions/models.RSN'
+            type: array
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "404":
@@ -178,8 +180,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "409":
@@ -217,8 +219,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "404":
@@ -254,8 +256,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "404":
@@ -292,8 +294,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "409":
@@ -331,8 +333,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "404":
@@ -371,8 +373,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "404":
@@ -409,8 +411,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "404":
@@ -448,8 +450,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "404":
@@ -476,9 +478,28 @@ paths:
         name: guild_id
         required: true
         type: string
+      - description: User IDs
+        in: path
+        name: user_ids
+        required: true
+        type: string
+      - description: Time in ticks
+        in: path
+        name: time
+        required: true
+        type: string
+      - description: Boss name
+        in: path
+        name: boss
+        required: true
+        type: string
       produces:
       - application/json
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Empty'
         "201":
           description: Created
           schema:
@@ -487,8 +508,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "409":
@@ -532,8 +553,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "404":
@@ -582,8 +603,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "404":
@@ -630,8 +651,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "409":
@@ -672,8 +693,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.Empty'
-        "403":
-          description: Forbidden
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.Empty'
         "404":

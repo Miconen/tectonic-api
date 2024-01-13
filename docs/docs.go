@@ -43,7 +43,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.RSN"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.RSN"
+                            }
                         }
                     },
                     "400": {
@@ -52,8 +55,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -123,8 +126,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -194,8 +197,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -252,8 +255,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -309,8 +312,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -366,8 +369,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -425,8 +428,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -484,8 +487,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -542,8 +545,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -586,9 +589,36 @@ const docTemplate = `{
                         "name": "guild_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User IDs",
+                        "name": "user_ids",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Time in ticks",
+                        "name": "time",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Boss name",
+                        "name": "boss",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
                     "201": {
                         "description": "Created",
                         "schema": {
@@ -601,8 +631,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -658,8 +688,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -735,8 +765,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -806,8 +836,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -870,8 +900,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -934,8 +964,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
