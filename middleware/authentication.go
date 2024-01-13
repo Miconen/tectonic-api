@@ -9,7 +9,7 @@ import (
 func Authentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get the API key from the URL query parameters
-		apiKey := r.URL.Query().Get("api_key")
+		apiKey := r.Header.Get("Authorization")
 
 		// Validate the API key (you may replace this with your own validation logic)
 		validApiKey := os.Getenv("API_KEY")
