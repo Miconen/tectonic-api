@@ -40,6 +40,12 @@ func SelectUser(f map[string]string) (models.User, error) {
 }
 
 func InsertUser(f map[string]string, wid string) error {
+	tx, err := db.Begin(context.Background())
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(context.Background()) // Rollback the transaction if it hasn't been committed
+
 	query := psql.Insert("users").Columns("guild_id", "user_id").Values(f["guild_id"], f["user_id"])
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -56,6 +62,11 @@ func InsertUser(f map[string]string, wid string) error {
 	}
 
 	err = InsertRsn(f, wid)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(context.Background())
 	if err != nil {
 		return err
 	}
