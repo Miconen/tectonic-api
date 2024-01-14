@@ -79,7 +79,7 @@ func InsertGuild(ctx context.Context, g string) error {
 
 	query = psql.Insert("guild_bosses").
 		Columns("guild_id", "boss", "pb_id").
-		Suffix("SELECT $1, name, '' FROM bosses", g)
+		Suffix("SELECT $1, name, NULL FROM bosses", g)
 
 	sql, args, err = query.ToSql()
 	if err != nil {
