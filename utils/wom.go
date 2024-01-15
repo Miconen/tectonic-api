@@ -18,7 +18,7 @@ var endpoint = "https://api.wiseoldman.net/v2/players/search?username="
 func GetWomId(rsn string) (string, error) {
 	response, err := http.Get(endpoint + rsn)
 	if err != nil {
-		return "sadge", err
+		return "", err
 	}
 	defer response.Body.Close()
 
