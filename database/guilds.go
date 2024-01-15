@@ -63,30 +63,16 @@ func InsertGuild(ctx context.Context, g string) error {
 		return err
 	}
 
-	query = psql.Insert("guild_categories").
-		Columns("guild_id", "category", "message_id").
-		Suffix("SELECT $1, name, '' FROM categories", g)
-
-	sql, args, err = query.ToSql()
+	sql = `INSERT INTO guild_categories(guild_id, category, message_id)
+		   SELECT $1, name, '' FROM categories`
+	_, err = tx.Exec(ctx, sql, g)
 	if err != nil {
 		return err
 	}
 
-	commandTagCategories, err := tx.Exec(ctx, sql, args...)
-	if err != nil {
-		return err
-	}
-
-	query = psql.Insert("guild_bosses").
-		Columns("guild_id", "boss", "pb_id").
-		Suffix("SELECT $1, name, NULL FROM bosses", g)
-
-	sql, args, err = query.ToSql()
-	if err != nil {
-		return err
-	}
-
-	commandTagBosses, err := tx.Exec(ctx, sql, args...)
+	sql = `INSERT INTO guild_bosses(guild_id, boss, pb_id)
+		   SELECT $1, name, NULL FROM bosses`
+	_, err = tx.Exec(ctx, sql, g)
 	if err != nil {
 		return err
 	}
@@ -97,10 +83,6 @@ func InsertGuild(ctx context.Context, g string) error {
 	}
 
 	if rows := commandTagGuild.RowsAffected(); rows != 1 {
-		return fmt.Errorf("expected 1 row to be affected, got %d", rows)
-	} else if rows := commandTagCategories.RowsAffected(); rows != 1 {
-		return fmt.Errorf("expected 1 row to be affected, got %d", rows)
-	} else if rows := commandTagBosses.RowsAffected(); rows != 1 {
 		return fmt.Errorf("expected 1 row to be affected, got %d", rows)
 	}
 
