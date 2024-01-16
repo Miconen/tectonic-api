@@ -31,7 +31,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := database.SelectUsers(p)
+	users, err := database.SelectUsers(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
 		status = http.StatusInternalServerError

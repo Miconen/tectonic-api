@@ -31,7 +31,7 @@ func GetRSN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rsns, err := database.SelectRsns(p)
+	rsns, err := database.SelectRsns(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error selecting RSN: %v\n", err)
 		status = http.StatusNotFound
@@ -73,7 +73,7 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.InsertRsn(p, wid)
+	err = database.InsertRsn(r.Context(), p, wid)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating RSN: %v\n", err)
 		// TODO: Handle 404 Not Found errors
@@ -107,7 +107,7 @@ func RemoveRSN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.DeleteRsn(p)
+	err = database.DeleteRsn(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error deleting RSN: %v\n", err)
 		status = http.StatusNotFound

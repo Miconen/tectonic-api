@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,7 +20,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error initializing database: %v\n", err)
 		os.Exit(1)
 	}
-	defer conn.Close(context.Background())
+	defer conn.Close()
 
 	router := routes.NewAPIBuilder().AttachV1Routes()
 

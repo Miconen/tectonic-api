@@ -40,7 +40,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := database.SelectUser(p)
+	user, err := database.SelectUser(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error fetching user: %v\n", err)
 		status = http.StatusNotFound
@@ -82,7 +82,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.InsertUser(p, wid)
+	err = database.InsertUser(r.Context(), p, wid)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error inserting user: %v\n", err)
 		status = http.StatusConflict
@@ -114,7 +114,7 @@ func RemoveUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.DeleteUser(p)
+	err = database.DeleteUser(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
 		status = http.StatusNotFound

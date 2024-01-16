@@ -43,7 +43,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pb, err := database.CheckPb(p)
+	pb, err := database.CheckPb(r.Context(), p)
 	if err != nil {
 		if pb == -1 {
 			fmt.Fprintf(os.Stderr, "Error fetching pb: %v\n", err)
@@ -62,7 +62,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	time, err := database.InsertTime(p)
+	time, err := database.InsertTime(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error inserting time: %v\n", err)
 		status = http.StatusNotFound

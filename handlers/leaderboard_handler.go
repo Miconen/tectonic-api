@@ -30,7 +30,7 @@ func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	leaderboard, err := database.SelectLeaderboard(p)
+	leaderboard, err := database.SelectLeaderboard(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
 		status = http.StatusNotFound

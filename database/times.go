@@ -15,7 +15,7 @@ func SelectTime() (models.Time, error) {
 	return time, nil
 }
 
-func CheckPb(f map[string]string) (int, error) {
+func CheckPb(ctx context.Context, f map[string]string) (int, error) {
 	query := psql.Select("t.time").
 		From("guild_bosses gb").
 		Join("times t ON gb.pb_id = t.run_id").
@@ -25,7 +25,13 @@ func CheckPb(f map[string]string) (int, error) {
 		return -1, err
 	}
 
-	row := db.QueryRow(context.Background(), sql, args...)
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		return 0, err
+	}
+	defer conn.Release()
+
+	row := conn.QueryRow(ctx, sql, args...)
 
 	var pb int
 
@@ -37,7 +43,7 @@ func CheckPb(f map[string]string) (int, error) {
 	return pb, nil
 }
 
-func InsertTime(f map[string]string) (models.Time, error) {
+func InsertTime(ctx context.Context, f map[string]string) (models.Time, error) {
 	teamIds := strings.Split(f["user_ids"], ",")
 
 	timeData := map[string]interface{}{
@@ -51,7 +57,13 @@ func InsertTime(f map[string]string) (models.Time, error) {
 		return models.Time{}, err
 	}
 
-	row := db.QueryRow(context.Background(), sql, args...)
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		return models.Time{}, err
+	}
+	defer conn.Release()
+
+	row := conn.QueryRow(ctx, sql, args...)
 
 	var runId int
 	res := models.Time{Team: []models.Teammate{}}
@@ -76,7 +88,11 @@ func InsertTime(f map[string]string) (models.Time, error) {
 		Set("pb_id", runId).
 		Where(squirrel.Eq{"guild_id": f["guild_id"], "boss": f["boss"]}).
 		ToSql()
-	commandTag, err := db.Exec(context.Background(), sql, args...)
+	if err != nil {
+		return models.Time{}, err
+	}
+
+	commandTag, err := conn.Exec(ctx, sql, args...)
 	if err != nil {
 		return models.Time{}, err
 	}
@@ -92,7 +108,11 @@ func InsertTime(f map[string]string) (models.Time, error) {
 	}
 
 	sql, args, err = query.ToSql()
-	_, err = db.Exec(context.Background(), sql, args...)
+	if err != nil {
+		return models.Time{}, err
+	}
+
+	_, err = conn.Exec(ctx, sql, args...)
 	if err != nil {
 		return models.Time{}, err
 	}

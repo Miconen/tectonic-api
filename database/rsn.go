@@ -8,7 +8,7 @@ import (
 	"github.com/Masterminds/squirrel"
 )
 
-func SelectRsns(f map[string]string) ([]models.RSN, error) {
+func SelectRsns(ctx context.Context, f map[string]string) ([]models.RSN, error) {
 	query := psql.Select("*").From("rsn")
 
 	for key, value := range f {
@@ -17,12 +17,18 @@ func SelectRsns(f map[string]string) ([]models.RSN, error) {
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return []models.RSN{}, err
+		return nil, err
 	}
 
-	rows, err := db.Query(context.Background(), sql, args...)
+	conn, err := pool.Acquire(ctx)
 	if err != nil {
-		return []models.RSN{}, err
+		return nil, err
+	}
+	defer conn.Release()
+
+	rows, err := conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
 	}
 
 	var rsns []models.RSN
@@ -31,7 +37,7 @@ func SelectRsns(f map[string]string) ([]models.RSN, error) {
 	for rows.Next() {
 		var rsn models.RSN
 		if err := rows.Scan(&rsn.UserId, &rsn.GuildId, &rsn.WomId, &rsn.RSN); err != nil {
-			return []models.RSN{}, err
+			return nil, err
 		}
 		rsns = append(rsns, rsn)
 	}
@@ -39,14 +45,21 @@ func SelectRsns(f map[string]string) ([]models.RSN, error) {
 	return rsns, nil
 }
 
-func InsertRsn(f map[string]string, wid string) error {
+func InsertRsn(ctx context.Context, f map[string]string, wid string) error {
 	query := psql.Insert("rsn").Columns("guild_id", "user_id", "rsn", "wom_id").Values(f["guild_id"], f["user_id"], f["rsn"], wid)
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return err
 	}
 
-	commandTag, err := db.Exec(context.Background(), sql, args...)
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Release()
+
+
+	commandTag, err := conn.Exec(ctx, sql, args...)
 	if err != nil {
 		return err
 	}
@@ -58,7 +71,7 @@ func InsertRsn(f map[string]string, wid string) error {
 	return nil
 }
 
-func DeleteRsn(f map[string]string) error {
+func DeleteRsn(ctx context.Context, f map[string]string) error {
 	query := psql.Delete("rsn")
 
 	for key, value := range f {
@@ -70,7 +83,13 @@ func DeleteRsn(f map[string]string) error {
 		return err
 	}
 
-	commandTag, err := db.Exec(context.Background(), sql, args...)
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Release()
+
+	commandTag, err := conn.Exec(ctx, sql, args...)
 	if err != nil {
 		return err
 	}
