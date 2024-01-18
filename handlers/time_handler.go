@@ -77,7 +77,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 // @Description Delete a time in our backend by unique guild Snowflake (ID)
 // @Tags Time
 // @Produce json
-// @Param guild_id path string true "Guild ID"
+// @Param time_id path string true "Time ID"
 // @Success 204 {object} models.Empty
 // @Failure 400 {object} models.Empty
 // @Failure 401 {object} models.Empty
@@ -88,28 +88,24 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 func RemoveTime(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent
 
-	p, err := utils.ParseParametersURL(r, "run_id")
+	p, err := utils.ParseParametersURL(r, "time_id")
 	if err != nil {
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
 		return
 	}
 
-	_, err = strconv.Atoi(p["time"])
+	_, err = strconv.Atoi(p["time_id"])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	_, err = strconv.Atoi(p["time"])
+	err = database.DeleteTime(r.Context(), p)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	_, err = strconv.Atoi(p["time"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		fmt.Fprintf(os.Stderr, "Error deleting time: %v\n", err)
+		status = http.StatusNotFound
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
 		return
 	}
 

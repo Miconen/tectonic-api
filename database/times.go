@@ -120,5 +120,26 @@ func InsertTime(ctx context.Context, f map[string]string) (models.Time, error) {
 	return res, nil
 }
 
-func DeleteTime() {
+func DeleteTime(ctx context.Context, f map[string]string) error {
+	sql, args, err := psql.Delete("users").Where(squirrel.Eq{"run_id": f["time_id"]}).ToSql()
+	if err != nil {
+		return err
+	}
+
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Release()
+
+	commandTag, err := conn.Exec(ctx, sql, args...)
+	if err != nil {
+		return err
+	}
+
+	if commandTag.RowsAffected() != 1 {
+		return fmt.Errorf("expected 1 row to be affected, got %d", commandTag.RowsAffected())
+	}
+
+	return nil
 }
