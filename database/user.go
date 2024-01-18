@@ -6,6 +6,7 @@ import (
 	"tectonic-api/models"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func SelectUser(ctx context.Context, f map[string]string) (models.User, error) {
@@ -45,6 +46,8 @@ func SelectUser(ctx context.Context, f map[string]string) (models.User, error) {
 	return user, nil
 }
 
+const ERROR_UNACTIVATED_GUILD string = "insert or update on table \"users\" violates foreign key constraint \"users_ibfk_1\""
+
 func InsertUser(ctx context.Context, f map[string]string, wid string) error {
 	conn, err := pool.Acquire(ctx)
 	defer conn.Release()
@@ -66,7 +69,8 @@ func InsertUser(ctx context.Context, f map[string]string, wid string) error {
 
 	commandTagUser, err := tx.Exec(ctx, sql, args...)
 	if err != nil {
-		return err
+		pgxerr := err.(*pgconn.PgError)
+		return fmt.Errorf("%s", pgxerr.Message)
 	}
 
 	query = psql.Insert("rsn").Columns("guild_id", "user_id", "rsn", "wom_id").Values(f["guild_id"], f["user_id"], f["rsn"], wid)
