@@ -85,7 +85,11 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	err = database.InsertUser(r.Context(), p, wid)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error inserting user: %v\n", err)
-		status = http.StatusConflict
+		if err.Error() == database.ERROR_UNACTIVATED_GUILD {
+			status = http.StatusNotFound
+		} else {
+			status = http.StatusConflict
+		}
 	}
 
 	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
