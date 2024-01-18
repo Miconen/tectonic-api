@@ -99,7 +99,7 @@ ALTER TABLE ONLY "public"."guild_categories" ADD CONSTRAINT "guild_categories_gu
 ALTER TABLE ONLY "public"."rsn" ADD CONSTRAINT "rsn_ibfk_1" FOREIGN KEY (user_id, guild_id) REFERENCES users(user_id, guild_id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
 ALTER TABLE ONLY "public"."teams" ADD CONSTRAINT "teams_run_id_fkey" FOREIGN KEY (run_id) REFERENCES times(run_id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
-ALTER TABLE ONLY "public"."teams" ADD CONSTRAINT "teams_user_id_guild_id_fkey" FOREIGN KEY (user_id, guild_id) REFERENCES users(user_id, guild_id) ON UPDATE CASCADE NOT DEFERRABLE;
+ALTER TABLE ONLY "public"."teams" ADD CONSTRAINT "teams_user_id_guild_id_fkey" FOREIGN KEY (user_id, guild_id) REFERENCES users(user_id, guild_id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
 ALTER TABLE ONLY "public"."times" ADD CONSTRAINT "times_bosses_name_fkey" FOREIGN KEY (boss_name) REFERENCES bosses(name) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
