@@ -22,8 +22,10 @@ func NewAPIBuilder() *APIBuilder {
 }
 
 func (b *APIBuilder) AttachV1Routes() *mux.Router {
-	r := b.router.PathPrefix("/api/v1").Subrouter()
+	// Serve Swagger UI
+	b.router.PathPrefix("/swagger/v1").Handler(httpSwagger.WrapHandler)
 
+	r := b.router.PathPrefix("/api/v1").Subrouter()
 	r.Use(middleware.Authentication)
 
 	// User
@@ -55,8 +57,5 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	r.HandleFunc("/guild/times", handlers.UpdateTimesChannel).Methods("PUT")
 	r.HandleFunc("/guild/multiplier", handlers.UpdateMultiplier).Methods("PUT")
 
-	// Serve Swagger UI
-	r.PathPrefix("/").Handler(httpSwagger.WrapHandler)
-
-	return r
+	return b.router
 }
