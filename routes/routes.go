@@ -57,5 +57,8 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	r.HandleFunc("/guild/times", handlers.UpdateTimesChannel).Methods("PUT")
 	r.HandleFunc("/guild/multiplier", handlers.UpdateMultiplier).Methods("PUT")
 
+	// Update points
+	r.HandleFunc("/points", handlers.UpdatePoints).Methods("PUT")
+
 	return b.router
 }
