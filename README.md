@@ -6,14 +6,14 @@ As we are in the process of rewriting our current frontend, Tectonic API will be
 
 ## Key areas
 
-* **RESTful API**: Tectonic API adheres to the principles of Representational State Transfer (REST), a standard architectural style for networked applications. This makes it easy to use and understand, and allows for seamless integration with various frontend technologies.
+- **RESTful API**: Tectonic API adheres to the principles of Representational State Transfer (REST), a standard architectural style for networked applications. This makes it easy to use and understand, and allows for seamless integration with various frontend technologies.
 
-* **Separation of Concerns**: By encapsulating the business logic within the API, we ensure that the frontend remains clean and focused on user interactions. This separation of concerns improves maintainability, scalability, and flexibility.
+- **Separation of Concerns**: By encapsulating the business logic within the API, we ensure that the frontend remains clean and focused on user interactions. This separation of concerns improves maintainability, scalability, and flexibility.
 
-* **Expandability**: Tectonic API is designed to handle multiple frontends, making it a scalable solution for our growing projects.
-
+- **Expandability**: Tectonic API is designed to handle multiple frontends, making it a scalable solution for our growing projects.
 
 ## Installation
+
 ```
 git clone https://github.com/yourusername/tectonic-api.git
 cd tectonic-api
@@ -27,15 +27,45 @@ docker compose up --build
 
 The API provides several endpoints:
 
-* `/v1/`: Serves Swagger UI.
-* `/v1/user`: Handles user data with GET, POST, and DELETE methods.
-* `/v1/users`: Retrieves all users with a GET method.
-* `/v1/rsn`: Handles RSN data with GET, POST, and DELETE methods.
-* `/v1/guild`: Handles guild data with GET, POST, and DELETE methods.
-* `/v1/leaderboard`: Retrieves leaderboard data with a GET method.
-* `/v1/time`: Handles time data with POST and DELETE methods.
-* `/v1/guild/times`: Updates times channel with a PUT method.
-* `/v1/guild/multiplier`: Updates multiplier with a PUT method.
+- `/v1/`: Serves Swagger UI.
+- `/v1/user`: Handles user data with GET, POST, and DELETE methods.
+- `/v1/users`: Retrieves all users with a GET method.
+- `/v1/rsn`: Handles RSN data with GET, POST, and DELETE methods.
+- `/v1/guild`: Handles guild data with GET, POST, and DELETE methods.
+- `/v1/leaderboard`: Retrieves leaderboard data with a GET method.
+- `/v1/time`: Handles time data with POST and DELETE methods.
+- `/v1/guild/times`: Updates times channel with a PUT method.
+- `/v1/guild/multiplier`: Updates multiplier with a PUT method.
+
+## Testing
+
+### Unit tests
+
+> [!TIP]
+> Our unit tests are a part of our automatic CI/CD pipeline!
+
+I've placed a priority on learning and utilizing testing for speeding up my own development. As we move closer towards desired functionality, we hope to achieve broader test coverage.
+We're helped on this by this being a rewrite of an existing application, thus making the specs clear to us.
+
+### Integration tests
+
+> [!WARNING]
+> These integration tests have to be ran manually as of now.
+
+The API has a lot of interplay and dependency on existing data.
+For this we have a basic Postman pipeline for running through our endpoints.
+
+`Integrations.postman_collection.json`
+
+#### Before running you will need...
+
+- The project running, either locally or hosted.
+- Specify a global `baseUrl` variable in Postman. For running locally through Docker: `localhost:8080/api`.
+- Specify a global `Authorization` variable in Postman. For running locally through Docker: `123`.
+
+#### Running the tests
+
+To run this test, import it into Postman and select `Run Collection`.
 
 ## Frontends
 
@@ -43,9 +73,9 @@ You can find the frontend for this project at [Tectonic Bot](https://github.com/
 
 ## Tech stack
 
-* Go ([mux](https://github.com/gorilla/mux), [pgx](https://github.com/jackc/pgx/v5), [Squirrel](https://github.com/Masterminds/squirrel), [swaggo](https://github.com/swaggo/swag))
-* PostgreSQL
-* Docker
+- Go ([mux](https://github.com/gorilla/mux), [pgx](https://github.com/jackc/pgx/v5), [Squirrel](https://github.com/Masterminds/squirrel), [swaggo](https://github.com/swaggo/swag))
+- PostgreSQL
+- Docker
 
 ## Contributing
 
