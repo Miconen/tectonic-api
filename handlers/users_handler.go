@@ -37,6 +37,15 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(p) > 0 {
+		_, err = utils.RequireOne(p, "user_ids", "wom_ids", "rsns")
+		if err != nil {
+			status = http.StatusBadRequest
+			utils.JsonWriter(err).IntoHTTP(status)(w, r)
+			return
+		}
+	}
+
 	users, err := database.SelectUsers(r.Context(), v["guild_id"], p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
