@@ -5,31 +5,29 @@ import (
 	"net/http"
 	"os"
 	"tectonic-api/database"
+	"tectonic-api/models"
 	"tectonic-api/utils"
+
+	"github.com/gorilla/mux"
 )
 
 // @Summary Get RSN related information by guild and user ID
 // @Description Get RSN related details by unique guild and user Snowflake (ID)
 // @Tags RSN
 // @Produce json
-// @Param guild_id query string false "Guild ID"
-// @Param user_id query string false "User ID"
+// @Param guild_id path string false "Guild ID"
+// @Param user_id path string false "User ID"
 // @Success 200 {object} []models.RSN
 // @Failure 400 {object} models.Empty
 // @Failure 401 {object} models.Empty
 // @Failure 404 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
-// @Router /api/v1/rsn [GET]
-func GetRSN(w http.ResponseWriter, r *http.Request) {
+// @Router /api/v1/guilds/{guild_id}/users/{user_id}/rsns [GET]
+func GetRSNs(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusOK
 
-	p, err := utils.ParseParametersURL(r, "guild_id", "user_id")
-	if err != nil {
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
-		return
-	}
+	p := mux.Vars(r)
 
 	rsns, err := database.SelectRsns(r.Context(), p)
 	if err != nil {
@@ -45,28 +43,35 @@ func GetRSN(w http.ResponseWriter, r *http.Request) {
 // @Summary Link an RSN to a user
 // @Description Link an RSN to a guild and user in our backend by unique guild and user Snowflake (ID)
 // @Tags RSN
+// @Accept json
 // @Produce json
 // @Param guild_id path string true "Guild ID"
 // @Param user_id path string true "User ID"
-// @Param rsn path string true "RSN"
+// @Param rsn body models.InputRSN true "RSN"
 // @Success 201 {object} models.Empty
 // @Failure 400 {object} models.Empty
 // @Failure 401 {object} models.Empty
 // @Failure 409 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
-// @Router /api/v1/rsn [POST]
+// @Router /api/v1/guilds/{guild_id}/users/{user_id}/rsns [POST]
 func CreateRSN(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusCreated
 
-	p, err := utils.ParseParametersURL(r, "guild_id", "user_id", "rsn")
+	v := mux.Vars(r)
+	p := models.InputRSN{}
+	err := utils.ParseRequestBody(w, r, &p)
 	if err != nil {
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
 		return
 	}
+	if p.GuildId != v["guild_id"] {
+		http.Error(w, fmt.Errorf("guild_id in request body must match URI param").Error(), http.StatusBadRequest)
+		return
+	}
 
-	wid, err := utils.GetWomId(p["rsn"])
+	wid, err := utils.GetWomId(p.RSN)
 	if err != nil {
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
@@ -96,18 +101,13 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
-// @Router /api/v1/rsn [DELETE]
+// @Router /api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn} [DELETE]
 func RemoveRSN(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent
 
-	p, err := utils.ParseParametersURL(r, "guild_id", "user_id", "rsn")
-	if err != nil {
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
-		return
-	}
+	p := mux.Vars(r)
 
-	err = database.DeleteRsn(r.Context(), p)
+	err := database.DeleteRsn(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error deleting RSN: %v\n", err)
 		status = http.StatusNotFound

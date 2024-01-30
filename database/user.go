@@ -10,18 +10,7 @@ import (
 )
 
 func SelectUser(ctx context.Context, f map[string]string) (models.User, error) {
-	query := psql.Select("users.*").From("users")
-
-	switch {
-	case f["rsn"] != "":
-		query = query.Join("rsn ON users.user_id = rsn.user_id AND users.guild_id = rsn.guild_id").Where(squirrel.Eq{"rsn.rsn": f["rsn"]})
-	case f["wom_id"] != "":
-		query = query.Join("rsn ON users.user_id = rsn.user_id AND users.guild_id = rsn.guild_id").Where(squirrel.Eq{"rsn.wom_id": f["wom_id"]})
-	case f["user_id"] != "":
-		query = query.Where(squirrel.Eq{"users.user_id": f["user_id"], "users.guild_id": f["guild_id"]})
-	default:
-		return models.User{}, fmt.Errorf("no valid search key provided")
-	}
+	query := psql.Select("users.*").From("users").Where(squirrel.Eq{"user_id": f["user_id"], "guild_id": f["guild_id"]})
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -48,7 +37,7 @@ func SelectUser(ctx context.Context, f map[string]string) (models.User, error) {
 
 const ERROR_UNACTIVATED_GUILD string = "insert or update on table \"users\" violates foreign key constraint \"users_ibfk_1\""
 
-func InsertUser(ctx context.Context, f map[string]string, wid string) error {
+func InsertUser(ctx context.Context, f models.InputUser, wid string) error {
 	conn, err := pool.Acquire(ctx)
 	defer conn.Release()
 	if err != nil {
@@ -61,7 +50,7 @@ func InsertUser(ctx context.Context, f map[string]string, wid string) error {
 	}
 	defer tx.Rollback(ctx) // Rollback the transaction if it hasn't been committed
 
-	query := psql.Insert("users").Columns("guild_id", "user_id").Values(f["guild_id"], f["user_id"])
+	query := psql.Insert("users").Columns("guild_id", "user_id").Values(f.GuildId, f.UserId)
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return err
@@ -73,7 +62,7 @@ func InsertUser(ctx context.Context, f map[string]string, wid string) error {
 		return fmt.Errorf("%s", pgxerr.Message)
 	}
 
-	query = psql.Insert("rsn").Columns("guild_id", "user_id", "rsn", "wom_id").Values(f["guild_id"], f["user_id"], f["rsn"], wid)
+	query = psql.Insert("rsn").Columns("guild_id", "user_id", "rsn", "wom_id").Values(f.GuildId, f.UserId, f.RSN, wid)
 	sql, args, err = query.ToSql()
 	if err != nil {
 		return err
