@@ -3,12 +3,13 @@ package database
 import (
 	"context"
 	"fmt"
+	"tectonic-api/models"
 
 	"github.com/Masterminds/squirrel"
 )
 
-func UpdatePoints(ctx context.Context, f map[string]string) error {
-	sql, args, err := psql.Update("users").Set("points", squirrel.Expr("points + ?", f["points"])).Where(squirrel.Eq{"user_id": f["user_id"], "guild_id": f["guild_id"]}).ToSql()
+func UpdatePoints(ctx context.Context, f models.User) error {
+	sql, args, err := psql.Update("users").Set("points", squirrel.Expr("points + ?", f.Points)).Where(squirrel.Eq{"user_id": f.UserId, "guild_id": f.GuildId}).ToSql()
 	if err != nil {
 		return err
 	}

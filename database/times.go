@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"fmt"
-	"strings"
 	"tectonic-api/models"
 	"time"
 
@@ -15,11 +14,11 @@ func SelectTime() (models.Time, error) {
 	return time, nil
 }
 
-func CheckPb(ctx context.Context, f map[string]string) (int, error) {
+func CheckPb(ctx context.Context, g string, f models.InputTime) (int, error) {
 	query := psql.Select("t.time").
 		From("guild_bosses gb").
 		Join("times t ON gb.pb_id = t.run_id").
-		Where(squirrel.Eq{"gb.guild_id": f["guild_id"], "gb.boss": f["boss"]})
+		Where(squirrel.Eq{"gb.guild_id": g, "gb.boss": f.BossName})
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return -1, err
@@ -43,13 +42,12 @@ func CheckPb(ctx context.Context, f map[string]string) (int, error) {
 	return pb, nil
 }
 
-func InsertTime(ctx context.Context, f map[string]string) (models.Time, error) {
-	teamIds := strings.Split(f["user_ids"], ",")
+func InsertTime(ctx context.Context, g string, f models.InputTime) (models.Time, error) {
 
 	timeData := map[string]interface{}{
-		"boss_name": f["boss"],
+		"boss_name": f.BossName,
 		"date":      time.Now(),
-		"time":      f["time"],
+		"time":      f.Time,
 	}
 
 	sql, args, err := psql.Insert("times").SetMap(timeData).Suffix("RETURNING *").ToSql()
@@ -75,10 +73,10 @@ func InsertTime(ctx context.Context, f map[string]string) (models.Time, error) {
 	res.RunId = runId
 
 	// Update teamData to include the time_id
-	for _, v := range teamIds {
+	for _, v := range f.UserIds {
 		res.Team = append(res.Team, models.Teammate{
 			RunId:   runId,
-			GuildId: f["guild_id"],
+			GuildId: g,
 			UserId:  v,
 		})
 	}
@@ -86,7 +84,7 @@ func InsertTime(ctx context.Context, f map[string]string) (models.Time, error) {
 	// Update guild pb (guild_bosses.pb_id)
 	sql, args, err = psql.Update("guild_bosses").
 		Set("pb_id", runId).
-		Where(squirrel.Eq{"guild_id": f["guild_id"], "boss": f["boss"]}).
+		Where(squirrel.Eq{"guild_id": g, "boss": f.BossName}).
 		ToSql()
 	if err != nil {
 		return models.Time{}, err

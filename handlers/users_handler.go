@@ -6,13 +6,18 @@ import (
 	"os"
 	"tectonic-api/database"
 	"tectonic-api/utils"
+
+	"github.com/gorilla/mux"
 )
 
 // @Summary Get multiple users
 // @Description Get multiple users details by unique user Snowflakes (IDs)
 // @Tags Users
 // @Produce json
-// @Param guild_id query string false "Guild ID"
+// @Param guild_id path string true "Guild ID"
+// @Param user_ids query string false "User IDs"
+// @Param wom_ids query string false "WOM IDs"
+// @Param rsns query string false "RSNs"
 // @Param user_ids query string false "User IDs"
 // @Success 200 {object} models.Users
 // @Failure 400 {object} models.Empty
@@ -20,18 +25,19 @@ import (
 // @Failure 404 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
-// @Router /v1/users [GET]
+// @Router /api/v1/guilds/{guild_id}/users [GET]
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusOK
 
-	p, err := utils.ParseParametersURL(r, "guild_id", "user_ids")
+	v := mux.Vars(r)
+	p, err := utils.ParseParametersURL(r)
 	if err != nil {
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
 		return
 	}
 
-	users, err := database.SelectUsers(r.Context(), p)
+	users, err := database.SelectUsers(r.Context(), v["guild_id"], p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
 		status = http.StatusInternalServerError

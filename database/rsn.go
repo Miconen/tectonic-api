@@ -45,8 +45,8 @@ func SelectRsns(ctx context.Context, f map[string]string) ([]models.RSN, error) 
 	return rsns, nil
 }
 
-func InsertRsn(ctx context.Context, f map[string]string, wid string) error {
-	query := psql.Insert("rsn").Columns("guild_id", "user_id", "rsn", "wom_id").Values(f["guild_id"], f["user_id"], f["rsn"], wid)
+func InsertRsn(ctx context.Context, f models.InputRSN, wid string) error {
+	query := psql.Insert("rsn").Columns("guild_id", "user_id", "rsn", "wom_id").Values(f.GuildId, f.UserId, f.RSN, wid)
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return err
@@ -57,7 +57,6 @@ func InsertRsn(ctx context.Context, f map[string]string, wid string) error {
 		return err
 	}
 	defer conn.Release()
-
 
 	commandTag, err := conn.Exec(ctx, sql, args...)
 	if err != nil {
