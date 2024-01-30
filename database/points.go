@@ -10,9 +10,8 @@ import (
 )
 
 type PointUpdate struct {
-	User        models.User `json:"user"`
-	OldPoints   int         `json:"old_points"`
-	GivenPoints int         `json:"given_points"`
+	Users       []models.User `json:"users"`
+	GivenPoints int           `json:"given_points"`
 }
 
 func getUpdateSubquery(f map[string]string, pkey string) squirrel.Sqlizer {
@@ -63,4 +62,49 @@ func UpdatePoints(ctx context.Context, f map[string]string, pkey string) error {
 	}
 
 	return nil
+}
+
+// Generate a function that returns updated users and Scan them into the []PointUpdate struct
+func fetchUpdatedUsers(ctx context.Context, userIds []string, f map[string]string) ([]PointUpdate, error) {
+	conn, err := pool.Acquire(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Release()
+
+	query := psql.Select("users.user_id", "users.points", "point_sources.points").
+		From("users").
+		Where(squirrel.And{
+			squirrel.Eq{"users.user_id": userIds},
+			squirrel.Eq{"users.guild_id": guildID},
+		}).
+		Join("point_sources").
+		Where(squirrel.And{
+			squirrel.Eq{"point_sources.user_id": userIds},
+			squirrel.Eq{"point_sources.guild_id": guildID},
+		})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	updates := PointUpdate{}
+	for rows.Next() {
+		u := User{}
+		err := rows.Scan(&u.Users.UserId, &u.Users.GuildId, &u.Users.Points)
+		if err != nil {
+			return nil, err
+		}
+
+		updates = append(updates, u)
+	}
+
+	return updates, nil
 }
