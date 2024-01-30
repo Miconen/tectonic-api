@@ -25,17 +25,7 @@ docker compose up --build
 
 ## Endpoints
 
-The API provides several endpoints:
-
-- `/v1/`: Serves Swagger UI.
-- `/v1/user`: Handles user data with GET, POST, and DELETE methods.
-- `/v1/users`: Retrieves all users with a GET method.
-- `/v1/rsn`: Handles RSN data with GET, POST, and DELETE methods.
-- `/v1/guild`: Handles guild data with GET, POST, and DELETE methods.
-- `/v1/leaderboard`: Retrieves leaderboard data with a GET method.
-- `/v1/time`: Handles time data with POST and DELETE methods.
-- `/v1/guild/times`: Updates times channel with a PUT method.
-- `/v1/guild/multiplier`: Updates multiplier with a PUT method.
+The API provides several endpoints that can be viewed through Swagger. `{baseUrl}/swagger/v1/`
 
 ## Testing
 
