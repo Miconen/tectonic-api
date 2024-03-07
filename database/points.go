@@ -3,12 +3,16 @@ package database
 import (
 	"context"
 	"fmt"
+<<<<<<< HEAD
 	"strings"
+=======
+>>>>>>> main
 	"tectonic-api/models"
 
 	"github.com/Masterminds/squirrel"
 )
 
+<<<<<<< HEAD
 type PointUpdate struct {
 	Users       []models.User `json:"users"`
 	GivenPoints int           `json:"given_points"`
@@ -24,6 +28,12 @@ func getUpdateSubquery(f map[string]string, pkey string) squirrel.Sqlizer {
 				squirrel.Eq{"guild_id": f["guild_id"]},
 			}),
 		)
+=======
+func UpdatePoints(ctx context.Context, f models.User) error {
+	sql, args, err := psql.Update("users").Set("points", squirrel.Expr("points + ?", f.Points)).Where(squirrel.Eq{"user_id": f.UserId, "guild_id": f.GuildId}).ToSql()
+	if err != nil {
+		return err
+>>>>>>> main
 	}
 
 	return squirrel.Expr("points + (?)", f["points"])

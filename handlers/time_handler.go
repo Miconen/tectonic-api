@@ -6,17 +6,19 @@ import (
 	"os"
 	"strconv"
 	"tectonic-api/database"
+	"tectonic-api/models"
 	"tectonic-api/utils"
+
+	"github.com/gorilla/mux"
 )
 
 // @Summary Add a new best time to guild
 // @Description Add a new time to a guild in our backend by unique guild Snowflake (ID)
 // @Tags Time
+// @Accept json
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Param user_ids path string true "User IDs"
-// @Param time path string true "Time in ticks"
-// @Param boss path string true "Boss name"
+// @Param time body models.InputTime true "Time"
 // @Success 200 {object} models.Empty
 // @Success 201 {object} models.Empty
 // @Failure 400 {object} models.Empty
@@ -24,26 +26,21 @@ import (
 // @Failure 409 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
-// @Router /v1/time [POST]
+// @Router /v1/guilds/{guild_id}/times [POST]
 func CreateTime(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusCreated
 
-	p, err := utils.ParseParametersURL(r, "time", "boss", "guild_id", "user_ids")
+	v := mux.Vars(r)
+
+	p := models.InputTime{}
+	err := utils.ParseRequestBody(w, r, &p)
 	if err != nil {
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
 		return
 	}
 
-	t, err := strconv.Atoi(p["time"])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing (%s) to int: %v\n", p["time"], err)
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
-		return
-	}
-
-	pb, err := database.CheckPb(r.Context(), p)
+	pb, err := database.CheckPb(r.Context(), v["guild_id"], p)
 	if err != nil {
 		if pb == -1 {
 			fmt.Fprintf(os.Stderr, "Error fetching pb: %v\n", err)
@@ -56,13 +53,13 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if pb <= t && pb != 0 {
+	if pb <= p.Time && pb != 0 {
 		status = http.StatusOK
 		utils.JsonWriter(pb).IntoHTTP(status)(w, r)
 		return
 	}
 
-	time, err := database.InsertTime(r.Context(), p)
+	time, err := database.InsertTime(r.Context(), v["guild_id"], p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error inserting time: %v\n", err)
 		status = http.StatusNotFound
@@ -77,6 +74,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 // @Description Delete a time in our backend by unique guild Snowflake (ID)
 // @Tags Time
 // @Produce json
+// @Param guild_id path string true "Guild ID"
 // @Param time_id path string true "Time ID"
 // @Success 204 {object} models.Empty
 // @Failure 400 {object} models.Empty
@@ -84,24 +82,19 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
-// @Router /v1/time [DELETE]
+// @Router /v1/guilds/{guild_id}/times/{time_id} [DELETE]
 func RemoveTime(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent
 
-	p, err := utils.ParseParametersURL(r, "time_id")
-	if err != nil {
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
-		return
-	}
+	v := mux.Vars(r)
 
-	_, err = strconv.Atoi(p["time_id"])
+	_, err := strconv.Atoi(v["time_id"])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = database.DeleteTime(r.Context(), p)
+	err = database.DeleteTime(r.Context(), v)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error deleting time: %v\n", err)
 		status = http.StatusNotFound

@@ -2,12 +2,36 @@ package models
 
 import "time"
 
+// InputGuild Model
+// @Description Model of new guild data
+type InputGuild struct {
+	GuildId     string `json:"guild_id"`
+	Multiplier  int    `json:"multiplier" optional:"true"`
+	PbChannelId string `json:"pb_channel_id" optional:"true"`
+}
+
+// UpdateGuild Model
+// @Description Model of updated guild data (Exists so PbChannelId can be properly parsed)
+type UpdateGuild struct {
+	GuildId     string `json:"guild_id"`
+	Multiplier  int    `json:"multiplier"`
+	PbChannelId string `json:"pb_channel_id"`
+}
+
 // Guild Model
 // @Description Model of guild data
 type Guild struct {
 	GuildId     string     `json:"guild_id"`
 	Multiplier  int        `json:"multiplier"`
 	PbChannelId NullString `json:"pb_channel_id"`
+}
+
+// InputUser Model
+// @Description Model of new active guild member
+type InputUser struct {
+	UserId  string `json:"user_id"`
+	GuildId string `json:"guild_id"`
+	RSN     string `json:"rsn"`
 }
 
 // User Model
@@ -22,6 +46,14 @@ type User struct {
 // @Description Model of active guild members
 type Users struct {
 	Users []User `json:"users,omitempty"`
+}
+
+// InputTime Model
+// @Description Model of a new time
+type InputTime struct {
+	Time     int      `json:"time"`
+	BossName string   `json:"boss_name"`
+	UserIds  []string `json:"user_ids"`
 }
 
 // Time Model
@@ -40,6 +72,11 @@ type Teammate struct {
 	UserId  string `json:"user_id"`
 }
 
+type InputRSN struct {
+	RSN     string `json:"rsn"`
+	UserId  string `json:"user_id"`
+	GuildId string `json:"guild_id"`
+}
 type RSN struct {
 	RSN     string `json:"rsn"`
 	WomId   string `json:"wom_id"`

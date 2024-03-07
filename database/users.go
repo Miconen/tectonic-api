@@ -8,10 +8,21 @@ import (
 	"github.com/Masterminds/squirrel"
 )
 
-func SelectUsers(ctx context.Context, f map[string]string) (models.Users, error) {
-	userIds := strings.Split(f["user_ids"], ",")
+func SelectUsers(ctx context.Context, g string, f map[string]string) (models.Users, error) {
+	query := psql.Select("users.user_id, users.guild_id, users.points").From("users").Where(squirrel.Eq{"users.guild_id": g})
 
-	query := psql.Select("*").From("users").Where(squirrel.Eq{"guild_id": f["guild_id"]}).Where(squirrel.Eq{"user_id": userIds})
+	if f["user_ids"] != "" {
+		userIds := strings.Split(f["user_ids"], ",")
+		query = query.Where(squirrel.Eq{"users.user_id": userIds})
+	}
+	if f["wom_ids"] != "" {
+		womIds := strings.Split(f["wom_ids"], ",")
+		query = query.Join("rsn ON users.user_id = rsn.user_id AND users.guild_id = rsn.guild_id").Where(squirrel.Eq{"rsn.wom_id": womIds})
+	}
+	if f["rsns"] != "" {
+		rsns := strings.Split(f["rsns"], ",")
+		query = query.Join("rsn ON users.user_id = rsn.user_id AND users.guild_id = rsn.guild_id").Where(squirrel.Eq{"rsn.rsn": rsns})
+	}
 
 	sql, args, err := query.ToSql()
 	if err != nil {

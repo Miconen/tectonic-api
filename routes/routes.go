@@ -28,37 +28,34 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	r := b.router.PathPrefix("/api/v1").Subrouter()
 	r.Use(middleware.Authentication)
 
-	// User
-	r.HandleFunc("/user", handlers.GetUser).Methods("GET")
-	r.HandleFunc("/user", handlers.CreateUser).Methods("POST")
-	r.HandleFunc("/user", handlers.RemoveUser).Methods("DELETE")
-
-	// Users
-	r.HandleFunc("/users", handlers.GetUsers).Methods("GET")
-
-	// RSN
-	r.HandleFunc("/rsn", handlers.GetRSN).Methods("GET")
-	r.HandleFunc("/rsn", handlers.CreateRSN).Methods("POST")
-	r.HandleFunc("/rsn", handlers.RemoveRSN).Methods("DELETE")
-
-	// Guild
-	r.HandleFunc("/guild", handlers.GetGuild).Methods("GET")
-	r.HandleFunc("/guild", handlers.CreateGuild).Methods("POST")
-	r.HandleFunc("/guild", handlers.RemoveGuild).Methods("DELETE")
+	// Guilds
+	guildsRouter := r.PathPrefix("/guilds").Subrouter()
+	guildsRouter.HandleFunc("", handlers.CreateGuild).Methods("POST")
+	guildsRouter.HandleFunc("/{guild_id}", handlers.UpdateGuild).Methods("PUT")
+	guildsRouter.HandleFunc("/{guild_id}", handlers.GetGuild).Methods("GET")
+	guildsRouter.HandleFunc("/{guild_id}", handlers.RemoveGuild).Methods("DELETE")
 
 	// Leaderboard
-	r.HandleFunc("/leaderboard", handlers.GetLeaderboard).Methods("GET")
+	guildsRouter.HandleFunc("/{guild_id}/leaderboard", handlers.GetLeaderboard).Methods("GET")
 
-	// Time
-	r.HandleFunc("/time", handlers.CreateTime).Methods("POST")
-	r.HandleFunc("/time", handlers.RemoveTime).Methods("DELETE")
+	// Times
+	timesRouter := guildsRouter.PathPrefix("/{guild_id}/times").Subrouter()
+	timesRouter.HandleFunc("", handlers.CreateTime).Methods("POST")
+	timesRouter.HandleFunc("/{time_id}", handlers.RemoveTime).Methods("DELETE")
 
-	// Update Times Channel
-	r.HandleFunc("/guild/times", handlers.UpdateTimesChannel).Methods("PUT")
-	r.HandleFunc("/guild/multiplier", handlers.UpdateMultiplier).Methods("PUT")
+	// Users
+	usersRouter := guildsRouter.PathPrefix("/{guild_id}/users").Subrouter()
+	usersRouter.HandleFunc("", handlers.GetUsers).Methods("GET")
+	usersRouter.HandleFunc("", handlers.CreateUser).Methods("POST")
+	usersRouter.HandleFunc("/{user_id}", handlers.GetUser).Methods("GET")
+	usersRouter.HandleFunc("/{user_id}", handlers.UpdateUser).Methods("PUT")
+	usersRouter.HandleFunc("/{user_id}", handlers.RemoveUser).Methods("DELETE")
 
-	// Update points
-	r.HandleFunc("/points", handlers.UpdatePoints).Methods("PUT")
+	// RSN
+	rsnsRouter := usersRouter.PathPrefix("/{user_id}/rsns").Subrouter()
+	rsnsRouter.HandleFunc("", handlers.GetRSNs).Methods("GET")
+	rsnsRouter.HandleFunc("", handlers.CreateRSN).Methods("POST")
+	rsnsRouter.HandleFunc("/{rsn}", handlers.RemoveRSN).Methods("DELETE")
 
 	return b.router
 }
