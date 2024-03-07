@@ -34,6 +34,11 @@ type InputUser struct {
 	RSN     string `json:"rsn"`
 }
 
+type GuildUsers interface {
+	GetUserIDs() []string
+	GetGuildID() string
+}
+
 // User Model
 // @Description Model of active guild member
 type User struct {
@@ -77,6 +82,7 @@ type InputRSN struct {
 	UserId  string `json:"user_id"`
 	GuildId string `json:"guild_id"`
 }
+
 type RSN struct {
 	RSN     string `json:"rsn"`
 	WomId   string `json:"wom_id"`
