@@ -126,7 +126,8 @@ VALUES
     ('https://oldschool.runescape.wiki/images/thumb/Coins_detail.png/120px-Coins_detail.png?404bc', 8, 'Miscellaneous'),
     ('https://oldschool.runescape.wiki/images/Slayer_icon_%28detail%29.png?a4903', 9, 'Slayer Boss'),
     ('https://oldschool.runescape.wiki/images/thumb/Inferno_logo.png/800px-Inferno_logo.png?bfcdb&20180310121602', 10, 'TzHaar'),
-    ('https://oldschool.runescape.wiki/images/thumb/Desert_Treasure_II_logo.png/1280px-Desert_Treasure_II_logo.png', 11, 'Desert Treasure II');
+    ("https://oldschool.runescape.wiki/images/Blessed_dizana's_quiver_detail.png", 11, 'Varlamore'),
+    ('https://oldschool.runescape.wiki/images/thumb/Desert_Treasure_II_logo.png/1280px-Desert_Treasure_II_logo.png', 12, 'Desert Treasure II');
 
 INSERT INTO bosses (name, display_name, category, solo)
 VALUES
@@ -193,6 +194,8 @@ VALUES
     ('awakened_leviathan', 'Leviathan (Awakened)', 'Desert Treasure II', true),
     ('awakened_duke_sucellus', 'Duke Sucellus (Awakened)', 'Desert Treasure II', true),
     ('awakened_whisperer', 'The Whisperer (Awakened)', 'Desert Treasure II', true);
+    -- Varlamore
+    ('colosseum', 'Fortis Colosseum', 'Varlamore', true);
 
 -- Function to insert specific rows into point_sources for each new guild
 CREATE OR REPLACE FUNCTION insert_default_point_sources()
