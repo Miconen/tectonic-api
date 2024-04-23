@@ -24,7 +24,7 @@ func PointEventSubquery(g string, e string) squirrel.Sqlizer {
 	)
 }
 
-func CustomPointSubquery(p string) squirrel.Sqlizer {
+func CustomPointSubquery(p int) squirrel.Sqlizer {
 	return squirrel.Expr("points + (?)", p)
 }
 

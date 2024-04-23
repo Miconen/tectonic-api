@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"tectonic-api/database"
 	"tectonic-api/utils"
 
@@ -27,7 +28,7 @@ func (i InputPointsEvent) GetGuildID() string {
 type InputPointsCustom struct {
 	GuildID string   `json:"guild_id"`
 	UserIDs []string `json:"user_ids"`
-	Points  string      `json:"points"`
+	Points  int      `json:"points"`
 }
 
 func (i InputPointsCustom) GetUserIDs() []string {
@@ -73,7 +74,7 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if p.Event != v["point_event"] {
-		fmt.Println(p.Event, v["point_event"])
+		fmt.Println(p.Event, v["points"])
 		http.Error(w, "event in request body must match URI param", http.StatusBadRequest)
 		return
 	}
@@ -113,6 +114,7 @@ func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
 	err := utils.ParseRequestBody(w, r, &p)
 	if err != nil {
 		status = http.StatusBadRequest
+		fmt.Println("Error parsing request body:", err)
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
 		return
 	}
@@ -122,7 +124,15 @@ func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if p.Points != v["points"] {
+	vp, err := strconv.Atoi(v["points"])
+	if err != nil {
+		status = http.StatusBadRequest
+		fmt.Println("Error parsing points:", err)
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
+	}
+
+	if p.Points != vp {
 		http.Error(w, fmt.Errorf("points in request body must match URI param").Error(), http.StatusBadRequest)
 		return
 	}
