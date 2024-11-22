@@ -86,6 +86,13 @@ CREATE TABLE "public"."users" (
 
 CREATE INDEX "guild_id" ON "public"."users" USING btree ("guild_id");
 
+DROP TABLE IF EXISTS "point_sources";
+CREATE TABLE "public"."point_sources" (
+    "guild_id" character varying(32) NOT NULL,
+    "source" character varying(32) NOT NULL,
+    "points" integer DEFAULT '0' NOT NULL,
+    CONSTRAINT "point_sources_pkey" PRIMARY KEY ("guild_id", "source")
+) WITH (oids = false);
 
 ALTER TABLE ONLY "public"."bosses" ADD CONSTRAINT "boss_category_fkey" FOREIGN KEY (category) REFERENCES categories(name) ON UPDATE CASCADE ON DELETE SET NULL NOT DEFERRABLE;
 
@@ -105,6 +112,8 @@ ALTER TABLE ONLY "public"."times" ADD CONSTRAINT "times_bosses_name_fkey" FOREIG
 
 ALTER TABLE ONLY "public"."users" ADD CONSTRAINT "users_ibfk_1" FOREIGN KEY (guild_id) REFERENCES guilds(guild_id) ON UPDATE RESTRICT ON DELETE RESTRICT NOT DEFERRABLE;
 
+ALTER TABLE ONLY "public"."point_sources" ADD CONSTRAINT "point_sources_ibfk_1" FOREIGN KEY (guild_id) REFERENCES guilds(guild_id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
+
 INSERT INTO categories ("thumbnail", "order", "name")
 VALUES
     ('https://oldschool.runescape.wiki/images/thumb/The_Nightmare.png/250px-The_Nightmare.png?0128a', 1, 'Nightmare'),
@@ -117,7 +126,8 @@ VALUES
     ('https://oldschool.runescape.wiki/images/thumb/Coins_detail.png/120px-Coins_detail.png?404bc', 8, 'Miscellaneous'),
     ('https://oldschool.runescape.wiki/images/Slayer_icon_%28detail%29.png?a4903', 9, 'Slayer Boss'),
     ('https://oldschool.runescape.wiki/images/thumb/Inferno_logo.png/800px-Inferno_logo.png?bfcdb&20180310121602', 10, 'TzHaar'),
-    ('https://oldschool.runescape.wiki/images/thumb/Desert_Treasure_II_logo.png/1280px-Desert_Treasure_II_logo.png', 11, 'Desert Treasure II');
+    ('https://oldschool.runescape.wiki/images/Blessed_dizana''s_quiver_detail.png', 11, 'Varlamore'),
+    ('https://oldschool.runescape.wiki/images/thumb/Desert_Treasure_II_logo.png/1280px-Desert_Treasure_II_logo.png', 12, 'Desert Treasure II');
 
 INSERT INTO bosses (name, display_name, category, solo)
 VALUES
@@ -183,4 +193,31 @@ VALUES
     ('awakened_vardorvis', 'Vardorvis (Awakened)', 'Desert Treasure II', true),
     ('awakened_leviathan', 'Leviathan (Awakened)', 'Desert Treasure II', true),
     ('awakened_duke_sucellus', 'Duke Sucellus (Awakened)', 'Desert Treasure II', true),
-    ('awakened_whisperer', 'The Whisperer (Awakened)', 'Desert Treasure II', true);
+    ('awakened_whisperer', 'The Whisperer (Awakened)', 'Desert Treasure II', true),
+    -- Varlamore
+    ('colosseum', 'Fortis Colosseum', 'Varlamore', true);
+
+-- Function to insert specific rows into point_sources for each new guild
+CREATE OR REPLACE FUNCTION insert_default_point_sources()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Insert specific rows with default points values
+  INSERT INTO point_sources (guild_id, source, points)
+  VALUES
+    (NEW.guild_id, 'event_participation', 5),
+    (NEW.guild_id, 'event_hosting', 10),
+    (NEW.guild_id, 'clan_pb', 10),
+    (NEW.guild_id, 'split_low', 10),
+    (NEW.guild_id, 'split_medium', 20),
+    (NEW.guild_id, 'split_high', 30)
+  ON CONFLICT ON CONSTRAINT point_sources_pkey DO NOTHING;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to invoke the function after a new guild is inserted
+CREATE TRIGGER insert_default_point_sources_trigger
+AFTER INSERT ON guilds
+FOR EACH ROW
+EXECUTE FUNCTION insert_default_point_sources();
