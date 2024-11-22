@@ -33,7 +33,7 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	guildsRouter.HandleFunc("", handlers.CreateGuild).Methods("POST")
 	guildsRouter.HandleFunc("/{guild_id}", handlers.UpdateGuild).Methods("PUT")
 	guildsRouter.HandleFunc("/{guild_id}", handlers.GetGuild).Methods("GET")
-	guildsRouter.HandleFunc("/{guild_id}", handlers.RemoveGuild).Methods("DELETE")
+	guildsRouter.HandleFunc("/{guild_id}", handlers.DeleteGuild).Methods("DELETE")
 
 	// Leaderboard
 	guildsRouter.HandleFunc("/{guild_id}/leaderboard", handlers.GetLeaderboard).Methods("GET")
