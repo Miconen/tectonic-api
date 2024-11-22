@@ -58,7 +58,7 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent
 
 	v := mux.Vars(r)
-	p := InputPointsEvent{}
+	p := database.UpdatePointsByEventParams{}
 
 	err := utils.ParseRequestBody(w, r, &p)
 	if err != nil {
@@ -79,9 +79,7 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s := database.PointEventSubquery(p.GuildID, p.Event)
-
-	err = database.UpdatePoints(r.Context(), p, s)
+	_, err = queries.UpdatePointsByEvent(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error updating points: %v\n", err)
 		status = http.StatusNotFound
@@ -109,7 +107,7 @@ func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent
 
 	v := mux.Vars(r)
-	p := InputPointsCustom{}
+	p := database.UpdatePointsCustomParams{}
 
 	err := utils.ParseRequestBody(w, r, &p)
 	if err != nil {
@@ -132,14 +130,12 @@ func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if p.Points != vp {
+	if p.Points != int32(vp) {
 		http.Error(w, fmt.Errorf("points in request body must match URI param").Error(), http.StatusBadRequest)
 		return
 	}
 
-	s := database.CustomPointSubquery(p.Points)
-
-	err = database.UpdatePoints(r.Context(), p, s)
+	_, err = queries.UpdatePointsCustom(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error updating points: %v\n", err)
 		status = http.StatusNotFound
