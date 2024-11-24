@@ -1,4 +1,5 @@
-DROP TABLE IF EXISTS "bosses";
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE "public"."bosses" (
     "name" character varying(32) NOT NULL,
     "display_name" character varying(32) NOT NULL,
@@ -7,8 +8,6 @@ CREATE TABLE "public"."bosses" (
     CONSTRAINT "boss_name" PRIMARY KEY ("name")
 ) WITH (oids = false);
 
-
-DROP TABLE IF EXISTS "categories";
 CREATE TABLE "public"."categories" (
     "thumbnail" character varying(256),
     "order" smallint DEFAULT '0' NOT NULL,
@@ -16,8 +15,6 @@ CREATE TABLE "public"."categories" (
     CONSTRAINT "categories_name" PRIMARY KEY ("name")
 ) WITH (oids = false);
 
-
-DROP TABLE IF EXISTS "guild_bosses";
 CREATE TABLE "public"."guild_bosses" (
     "boss" character varying(32) NOT NULL,
     "guild_id" character varying(32) NOT NULL,
@@ -25,8 +22,6 @@ CREATE TABLE "public"."guild_bosses" (
     CONSTRAINT "guild_bosses_bosses_guild_id" PRIMARY KEY ("boss", "guild_id")
 ) WITH (oids = false);
 
-
-DROP TABLE IF EXISTS "guild_categories";
 CREATE TABLE "public"."guild_categories" (
     "guild_id" character varying(32) NOT NULL,
     "category" character varying(64) NOT NULL,
@@ -34,8 +29,6 @@ CREATE TABLE "public"."guild_categories" (
     CONSTRAINT "guild_categories_guild_id_category" PRIMARY KEY ("guild_id", "category")
 ) WITH (oids = false);
 
-
-DROP TABLE IF EXISTS "guilds";
 CREATE TABLE "public"."guilds" (
     "guild_id" character varying(32) NOT NULL,
     "multiplier" integer DEFAULT '1' NOT NULL,
@@ -43,8 +36,6 @@ CREATE TABLE "public"."guilds" (
     CONSTRAINT "guilds_pkey" PRIMARY KEY ("guild_id")
 ) WITH (oids = false);
 
-
-DROP TABLE IF EXISTS "rsn";
 CREATE TABLE "public"."rsn" (
     "rsn" character varying(32) NOT NULL,
     "wom_id" character varying(32) NOT NULL,
@@ -53,8 +44,6 @@ CREATE TABLE "public"."rsn" (
     CONSTRAINT "rsn_pkey" PRIMARY KEY ("wom_id", "guild_id")
 ) WITH (oids = false);
 
-
-DROP TABLE IF EXISTS "teams";
 CREATE TABLE "public"."teams" (
     "run_id" integer NOT NULL,
     "user_id" character varying(32) NOT NULL,
@@ -62,9 +51,6 @@ CREATE TABLE "public"."teams" (
     CONSTRAINT "teams_run_id_user_id_guild_id" PRIMARY KEY ("run_id", "user_id", "guild_id")
 ) WITH (oids = false);
 
-
-DROP TABLE IF EXISTS "times";
-DROP SEQUENCE IF EXISTS times_run_id_seq;
 CREATE SEQUENCE times_run_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1;
 
 CREATE TABLE "public"."times" (
@@ -75,8 +61,6 @@ CREATE TABLE "public"."times" (
     CONSTRAINT "times_pkey" PRIMARY KEY ("run_id")
 ) WITH (oids = false);
 
-
-DROP TABLE IF EXISTS "users";
 CREATE TABLE "public"."users" (
     "user_id" character varying(32) NOT NULL,
     "guild_id" character varying(32) NOT NULL,
@@ -85,7 +69,6 @@ CREATE TABLE "public"."users" (
 ) WITH (oids = false);
 
 CREATE INDEX "guild_id" ON "public"."users" USING btree ("guild_id");
-
 
 ALTER TABLE ONLY "public"."bosses" ADD CONSTRAINT "boss_category_fkey" FOREIGN KEY (category) REFERENCES categories(name) ON UPDATE CASCADE ON DELETE SET NULL NOT DEFERRABLE;
 
@@ -184,3 +167,18 @@ VALUES
     ('awakened_leviathan', 'Leviathan (Awakened)', 'Desert Treasure II', true),
     ('awakened_duke_sucellus', 'Duke Sucellus (Awakened)', 'Desert Treasure II', true),
     ('awakened_whisperer', 'The Whisperer (Awakened)', 'Desert Treasure II', true);
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS "users";
+DROP SEQUENCE IF EXISTS times_run_id_seq;
+DROP TABLE IF EXISTS "times";
+DROP TABLE IF EXISTS "teams";
+DROP TABLE IF EXISTS "rsn";
+DROP TABLE IF EXISTS "guilds";
+DROP TABLE IF EXISTS "guild_categories";
+DROP TABLE IF EXISTS "guild_bosses";
+DROP TABLE IF EXISTS "categories";
+DROP TABLE IF EXISTS "bosses";
+-- +goose StatementEnd
