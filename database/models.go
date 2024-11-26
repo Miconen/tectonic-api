@@ -9,58 +9,65 @@ import (
 )
 
 type Boss struct {
-	Name        string
-	DisplayName string
-	Category    string
-	Solo        bool
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+	Category    string `json:"category"`
+	Solo        bool   `json:"solo"`
 }
 
 type Category struct {
-	Thumbnail pgtype.Text
-	Order     int16
-	Name      string
+	Thumbnail pgtype.Text `json:"thumbnail"`
+	Order     int16       `json:"order"`
+	Name      string      `json:"name"`
 }
 
 type Guild struct {
-	GuildID     string
-	Multiplier  int32
-	PbChannelID pgtype.Text
+	GuildID     string      `json:"guild_id"`
+	Multiplier  int32       `json:"multiplier"`
+	PbChannelID pgtype.Text `json:"pb_channel_id"`
 }
 
 type GuildBoss struct {
-	Boss    string
-	GuildID string
-	PbID    pgtype.Int4
+	Boss    string      `json:"boss"`
+	GuildID string      `json:"guild_id"`
+	PbID    pgtype.Int4 `json:"pb_id"`
 }
 
 type GuildCategory struct {
-	GuildID   string
-	Category  string
-	MessageID string
+	GuildID   string `json:"guild_id"`
+	Category  string `json:"category"`
+	MessageID string `json:"message_id"`
+}
+
+type PointSource struct {
+	GuildID string `json:"guild_id"`
+	Source  string `json:"source"`
+	Points  int32  `json:"points"`
 }
 
 type Rsn struct {
-	Rsn     string
-	WomID   string
-	UserID  string
-	GuildID string
+	Rsn     string `json:"rsn"`
+	WomID   string `json:"wom_id"`
+	UserID  string `json:"user_id"`
+	GuildID string `json:"guild_id"`
 }
 
 type Team struct {
-	RunID   int32
-	UserID  string
-	GuildID string
+	RunID   int32  `json:"run_id"`
+	UserID  string `json:"user_id"`
+	GuildID string `json:"guild_id"`
 }
 
 type Time struct {
-	Time     int32
-	BossName string
-	RunID    int32
-	Date     pgtype.Timestamp
+	Time     int32            `json:"time"`
+	BossName string           `json:"boss_name"`
+	RunID    int32            `json:"run_id"`
+	Date     pgtype.Timestamp `json:"date"`
 }
 
 type User struct {
-	UserID  string
-	GuildID string
-	Points  int32
+	UserID  string `json:"user_id"`
+	GuildID string `json:"guild_id"`
+	Points  int32  `json:"points"`
 }
+
