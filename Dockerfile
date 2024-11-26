@@ -18,4 +18,5 @@ RUN go build -o main .
 EXPOSE 8080
 
 # Command to run the application
-CMD ["./main"]
+RUN ["chmod", "+x", "./wait-for-it.sh"]
+CMD ./wait-for-it.sh 0.0.0.0:5432 -- ./main
