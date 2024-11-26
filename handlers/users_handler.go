@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"strings"
 	"tectonic-api/database"
-	"tectonic-api/models"
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
@@ -120,35 +120,42 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param guild_id path string true "Guild ID"
-// @Param guild body models.InputUser true "User"
+// @Param user_id path string true "User ID"
+// @Param rsn body string true "RSN"
 // @Success 201 {object} models.Empty
 // @Failure 400 {object} models.Empty
 // @Failure 401 {object} models.Empty
 // @Failure 409 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
-// @Router /api/v1/guilds/{guild_id}/users [POST]
+// @Router /api/v1/guilds/{guild_id}/users/{user_id} [POST]
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusCreated
 
 	v := mux.Vars(r)
-	p := models.InputUser{}
-	err := utils.ParseRequestBody(w, r, &p)
+	params := database.CreateUserParams{
+		GuildID: v["guild_id"],
+		UserID:  v["user_id"],
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&params)
+	if err != nil {
+		fmt.Println("Error decoding request body: ", err)
+		status = http.StatusInternalServerError
+		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		return
+	}
+
+	wid, err := utils.GetWomId(params.Rsn)
 	if err != nil {
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
 		return
 	}
-	p.GuildId = v["guild_id"]
 
-	wid, err := utils.GetWomId(p.RSN)
-	if err != nil {
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
-		return
-	}
+	params.WomID = wid
 
-	err = database.InsertUser(r.Context(), p, wid)
+	user, err := queries.CreateUser(r.Context(), params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error inserting user: %v\n", err)
 		if err.Error() == database.ERROR_UNACTIVATED_GUILD {
@@ -158,7 +165,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	utils.JsonWriter(user).IntoHTTP(status)(w, r)
 }
 
 // @Summary Delete a user from guild by User ID

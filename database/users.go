@@ -113,6 +113,61 @@ func (q *Queries) GetUsersByWom(ctx context.Context, arg GetUsersByWomParams) ([
 	return items, nil
 }
 
+const createUser = `-- name: CreateUser :one
+WITH inserted_users AS (
+  INSERT INTO users (guild_id, user_id)
+  VALUES ($1, $2)
+  RETURNING guild_id, user_id, points
+),
+inserted_rsn AS (
+  INSERT INTO rsn (guild_id, user_id, rsn, wom_id)
+  VALUES ($1, $2, $3, $4)
+  RETURNING guild_id, user_id, rsn, wom_id
+)
+SELECT
+    u.guild_id,
+    u.user_id,
+    u.points,
+    r.rsn,
+    r.wom_id
+FROM inserted_users u
+JOIN inserted_rsn r
+ON u.guild_id = r.guild_id AND u.user_id = r.user_id
+`
+
+type CreateUserParams struct {
+	GuildID string `json:"guild_id"`
+	UserID  string `json:"user_id"`
+	Rsn     string `json:"rsn"`
+	WomID   string `json:"wom_id"`
+}
+
+type CreateUserRow struct {
+	GuildID string `json:"guild_id"`
+	UserID  string `json:"user_id"`
+	Points  int32  `json:"points"`
+	Rsn     string `json:"rsn"`
+	WomID   string `json:"wom_id"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.GuildID,
+		arg.UserID,
+		arg.Rsn,
+		arg.WomID,
+	)
+	var i CreateUserRow
+	err := row.Scan(
+		&i.GuildID,
+		&i.UserID,
+		&i.Points,
+		&i.Rsn,
+		&i.WomID,
+	)
+	return i, err
+}
+
 const deleteUserById = `-- name: DeleteUserById :exec
 DELETE FROM users
 WHERE users.guild_id = $1
