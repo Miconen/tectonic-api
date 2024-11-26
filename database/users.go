@@ -113,3 +113,59 @@ func (q *Queries) GetUsersByWom(ctx context.Context, arg GetUsersByWomParams) ([
 	return items, nil
 }
 
+const deleteUserById = `-- name: DeleteUserById :exec
+DELETE FROM users
+WHERE users.guild_id = $1
+AND users.user_id = $2
+`
+
+type DeleteUserByIdParams struct {
+	GuildID string `json:"guild_id"`
+	UserID  string `json:"user_id"`
+}
+
+func (q *Queries) DeleteUserById(ctx context.Context, arg DeleteUserByIdParams) error {
+	_, err := q.db.Exec(ctx, deleteUserById, arg.GuildID, arg.UserID)
+	return err
+}
+
+const deleteUserByRsn = `-- name: DeleteUserByRsn :exec
+DELETE FROM users
+WHERE users.guild_id = $1
+AND users.user_id IN (
+    SELECT rsn.user_id
+    FROM rsn
+    WHERE rsn.guild_id = users.guild_id AND rsn.rsn = $2
+)
+`
+
+type DeleteUserByRsnParams struct {
+	GuildID string `json:"guild_id"`
+	Rsn     string `json:"rsn"`
+}
+
+func (q *Queries) DeleteUserByRsn(ctx context.Context, arg DeleteUserByRsnParams) error {
+	_, err := q.db.Exec(ctx, deleteUserByRsn, arg.GuildID, arg.Rsn)
+	return err
+}
+
+const deleteUserByWom = `-- name: DeleteUserByWom :exec
+DELETE FROM users
+WHERE users.guild_id = $1
+AND users.user_id IN (
+    SELECT rsn.user_id
+    FROM rsn
+    WHERE rsn.guild_id = users.guild_id AND rsn.wom_id = $2
+)
+`
+
+type DeleteUserByWomParams struct {
+	GuildID string `json:"guild_id"`
+	WomID   string `json:"wom_id"`
+}
+
+func (q *Queries) DeleteUserByWom(ctx context.Context, arg DeleteUserByWomParams) error {
+	_, err := q.db.Exec(ctx, deleteUserByWom, arg.GuildID, arg.WomID)
+	return err
+}
+

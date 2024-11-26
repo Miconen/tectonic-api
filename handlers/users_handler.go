@@ -161,7 +161,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
 }
 
-// @Summary Delete a user from guild
+// @Summary Delete a user from guild by User ID
 // @Description Delete a user in our backend by unique user and guild Snowflake (ID)
 // @Tags User
 // @Produce json
@@ -174,12 +174,81 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/{user_id} [DELETE]
-func RemoveUser(w http.ResponseWriter, r *http.Request) {
+func RemoveUserById(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent
 
 	p := mux.Vars(r)
 
-	err := database.DeleteUser(r.Context(), p)
+	params := database.DeleteUserByIdParams{
+		GuildID: p["guild_id"],
+		UserID: p["user_id"],
+	}
+
+	err := queries.DeleteUserById(r.Context(), params)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
+		status = http.StatusNotFound
+	}
+
+	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+}
+
+// @Summary Delete a user from guild by RSN
+// @Description Delete a user in our backend by unique user and guild Snowflake (ID)
+// @Tags User
+// @Produce json
+// @Param guild_id path string true "Guild ID"
+// @Param rsn path string true "RSN"
+// @Success 204 {object} models.Empty
+// @Failure 400 {object} models.Empty
+// @Failure 401 {object} models.Empty
+// @Failure 404 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
+// @Router /api/v1/guilds/{guild_id}/users/rsn/{rsn} [DELETE]
+func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
+	status := http.StatusNoContent
+
+	p := mux.Vars(r)
+
+	params := database.DeleteUserByRsnParams{
+		GuildID: p["guild_id"],
+		Rsn: p["rsn"],
+	}
+
+	err := queries.DeleteUserByRsn(r.Context(), params)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
+		status = http.StatusNotFound
+	}
+
+	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+}
+
+// @Summary Delete a user from guild by Wom ID
+// @Description Delete a user in our backend by unique user and guild Snowflake (ID)
+// @Tags User
+// @Produce json
+// @Param guild_id path string true "Guild ID"
+// @Param wom_id path string true "Wom ID"
+// @Success 204 {object} models.Empty
+// @Failure 400 {object} models.Empty
+// @Failure 401 {object} models.Empty
+// @Failure 404 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
+// @Router /api/v1/guilds/{guild_id}/users/wom/{wom_id} [DELETE]
+func RemoveUserByWom(w http.ResponseWriter, r *http.Request) {
+	status := http.StatusNoContent
+
+	p := mux.Vars(r)
+
+	params := database.DeleteUserByWomParams{
+		GuildID: p["guild_id"],
+		WomID: p["wom_id"],
+	}
+
+	err := queries.DeleteUserByWom(r.Context(), params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
 		status = http.StatusNotFound

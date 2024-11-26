@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"tectonic-api/models"
 
-	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
@@ -56,36 +55,6 @@ func InsertUser(ctx context.Context, f models.InputUser, wid string) error {
 		return fmt.Errorf("expected 1 row to be affected, got %d", commandTagUser.RowsAffected())
 	} else if commandTagRsn.RowsAffected() != 1 {
 		return fmt.Errorf("expected 1 row to be affected, got %d", commandTagRsn.RowsAffected())
-	}
-
-	return nil
-}
-
-func DeleteUser(ctx context.Context, f map[string]string) error {
-	query := psql.Delete("users")
-
-	for key, value := range f {
-		query = query.Where(squirrel.Eq{key: value})
-	}
-
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return err
-	}
-
-	conn, err := pool.Acquire(ctx)
-	if err != nil {
-		return err
-	}
-	defer conn.Release()
-
-	commandTag, err := conn.Exec(ctx, sql, args...)
-	if err != nil {
-		return err
-	}
-
-	if commandTag.RowsAffected() != 1 {
-		return fmt.Errorf("expected 1 row to be affected, got %d", commandTag.RowsAffected())
 	}
 
 	return nil
