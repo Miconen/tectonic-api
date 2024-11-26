@@ -2220,7 +2220,7 @@
 			]
 		},
 		{
-			"name": "User Delete",
+			"name": "User Delete (By User ID)",
 			"event": [
 				{
 					"listen": "test",
@@ -2253,6 +2253,192 @@
 						"{{guildId}}",
 						"users",
 						"{{userId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"\r",
+							"    const requestBody = JSON.parse(pm.request.body.raw)\r",
+							"\r",
+							"    // Store the guild_id parameter in a collection variable\r",
+							"    pm.collectionVariables.set(\"userId\", requestBody.user_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"guild_id\": \"{{guildId}}\",\r\n    \"user_id\": \"{{$randomPhoneNumberExt}}-{{$randomPhoneNumberExt}}\",\r\n    \"rsn\": \"Comfy hug\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Delete (By Wom ID)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/wom/39527",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"wom",
+						"39527"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"\r",
+							"    const requestBody = JSON.parse(pm.request.body.raw)\r",
+							"\r",
+							"    // Store the guild_id parameter in a collection variable\r",
+							"    pm.collectionVariables.set(\"userId\", requestBody.user_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"guild_id\": \"{{guildId}}\",\r\n    \"user_id\": \"{{$randomPhoneNumberExt}}-{{$randomPhoneNumberExt}}\",\r\n    \"rsn\": \"Comfy hug\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Delete (By RSN)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/rsn/Comfy hug",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"rsn",
+						"Comfy hug"
 					]
 				}
 			},
