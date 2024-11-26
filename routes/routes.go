@@ -33,7 +33,7 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	guildsRouter.HandleFunc("", handlers.CreateGuild).Methods("POST")
 	guildsRouter.HandleFunc("/{guild_id}", handlers.UpdateGuild).Methods("PUT")
 	guildsRouter.HandleFunc("/{guild_id}", handlers.GetGuild).Methods("GET")
-	guildsRouter.HandleFunc("/{guild_id}", handlers.RemoveGuild).Methods("DELETE")
+	guildsRouter.HandleFunc("/{guild_id}", handlers.DeleteGuild).Methods("DELETE")
 
 	// Leaderboard
 	guildsRouter.HandleFunc("/{guild_id}/leaderboard", handlers.GetLeaderboard).Methods("GET")
@@ -45,10 +45,13 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 
 	// Users
 	usersRouter := guildsRouter.PathPrefix("/{guild_id}/users").Subrouter()
-	usersRouter.HandleFunc("", handlers.GetUsers).Methods("GET")
-	usersRouter.HandleFunc("", handlers.CreateUser).Methods("POST")
-	usersRouter.HandleFunc("/{user_id}", handlers.GetUser).Methods("GET")
-	usersRouter.HandleFunc("/{user_id}", handlers.RemoveUser).Methods("DELETE")
+	usersRouter.HandleFunc("/{user_id}", handlers.CreateUser).Methods("POST")
+	usersRouter.HandleFunc("/rsn/{rsns}", handlers.GetUsersByRsn).Methods("GET")
+	usersRouter.HandleFunc("/wom/{wom_ids}", handlers.GetUsersByWom).Methods("GET")
+	usersRouter.HandleFunc("/{user_ids}", handlers.GetUsersById).Methods("GET")
+	usersRouter.HandleFunc("/rsn/{rsn}", handlers.RemoveUserByRsn).Methods("DELETE")
+	usersRouter.HandleFunc("/wom/{wom_id}", handlers.RemoveUserByWom).Methods("DELETE")
+	usersRouter.HandleFunc("/{user_id}", handlers.RemoveUserById).Methods("DELETE")
 
 	// RSN
 	rsnsRouter := usersRouter.PathPrefix("/{user_id}/rsns").Subrouter()

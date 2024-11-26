@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"tectonic-api/database"
+	"tectonic-api/handlers"
 	"tectonic-api/routes"
 )
 
@@ -22,6 +23,7 @@ func main() {
 	}
 	defer conn.Close()
 
+	handlers.InitHandlers(conn)
 	router := routes.NewAPIBuilder().AttachV1Routes()
 
 	port := os.Getenv("PORT")
