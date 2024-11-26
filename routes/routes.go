@@ -45,9 +45,10 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 
 	// Users
 	usersRouter := guildsRouter.PathPrefix("/{guild_id}/users").Subrouter()
-	usersRouter.HandleFunc("", handlers.GetUsers).Methods("GET")
 	usersRouter.HandleFunc("", handlers.CreateUser).Methods("POST")
-	usersRouter.HandleFunc("/{user_id}", handlers.GetUser).Methods("GET")
+	usersRouter.HandleFunc("/rsn/{rsns}", handlers.GetUsersByRsn).Methods("GET")
+	usersRouter.HandleFunc("/wom/{wom_ids}", handlers.GetUsersByWom).Methods("GET")
+	usersRouter.HandleFunc("/{user_ids}", handlers.GetUsersById).Methods("GET")
 	usersRouter.HandleFunc("/{user_id}", handlers.RemoveUser).Methods("DELETE")
 
 	// RSN
