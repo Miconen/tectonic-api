@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -26,9 +27,17 @@ import (
 func GetGuild(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusOK
 
-	p := mux.Vars(r)
+	v := mux.Vars(r)
 
-	guild, err := database.SelectGuild(r.Context(), p)
+	guildId, ok := v["guild_id"]
+	if !ok {
+		fmt.Fprintf(os.Stderr, "No guild id found")
+		status = http.StatusBadRequest
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		return
+	}
+
+	guild, err := queries.GetGuild(r.Context(), guildId)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error selecting guild: %v\n", err)
 		status = http.StatusNotFound
@@ -67,7 +76,7 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = database.InsertGuild(r.Context(), p)
+	_, err = queries.CreateGuild(r.Context(), p.GuildId)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating guild: %v\n", err)
 		status = http.StatusConflict
@@ -88,12 +97,20 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id} [DELETE]
-func RemoveGuild(w http.ResponseWriter, r *http.Request) {
+func DeleteGuild(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent
 
-	p := mux.Vars(r)
+	v := mux.Vars(r)
 
-	err := database.DeleteGuild(r.Context(), p)
+	guildId, ok := v["guild_id"]
+	if !ok {
+		fmt.Fprintf(os.Stderr, "No guild id found\n")
+		status = http.StatusBadRequest
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		return
+	}
+
+	_, err := queries.DeleteGuild(r.Context(), guildId)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error deleting guild: %v\n", err)
 		status = http.StatusNotFound
@@ -120,21 +137,29 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent
 
 	v := mux.Vars(r)
-	p := models.UpdateGuild{}
-
-	err := utils.ParseRequestBody(w, r, &p)
+	var p database.UpdateGuildParams
+	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		fmt.Fprintf(os.Stderr, "Failed to parse request body\n")
+		status = http.StatusInternalServerError
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
 		return
 	}
 
-	if p.GuildId != v["guild_id"] {
+	guildId, exists := v["guild_id"]
+	if !exists {
+		fmt.Fprintf(os.Stderr, "No guild ID found in URL\n")
+		status = http.StatusBadRequest
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		return
+	}
+
+	if p.GuildID != guildId {
 		http.Error(w, fmt.Errorf("guild_id in request body must match URI param").Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = database.UpdateGuild(r.Context(), p)
+	_, err = queries.UpdateGuild(r.Context(), p)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error updating channel: %v\n", err)
 		status = http.StatusNotFound
