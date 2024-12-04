@@ -23,6 +23,12 @@ func main() {
 	}
 	defer conn.Close()
 
+	err = database.RunMigrations(conn)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error running migrations: %v\n", err)
+		os.Exit(1)
+	}
+
 	handlers.InitHandlers(conn)
 	router := routes.NewAPIBuilder().AttachV1Routes()
 

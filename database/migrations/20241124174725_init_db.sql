@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 DROP TABLE IF EXISTS "bosses";
 CREATE TABLE "public"."bosses" (
     "name" character varying(32) NOT NULL,
@@ -221,3 +223,21 @@ CREATE TRIGGER insert_default_point_sources_trigger
 AFTER INSERT ON guilds
 FOR EACH ROW
 EXECUTE FUNCTION insert_default_point_sources();
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TRIGGER insert_default_point_sources_trigger ON guilds
+DROP FUNCTION insert_default_point_sources()
+DROP TABLE IF EXISTS "point_sources";
+DROP TABLE IF EXISTS "users";
+DROP SEQUENCE IF EXISTS times_run_id_seq;
+DROP TABLE IF EXISTS "times";
+DROP TABLE IF EXISTS "teams";
+DROP TABLE IF EXISTS "rsn";
+DROP TABLE IF EXISTS "guilds";
+DROP TABLE IF EXISTS "guild_categories";
+DROP TABLE IF EXISTS "guild_bosses";
+DROP TABLE IF EXISTS "categories";
+DROP TABLE IF EXISTS "bosses";
+-- +goose StatementEnd
