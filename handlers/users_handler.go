@@ -35,7 +35,10 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 		UserIDs: strings.Split(p["user_ids"], ","),
 	}
 
-	user, err := queries.GetUsersById(r.Context(), params)
+	fmt.Println(params)
+
+	// FIX: Currently doesn't take parameters but should accept the above "params" variable in the future
+	user, err := queries.GetUsers(r.Context())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error fetching user: %v\n", err)
 		status = http.StatusNotFound
@@ -43,7 +46,15 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.JsonWriter(user).IntoHTTP(status)(w, r)
+	var d_user []database.DetailedUser
+
+	err = json.Unmarshal(user[0], &d_user)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	utils.JsonWriter(d_user).IntoHTTP(status)(w, r)
 }
 
 // @Summary Get one or more users by RSN(s)
@@ -66,7 +77,7 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 
 	params := database.GetUsersByRsnParams{
 		GuildID: p["guild_id"],
-		RSNs: strings.Split(p["rsns"], ","),
+		RSNs:    strings.Split(p["rsns"], ","),
 	}
 
 	user, err := queries.GetUsersByRsn(r.Context(), params)
@@ -100,7 +111,7 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 
 	params := database.GetUsersByWomParams{
 		GuildID: p["guild_id"],
-		WomIDs: strings.Split(p["wom_ids"], ","),
+		WomIDs:  strings.Split(p["wom_ids"], ","),
 	}
 
 	user, err := queries.GetUsersByWom(r.Context(), params)
@@ -188,7 +199,7 @@ func RemoveUserById(w http.ResponseWriter, r *http.Request) {
 
 	params := database.DeleteUserByIdParams{
 		GuildID: p["guild_id"],
-		UserID: p["user_id"],
+		UserID:  p["user_id"],
 	}
 
 	err := queries.DeleteUserById(r.Context(), params)
@@ -220,7 +231,7 @@ func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
 
 	params := database.DeleteUserByRsnParams{
 		GuildID: p["guild_id"],
-		Rsn: p["rsn"],
+		Rsn:     p["rsn"],
 	}
 
 	err := queries.DeleteUserByRsn(r.Context(), params)
@@ -252,7 +263,7 @@ func RemoveUserByWom(w http.ResponseWriter, r *http.Request) {
 
 	params := database.DeleteUserByWomParams{
 		GuildID: p["guild_id"],
-		WomID: p["wom_id"],
+		WomID:   p["wom_id"],
 	}
 
 	err := queries.DeleteUserByWom(r.Context(), params)
