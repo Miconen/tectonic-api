@@ -36,7 +36,7 @@ type GuildBoss struct {
 type GuildCategory struct {
 	GuildID   string
 	Category  string
-	MessageID string
+	MessageID pgtype.Text
 }
 
 type PointSource struct {
