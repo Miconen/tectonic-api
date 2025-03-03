@@ -32,7 +32,7 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 
 	params := database.GetUsersByIdParams{
 		GuildID: p["guild_id"],
-		UserIDs: strings.Split(p["user_ids"], ","),
+		UserIds: strings.Split(p["user_ids"], ","),
 	}
 
 	fmt.Println(params)
@@ -77,7 +77,7 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 
 	params := database.GetUsersByRsnParams{
 		GuildID: p["guild_id"],
-		RSNs:    strings.Split(p["rsns"], ","),
+		Rsns:     strings.Split(p["rsns"], ","),
 	}
 
 	user, err := queries.GetUsersByRsn(r.Context(), params)
@@ -111,7 +111,7 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 
 	params := database.GetUsersByWomParams{
 		GuildID: p["guild_id"],
-		WomIDs:  strings.Split(p["wom_ids"], ","),
+		WomIds:  strings.Split(p["wom_ids"], ","),
 	}
 
 	user, err := queries.GetUsersByWom(r.Context(), params)
