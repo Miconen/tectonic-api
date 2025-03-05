@@ -98,9 +98,11 @@ SELECT
     r.wom_id AS user_wom_id,
     t.time AS time_value,
     t.boss_name,
+    b.category AS boss_category,
     t.run_id,
     t.date AS run_date,
     tm.user_id AS team_user_id,
+    tm.guild_id AS team_guild_id,
     tu.points AS team_user_points,
     tr.rsn AS team_user_rsn,
     tr.wom_id AS team_user_wom_id
@@ -108,6 +110,7 @@ FROM users u
 LEFT JOIN rsn r ON r.user_id = u.user_id AND r.guild_id = u.guild_id
 LEFT JOIN guild_pb_runs g ON g.guild_id = u.guild_id
 LEFT JOIN times t ON t.run_id = g.pb_id
+LEFT JOIN bosses b ON b.name = t.boss_name
 LEFT JOIN teams tm ON tm.run_id = t.run_id
 LEFT JOIN users tu ON tm.user_id = tu.user_id AND tm.guild_id = tu.guild_id
 LEFT JOIN rsn tr ON tr.user_id = tu.user_id AND tr.guild_id = tu.guild_id
