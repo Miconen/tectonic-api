@@ -99,7 +99,7 @@ WITH query_user AS (
         b.category,
         t.run_id,
         t.date
-    FROM times t, bosses b, query_user qu
+    FROM times t, bosses b
     WHERE b.name = t.boss_name
 ), time_teammates AS (
     SELECT 
