@@ -86,39 +86,52 @@ WHERE user_id = ANY($2::text[])
 AND guild_id = $3 RETURNING user_id, guild_id, points;
 
 -- name: GetDetailedUsers :many
-WITH guild_pb_runs AS (
-    SELECT gb.guild_id, gb.pb_id
-    FROM guild_bosses gb
+WITH query_user AS (
+    SELECT u.user_id, u.guild_id, u.points,
+    array_agg(r) AS rsns
+    FROM users u, rsn r
+    WHERE u.user_id = r.user_id
+    GROUP BY u.user_id, u.guild_id, u.points
+), user_times AS (
+    SELECT
+        t.time,
+        t.boss_name,
+        b.category,
+        t.run_id,
+        t.date
+    FROM times t, bosses b, query_user qu
+    WHERE b.name = t.boss_name
+), time_teammates AS (
+    SELECT 
+        ut.run_id,
+        tm.user_id,
+        tm.guild_id,
+        u.points,
+        array_agg(r) AS rsns
+    FROM teams tm, users u, rsn r, user_times ut
+    WHERE tm.run_id = ut.run_id
+    AND tm.user_id = r.user_id
+    GROUP BY tm.user_id, tm.guild_id, u.points, ut.run_id
+), time_with_teammates AS (
+    SELECT
+        ut.time,
+        ut.boss_name,
+        ut.category,
+        ut.run_id,
+        ut.date,
+        array_remove(array_agg(tt), NULL) AS teammates
+    FROM user_times ut
+    LEFT JOIN time_teammates tt ON ut.run_id = tt.run_id
+    GROUP BY ut.time, ut.boss_name, ut.category, ut.run_id, ut.date
 )
-SELECT 
-    u.user_id AS user_id,
-    u.guild_id AS user_guild_id,
-    u.points AS user_points,
-    r.rsn AS user_rsn,
-    r.wom_id AS user_wom_id,
-    t.time AS time_value,
-    t.boss_name,
-    b.category AS boss_category,
-    t.run_id,
-    t.date AS run_date,
-    tm.user_id AS team_user_id,
-    tm.guild_id AS team_guild_id,
-    tu.points AS team_user_points,
-    tr.rsn AS team_user_rsn,
-    tr.wom_id AS team_user_wom_id
-FROM users u
-LEFT JOIN rsn r ON r.user_id = u.user_id AND r.guild_id = u.guild_id
-LEFT JOIN guild_pb_runs g ON g.guild_id = u.guild_id
-LEFT JOIN times t ON t.run_id = g.pb_id
-LEFT JOIN bosses b ON b.name = t.boss_name
-LEFT JOIN teams tm ON tm.run_id = t.run_id
-LEFT JOIN users tu ON tm.user_id = tu.user_id AND tm.guild_id = tu.guild_id
-LEFT JOIN rsn tr ON tr.user_id = tu.user_id AND tr.guild_id = tu.guild_id
-ORDER BY
-    u.user_id,
-    u.guild_id,
-    t.run_id,
-    tm.user_id;
+SELECT
+    qu.user_id,
+    qu.guild_id,
+    qu.points,
+    to_json(qu.rsns) AS rsns,
+    json_agg(twt) AS times
+FROM query_user qu, time_with_teammates twt
+GROUP BY qu.user_id, qu.guild_id, qu.points, qu.rsns;
 
 -- name: CreateGuild :one
 INSERT INTO guilds (
@@ -127,7 +140,6 @@ INSERT INTO guilds (
   $1
 )
 RETURNING guild_id, multiplier, pb_channel_id;
-
 
 -- name: DeleteGuild :one
 DELETE FROM guilds

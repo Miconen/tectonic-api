@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Param guild_id path string true "Guild ID"
 // @Param user_ids path string true "User ID(s)"
-// @Success 200 {object} database.User[]
+// @Success 200 {object} database.DetailedUSer[]
 // @Failure 400 {object} models.Empty
 // @Failure 401 {object} models.Empty
 // @Failure 404 {object} models.Empty
@@ -38,7 +38,7 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(params)
 
 	// FIX: Currently doesn't take parameters but should accept the above "params" variable in the future
-	user, err := queries.GetUsers(r.Context())
+	rows, err := queries.GetDetailedUsers(r.Context())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error fetching user: %v\n", err)
 		status = http.StatusNotFound
@@ -46,15 +46,8 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var d_user []database.DetailedUser
-
-	err = json.Unmarshal(user[0], &d_user)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	utils.JsonWriter(d_user).IntoHTTP(status)(w, r)
+	users := database.NewDetailedUserFromRows(rows)
+	utils.JsonWriter(users).IntoHTTP(status)(w, r)
 }
 
 // @Summary Get one or more users by RSN(s)
