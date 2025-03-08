@@ -22,12 +22,12 @@ type Category struct {
 }
 
 type DetailedTime struct {
-	Time     int32            `json:"time"`
-	BossName string           `json:"boss_name"`
-	Category pgtype.Text      `json:"category"`
-	RunID    int32            `json:"run_id"`
-	Date     pgtype.Timestamp `json:"date"`
-	Team     interface{}      `json:"team"`
+	Time        int32            `json:"time"`
+	DisplayName pgtype.Text      `json:"display_name"`
+	Category    pgtype.Text      `json:"category"`
+	RunID       int32            `json:"run_id"`
+	Date        pgtype.Timestamp `json:"date"`
+	Team        interface{}      `json:"team"`
 }
 
 type DetailedTimeTeam struct {

@@ -185,3 +185,20 @@ UPDATE guilds SET
     multiplier = CASE WHEN $1::numeric IS NOT NULL AND $1::numeric != 0 THEN $1::numeric ELSE multiplier END,
     pb_channel_id = CASE WHEN $2::text IS NOT NULL AND $2::text != '' THEN $2::text ELSE pb_channel_id END
 WHERE guild_id = $3 RETURNING guild_id, multiplier, pb_channel_id;
+
+-- name: CreateRsn :exec
+INSERT INTO rsn (
+    guild_id,
+    user_id,
+    rsn,
+    wom_id
+) VALUES (
+    @guild_id,
+    @user_id,
+    @rsn,
+    @wom_id
+);
+
+-- name: DeleteRsn :execrows
+DELETE FROM rsn r
+WHERE r.guild_id = @guild_id AND r.user_id = @user_id AND r.rsn = @rsn;
