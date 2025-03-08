@@ -54,13 +54,13 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	usersRouter.HandleFunc("/{user_id}", handlers.RemoveUserById).Methods("DELETE")
 
 	// RSN
-	rsnsRouter := usersRouter.PathPrefix("/{user_id}/rsns").Subrouter()
+	rsnsRouter := usersRouter.PathPrefix("/{user_ids}/rsns").Subrouter()
 	rsnsRouter.HandleFunc("", handlers.GetRSNs).Methods("GET")
 	rsnsRouter.HandleFunc("", handlers.CreateRSN).Methods("POST")
 	rsnsRouter.HandleFunc("/{rsn}", handlers.RemoveRSN).Methods("DELETE")
 
 	// Points
-	pointsRouter := guildsRouter.PathPrefix("/{guild_id}/points").Subrouter()
+	pointsRouter := usersRouter.PathPrefix("/{user_ids}/points").Subrouter()
 	pointsRouter.HandleFunc("/custom/{points}", handlers.UpdatePointsCustom).Methods("PUT")
 	pointsRouter.HandleFunc("/{point_event}", handlers.UpdatePoints).Methods("PUT")
 
