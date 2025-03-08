@@ -114,7 +114,6 @@ WITH query_user AS (
     JOIN rsn r ON tm.user_id = r.user_id AND u.guild_id = r.guild_id
     JOIN user_times ut ON tm.run_id = ut.run_id
     WHERE u.guild_id = @guild_id
-    AND u.user_id != @user_id
     GROUP BY tm.user_id, tm.guild_id, u.points, ut.run_id
 ), time_with_teammates AS (
     SELECT
@@ -123,9 +122,12 @@ WITH query_user AS (
         ut.category,
         ut.run_id,
         ut.date,
-        array_remove(array_agg(tt), NULL) AS teammates
+        array_remove(array_agg(
+            CASE WHEN tt.user_id = qu.user_id THEN NULL ELSE tt END
+        ), NULL) AS teammates
     FROM user_times ut
     LEFT JOIN time_teammates tt ON ut.run_id = tt.run_id
+    LEFT JOIN query_user qu ON qu.user_id = ANY(@user_ids::text[])
     GROUP BY ut.time, ut.boss_name, ut.category, ut.run_id, ut.date
 )
 SELECT
