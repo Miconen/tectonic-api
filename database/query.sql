@@ -86,58 +86,74 @@ WHERE user_id = ANY(@user_ids::text[])
 AND guild_id = @guild_id RETURNING user_id, guild_id, points;
 
 -- name: GetDetailedUsers :many
-WITH query_user AS (
-    SELECT u.user_id, u.guild_id, u.points,
-    array_agg(r) AS rsns
-    FROM users u
-    JOIN rsn r ON u.user_id = r.user_id AND u.guild_id = r.guild_id
-    WHERE u.user_id = ANY(@user_ids::text[]) AND u.guild_id = @guild_id
-    GROUP BY u.user_id, u.guild_id, u.points
-), user_times AS (
-    SELECT
-        t.time,
-        t.boss_name,
-        b.category,
-        t.run_id,
-        t.date
-    FROM times t, bosses b
-    WHERE b.name = t.boss_name
-), time_teammates AS (
-    SELECT
-        ut.run_id,
-        tm.user_id,
-        tm.guild_id,
-        u.points,
-        array_agg(r) AS rsns
-    FROM teams tm
-    JOIN users u ON tm.user_id = u.user_id
-    JOIN rsn r ON tm.user_id = r.user_id AND u.guild_id = r.guild_id
-    JOIN user_times ut ON tm.run_id = ut.run_id
-    WHERE u.guild_id = @guild_id
-    GROUP BY tm.user_id, tm.guild_id, u.points, ut.run_id
-), time_with_teammates AS (
-    SELECT
-        ut.time,
-        ut.boss_name,
-        ut.category,
-        ut.run_id,
-        ut.date,
-        array_remove(array_agg(
-            CASE WHEN tt.user_id = qu.user_id THEN NULL ELSE tt END
-        ), NULL) AS teammates
-    FROM user_times ut
-    LEFT JOIN time_teammates tt ON ut.run_id = tt.run_id
-    LEFT JOIN query_user qu ON qu.user_id = ANY(@user_ids::text[])
-    GROUP BY ut.time, ut.boss_name, ut.category, ut.run_id, ut.date
+SELECT 
+    du.user_id,
+    du.guild_id,
+    du.points,
+    to_json(du.rsns) AS rsns,
+    COALESCE(times_json, '[]'::json) AS times
+FROM detailed_users du
+LEFT JOIN LATERAL (
+    SELECT json_agg(dt) AS times_json
+    FROM detailed_times dt
+    WHERE dt.run_id IN (
+        SELECT tm.run_id
+        FROM teams tm
+        WHERE tm.user_id = du.user_id AND tm.guild_id = du.guild_id
+    )
+) t ON true
+WHERE du.user_id = ANY(@user_ids::text[])
+AND du.guild_id = @guild_id;
+
+-- name: GetDetailedUsersByRSN :many
+WITH rsn_user AS (
+    SELECT r.user_id, r.guild_id 
+    FROM rsn r 
+    WHERE r.rsn = ANY(@rsns::text[])
 )
-SELECT
-    qu.user_id,
-    qu.guild_id,
-    qu.points,
-    to_json(qu.rsns) AS rsns,
-    json_agg(twt) AS times
-FROM query_user qu, time_with_teammates twt
-GROUP BY qu.user_id, qu.guild_id, qu.points, qu.rsns;
+SELECT 
+    du.user_id,
+    du.guild_id,
+    du.points,
+    to_json(du.rsns) AS rsns,
+    COALESCE(times_json, '[]'::json) AS times
+FROM detailed_users du
+JOIN rsn_user ru ON ru.user_id = du.user_id AND ru.guild_id = du.guild_id
+LEFT JOIN LATERAL (
+    SELECT json_agg(dt) AS times_json
+    FROM detailed_times dt
+    WHERE dt.run_id IN (
+        SELECT tm.run_id
+        FROM teams tm
+        WHERE tm.user_id = du.user_id AND tm.guild_id = du.guild_id
+    )
+) t ON true
+WHERE du.guild_id = @guild_id;
+
+-- name: GetDetailedUsersByWomID :many
+WITH wom_user AS (
+    SELECT r.user_id, r.guild_id 
+    FROM rsn r 
+    WHERE r.wom_id = ANY(@wom_ids::text[])
+)
+SELECT 
+    du.user_id,
+    du.guild_id,
+    du.points,
+    to_json(du.rsns) AS rsns,
+    COALESCE(times_json, '[]'::json) AS times
+FROM detailed_users du
+JOIN wom_user wu ON wu.user_id = du.user_id AND wu.guild_id = du.guild_id
+LEFT JOIN LATERAL (
+    SELECT json_agg(dt) AS times_json
+    FROM detailed_times dt
+    WHERE dt.run_id IN (
+        SELECT tm.run_id
+        FROM teams tm
+        WHERE tm.user_id = du.user_id AND tm.guild_id = du.guild_id
+    )
+) t ON true
+WHERE du.guild_id = @guild_id;
 
 -- name: GetLeaderboard :many
 SELECT u.user_id, u.guild_id, u.points, json_agg(r) AS rsns

@@ -43,7 +43,12 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users := database.NewDetailedUserFromRows(rows)
+	users := make([]database.DetailedUserJSON, 0, len(rows))
+	for _, row := range rows {
+		user := database.DetailedUserJSON{UserID: row.UserID, GuildID: row.GuildID, Points: row.Points, RSNs: row.Rsns, Times: row.Times}
+		users = append(users, user)
+	}
+
 	utils.JsonWriter(users).IntoHTTP(status)(w, r)
 }
 
@@ -65,12 +70,12 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 
 	p := mux.Vars(r)
 
-	params := database.GetUsersByRsnParams{
+	params := database.GetDetailedUsersByRSNParams{
 		GuildID: p["guild_id"],
 		Rsns:    strings.Split(p["rsns"], ","),
 	}
 
-	user, err := queries.GetUsersByRsn(r.Context(), params)
+	rows, err := queries.GetDetailedUsersByRSN(r.Context(), params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error fetching user: %v\n", err)
 		status = http.StatusNotFound
@@ -78,7 +83,13 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.JsonWriter(user).IntoHTTP(status)(w, r)
+	users := make([]database.DetailedUserJSON, 0, len(rows))
+	for _, row := range rows {
+		user := database.DetailedUserJSON{UserID: row.UserID, GuildID: row.GuildID, Points: row.Points, RSNs: row.Rsns, Times: row.Times}
+		users = append(users, user)
+	}
+
+	utils.JsonWriter(users).IntoHTTP(status)(w, r)
 }
 
 // @Summary Get one or more users by WomID(s)
@@ -99,12 +110,12 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 
 	p := mux.Vars(r)
 
-	params := database.GetUsersByWomParams{
+	params := database.GetDetailedUsersByWomIDParams{
 		GuildID: p["guild_id"],
 		WomIds:  strings.Split(p["wom_ids"], ","),
 	}
 
-	user, err := queries.GetUsersByWom(r.Context(), params)
+	rows, err := queries.GetDetailedUsersByWomID(r.Context(), params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error fetching user: %v\n", err)
 		status = http.StatusNotFound
@@ -112,7 +123,13 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.JsonWriter(user).IntoHTTP(status)(w, r)
+	users := make([]database.DetailedUserJSON, 0, len(rows))
+	for _, row := range rows {
+		user := database.DetailedUserJSON{UserID: row.UserID, GuildID: row.GuildID, Points: row.Points, RSNs: row.Rsns, Times: row.Times}
+		users = append(users, user)
+	}
+
+	utils.JsonWriter(users).IntoHTTP(status)(w, r)
 }
 
 // @Summary Create / Initialize a new user
