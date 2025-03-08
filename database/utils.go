@@ -1,10 +1,7 @@
 package database
 
-import (
-	"encoding/json"
+import "encoding/json"
 
-	"github.com/jackc/pgx/v5/pgtype"
-)
 
 type DetailedRsn struct {
 	Rsn   string `json:"rsn"`
@@ -18,17 +15,9 @@ type UserData struct {
 	RSNs    json.RawMessage `json:"rsns"`
 }
 
-type DetailedTime struct {
-	Time      int32            `json:"time"`
-	BossName  string           `json:"boss_name"`
-	RunID     int32            `json:"run_id"`
-	Date      pgtype.Timestamp `json:"date"`
-	Teammates []UserData       `json:"team"`
-}
-
 // TODO: Probably separate this in multiple queries, my head hurts while
 // making sql queries...
-type DetailedUser struct {
+type DetailedUserJSON struct {
 	UserID  string          `json:"user_id"`
 	GuildID string          `json:"guild_id"`
 	Points  int32           `json:"points"`
@@ -36,11 +25,11 @@ type DetailedUser struct {
 	Times   json.RawMessage `json:"times"`
 }
 
-func NewDetailedUserFromRows(rows []GetDetailedUsersRow) []DetailedUser {
-	list := make([]DetailedUser, 0, len(rows))
+func NewDetailedUserFromRows(rows []GetDetailedUsersRow) []DetailedUserJSON {
+	list := make([]DetailedUserJSON, 0, len(rows))
 
 	for _, row := range rows {
-		user := DetailedUser{
+		user := DetailedUserJSON{
 			UserID:  row.UserID,
 			GuildID: row.GuildID,
 			Points:  row.Points,
