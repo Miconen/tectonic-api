@@ -48,7 +48,7 @@ func (i InputPointsCustom) GetGuildID() string {
 // @Param guild_id path string true "Guild ID"
 // @Param point_event path string true "Point event"
 // @Param guild body models.User true "User"
-// @Success 204 {object} models.Empty
+// @Success 200 {object} models.User
 // @Failure 400 {object} models.Empty
 // @Failure 401 {object} models.Empty
 // @Failure 409 {object} models.Empty
@@ -56,7 +56,7 @@ func (i InputPointsCustom) GetGuildID() string {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/{user_ids}/points/{point_event} [PUT]
 func UpdatePoints(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusNoContent
+	status := http.StatusOK
 
 	p := mux.Vars(r)
 	params := database.UpdatePointsByEventParams{
@@ -82,7 +82,7 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 // @Param guild_id path string true "Guild ID"
 // @Param points path string true "Points"
 // @Param guild body models.User true "User"
-// @Success 204 {object} models.Empty
+// @Success 200 {object} models.User
 // @Failure 400 {object} models.Empty
 // @Failure 401 {object} models.Empty
 // @Failure 409 {object} models.Empty
@@ -90,7 +90,7 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/{user_ids}/points/custom/{points} [PUT]
 func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusNoContent
+	status := http.StatusOK
 
 	p := mux.Vars(r)
 	params := database.UpdatePointsCustomParams{
