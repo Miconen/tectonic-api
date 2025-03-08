@@ -89,8 +89,9 @@ AND guild_id = $3 RETURNING user_id, guild_id, points;
 WITH query_user AS (
     SELECT u.user_id, u.guild_id, u.points,
     array_agg(r) AS rsns
-    FROM users u, rsn r
-    WHERE u.user_id = r.user_id
+    FROM users u
+    JOIN rsn r ON u.user_id = r.user_id
+    WHERE u.user_id = $1 AND u.guild_id = $2
     GROUP BY u.user_id, u.guild_id, u.points
 ), user_times AS (
     SELECT
