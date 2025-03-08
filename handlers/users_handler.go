@@ -30,15 +30,12 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 
 	p := mux.Vars(r)
 
-	params := database.GetUsersByIdParams{
+	params := database.GetDetailedUsersParams{
 		GuildID: p["guild_id"],
 		UserIds: strings.Split(p["user_ids"], ","),
 	}
 
-	fmt.Println(params)
-
-	// FIX: Currently doesn't take parameters but should accept the above "params" variable in the future
-	rows, err := queries.GetDetailedUsers(r.Context())
+	rows, err := queries.GetDetailedUsers(r.Context(), params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error fetching user: %v\n", err)
 		status = http.StatusNotFound
@@ -70,7 +67,7 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 
 	params := database.GetUsersByRsnParams{
 		GuildID: p["guild_id"],
-		Rsns:     strings.Split(p["rsns"], ","),
+		Rsns:    strings.Split(p["rsns"], ","),
 	}
 
 	user, err := queries.GetUsersByRsn(r.Context(), params)
