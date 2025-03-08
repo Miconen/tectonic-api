@@ -15,7 +15,7 @@ GROUP BY tm.user_id, tm.guild_id, u.points, tm.run_id;
 CREATE VIEW detailed_times AS
 SELECT
     t.time,
-    t.boss_name,
+	b.display_name,
     b.category,
     t.run_id,
     t.date,
