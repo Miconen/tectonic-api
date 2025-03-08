@@ -71,7 +71,7 @@ AND users.user_id IN (
 -- name: UpdatePointsByEvent :many
 UPDATE users
 SET points = points + (
-	SELECT points
+    SELECT points
     FROM point_sources
     WHERE source = @event
     AND "point_sources"."guild_id" = @guild_id
@@ -81,9 +81,9 @@ AND guild_id = @guild_id RETURNING user_id, guild_id, points;
 
 -- name: UpdatePointsCustom :many
 UPDATE users
-SET points = points + $1
-WHERE user_id = ANY($2::text[])
-AND guild_id = $3 RETURNING user_id, guild_id, points;
+SET points = points + @points
+WHERE user_id = ANY(@user_ids::text[])
+AND guild_id = @guild_id RETURNING user_id, guild_id, points;
 
 -- name: GetDetailedUsers :many
 WITH query_user AS (
