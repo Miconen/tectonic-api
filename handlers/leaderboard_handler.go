@@ -27,7 +27,12 @@ func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 
 	p := mux.Vars(r)
 
-	leaderboard, err := database.SelectLeaderboard(r.Context(), p)
+	params := database.GetLeaderboardParams{
+		GuildID:   p["guild_id"],
+		UserLimit: 50,
+	}
+
+	rows, err := queries.GetLeaderboard(r.Context(), params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
 		status = http.StatusNotFound
@@ -35,5 +40,6 @@ func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	leaderboard := database.NewLeaderboardFromRows(rows)
 	utils.JsonWriter(leaderboard).IntoHTTP(status)(w, r)
 }

@@ -12,10 +12,10 @@ type DetailedRsn struct {
 }
 
 type UserData struct {
-	UserID  string        `json:"user_id"`
-	GuildID string        `json:"guild_id"`
-	Points  int32         `json:"points"`
-	RSNs    []DetailedRsn `json:"rsns"`
+	UserID  string          `json:"user_id"`
+	GuildID string          `json:"guild_id"`
+	Points  int32           `json:"points"`
+	RSNs    json.RawMessage `json:"rsns"`
 }
 
 type DetailedTime struct {
@@ -46,6 +46,23 @@ func NewDetailedUserFromRows(rows []GetDetailedUsersRow) []DetailedUser {
 			Points:  row.Points,
 			RSNs:    row.Rsns,
 			Times:   row.Times,
+		}
+
+		list = append(list, user)
+	}
+
+	return list
+}
+
+func NewLeaderboardFromRows(rows []GetLeaderboardRow) []UserData {
+	list := make([]UserData, 0, len(rows))
+
+	for _, row := range rows {
+		user := UserData{
+			UserID:  row.UserID,
+			GuildID: row.GuildID,
+			Points:  row.Points,
+			RSNs:    row.Rsns,
 		}
 
 		list = append(list, user)
