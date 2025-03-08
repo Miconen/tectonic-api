@@ -90,8 +90,8 @@ WITH query_user AS (
     SELECT u.user_id, u.guild_id, u.points,
     array_agg(r) AS rsns
     FROM users u
-    JOIN rsn r ON u.user_id = r.user_id
-    WHERE u.user_id = $1 AND u.guild_id = $2
+    JOIN rsn r ON u.user_id = r.user_id AND u.guild_id = r.guild_id
+    WHERE u.user_id = ANY(@user_ids::text[]) AND u.guild_id = @guild_id
     GROUP BY u.user_id, u.guild_id, u.points
 ), user_times AS (
     SELECT
@@ -103,15 +103,18 @@ WITH query_user AS (
     FROM times t, bosses b
     WHERE b.name = t.boss_name
 ), time_teammates AS (
-    SELECT 
+    SELECT
         ut.run_id,
         tm.user_id,
         tm.guild_id,
         u.points,
         array_agg(r) AS rsns
-    FROM teams tm, users u, rsn r, user_times ut
-    WHERE tm.run_id = ut.run_id
-    AND tm.user_id = r.user_id
+    FROM teams tm
+    JOIN users u ON tm.user_id = u.user_id
+    JOIN rsn r ON tm.user_id = r.user_id AND u.guild_id = r.guild_id
+    JOIN user_times ut ON tm.run_id = ut.run_id
+    WHERE u.guild_id = @guild_id
+    AND u.user_id != @user_id
     GROUP BY tm.user_id, tm.guild_id, u.points, ut.run_id
 ), time_with_teammates AS (
     SELECT
