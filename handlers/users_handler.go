@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"tectonic-api/database"
 	"tectonic-api/utils"
@@ -164,14 +165,15 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wid, err := utils.GetWomId(params.Rsn)
+	wom, err := utils.GetWom(params.Rsn)
 	if err != nil {
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
 		return
 	}
 
-	params.WomID = wid
+	params.WomID = strconv.Itoa(wom.Id)
+	params.Rsn = wom.DisplayName
 
 	user, err := queries.CreateUser(r.Context(), params)
 	if err != nil {

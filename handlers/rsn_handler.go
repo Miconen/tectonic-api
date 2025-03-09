@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"tectonic-api/database"
 	"tectonic-api/utils"
 
@@ -37,14 +38,15 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 		Rsn:     p["rsn"],
 	}
 
-	wid, err := utils.GetWomId(params.Rsn)
+	wom, err := utils.GetWom(params.Rsn)
 	if err != nil {
 		status = http.StatusBadRequest
 		utils.JsonWriter(err).IntoHTTP(status)(w, r)
 		return
 	}
 
-	params.WomID = wid
+	params.WomID = strconv.Itoa(wom.Id)
+	params.Rsn = wom.DisplayName
 
 	err = queries.CreateRsn(r.Context(), params)
 	if err != nil {
