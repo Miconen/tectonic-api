@@ -202,3 +202,38 @@ INSERT INTO rsn (
 -- name: DeleteRsn :execrows
 DELETE FROM rsn r
 WHERE r.guild_id = @guild_id AND r.user_id = @user_id AND r.rsn = @rsn;
+
+-- name: DeleteTime :execrows
+DELETE FROM times t
+WHERE t.guild_id = @guild_id AND t.run_id = @run_id;
+
+-- name: CreateTime :one
+INSERT INTO times (
+    time,
+    boss_name,
+    date,
+    guild_id
+)
+VALUES (
+    @time,
+    @boss_name,
+    @date,
+    @guild_id
+) RETURNING run_id;
+
+-- name: CheckPb :one
+SELECT gb.boss, t.time
+FROM guild_bosses gb
+LEFT JOIN times t ON gb.pb_id = t.run_id AND gb.guild_id = t.guild_id
+WHERE gb.boss = @boss
+AND gb.guild_id = @guild_id;
+
+-- name: UpdatePb :execrows
+UPDATE guild_bosses SET
+    pb_id = @run_id
+WHERE guild_id = @guild_id
+AND boss = @boss;
+
+-- name: CreateTeam :exec
+INSERT INTO teams (run_id, user_id, guild_id)
+SELECT @run_id, unnest(@user_ids::text[]), @guild_id;

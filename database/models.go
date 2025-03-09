@@ -87,6 +87,7 @@ type Time struct {
 	BossName string           `json:"boss_name"`
 	RunID    int32            `json:"run_id"`
 	Date     pgtype.Timestamp `json:"date"`
+	GuildID  string           `json:"guild_id"`
 }
 
 type User struct {

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -23,4 +24,8 @@ func InitDB() (*pgxpool.Pool, error) {
 	pool = conn // Store the connection in a package-level variable
 
 	return conn, nil
+}
+
+func CreateTx(ctx context.Context) (pgx.Tx, error) {
+	return pool.BeginTx(ctx, pgx.TxOptions{})
 }
