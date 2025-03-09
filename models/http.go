@@ -62,6 +62,15 @@ type InputTime struct {
 	UserIds  []string `json:"user_ids"`
 }
 
+// TimeResponse Model
+// @Description Return type of times endpoint retaining information to new and old time
+type TimeResponse struct {
+	BossName string `json:"boss_name"`
+	Time     int    `json:"time"`
+	OldTime  int    `json:"time_old"`
+	RunID    int    `json:"run_id"`
+}
+
 // Time Model
 // @Description Model of a fetched time and the team
 type Time struct {

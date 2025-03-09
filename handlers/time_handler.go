@@ -14,12 +14,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type TimeResponse struct {
-	BossName string `json:"boss_name"`
-	Time     int    `json:"time"`
-	RunID    int    `json:"run_id"`
-}
-
 // @Summary Add a new best time to guild
 // @Description Add a new time to a guild in our backend by unique guild Snowflake (ID)
 // @Tags Time
@@ -56,7 +50,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := TimeResponse{
+	res := models.TimeResponse{
 		BossName: params.BossName,
 		Time:     params.Time,
 	}
@@ -144,6 +138,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 
 	status = http.StatusCreated
 	res.RunID = int(run_id)
+	res.OldTime = int(pb.Time.Int32)
 	utils.JsonWriter(res).IntoHTTP(status)(w, r)
 }
 
