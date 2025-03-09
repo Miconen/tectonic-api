@@ -15,7 +15,8 @@ GROUP BY tm.user_id, tm.guild_id, u.points, tm.run_id;
 CREATE VIEW detailed_times AS
 SELECT
     t.time,
-	b.display_name,
+    t.boss_name,
+    b.display_name,
     b.category,
     t.run_id,
     t.date,
@@ -23,7 +24,7 @@ SELECT
 FROM times t
 LEFT JOIN detailed_time_teams dtt ON t.run_id = dtt.run_id
 LEFT JOIN bosses b ON b.name = t.boss_name
-GROUP BY t.time, t.boss_name, b.category, t.run_id, t.date;
+GROUP BY t.time, t.boss_name, b.category, b.display_name, t.run_id, t.date;
 
 CREATE VIEW detailed_users AS
 SELECT
