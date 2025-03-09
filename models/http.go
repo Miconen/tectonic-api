@@ -56,6 +56,7 @@ type Users struct {
 // InputTime Model
 // @Description Model of a new time
 type InputTime struct {
+	GuildId  string   `json:"guild_id"`
 	Time     int      `json:"time"`
 	BossName string   `json:"boss_name"`
 	UserIds  []string `json:"user_ids"`
