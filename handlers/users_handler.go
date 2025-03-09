@@ -209,9 +209,13 @@ func RemoveUserById(w http.ResponseWriter, r *http.Request) {
 		UserID:  p["user_id"],
 	}
 
-	err := queries.DeleteUserById(r.Context(), params)
+	rows, err := queries.DeleteUserById(r.Context(), params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
+		status = http.StatusInternalServerError
+	}
+
+	if rows == 0 {
 		status = http.StatusNotFound
 	}
 
@@ -241,9 +245,13 @@ func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
 		Rsn:     p["rsn"],
 	}
 
-	err := queries.DeleteUserByRsn(r.Context(), params)
+	rows, err := queries.DeleteUserByRsn(r.Context(), params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
+		status = http.StatusInternalServerError
+	}
+
+	if rows == 0 {
 		status = http.StatusNotFound
 	}
 
@@ -273,9 +281,13 @@ func RemoveUserByWom(w http.ResponseWriter, r *http.Request) {
 		WomID:   p["wom_id"],
 	}
 
-	err := queries.DeleteUserByWom(r.Context(), params)
+	rows, err := queries.DeleteUserByWom(r.Context(), params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
+		status = http.StatusInternalServerError
+	}
+
+	if rows == 0 {
 		status = http.StatusNotFound
 	}
 

@@ -45,12 +45,12 @@ FROM inserted_users u
 JOIN inserted_rsn r
 ON u.guild_id = r.guild_id AND u.user_id = r.user_id;
 
--- name: DeleteUserById :exec
+-- name: DeleteUserById :execrows
 DELETE FROM users
 WHERE users.guild_id = $1
 AND users.user_id = $2;
 
--- name: DeleteUserByRsn :exec
+-- name: DeleteUserByRsn :execrows
 DELETE FROM users
 WHERE users.guild_id = $1
 AND users.user_id IN (
@@ -59,7 +59,7 @@ AND users.user_id IN (
     WHERE rsn.guild_id = users.guild_id AND rsn.rsn = $2
 );
 
--- name: DeleteUserByWom :exec
+-- name: DeleteUserByWom :execrows
 DELETE FROM users
 WHERE users.guild_id = $1
 AND users.user_id IN (
