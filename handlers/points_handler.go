@@ -12,34 +12,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type InputPointsEvent struct {
-	GuildID string   `json:"guild_id"`
-	UserIDs []string `json:"user_ids"`
-	Event   string   `json:"event"`
-}
-
-func (i InputPointsEvent) GetUserIDs() []string {
-	return i.UserIDs
-}
-
-func (i InputPointsEvent) GetGuildID() string {
-	return i.GuildID
-}
-
-type InputPointsCustom struct {
-	GuildID string   `json:"guild_id"`
-	UserIDs []string `json:"user_ids"`
-	Points  int      `json:"points"`
-}
-
-func (i InputPointsCustom) GetUserIDs() []string {
-	return i.UserIDs
-}
-
-func (i InputPointsCustom) GetGuildID() string {
-	return i.GuildID
-}
-
 // @Summary Update a user(s) points
 // @Description Update a user(s)' points in our backend by unique user Snowflake (ID)
 // @Tags Points
