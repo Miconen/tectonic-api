@@ -23,6 +23,7 @@ type Category struct {
 
 type DetailedTime struct {
 	Time        int32            `json:"time"`
+	BossName    string           `json:"boss_name"`
 	DisplayName pgtype.Text      `json:"display_name"`
 	Category    pgtype.Text      `json:"category"`
 	RunID       int32            `json:"run_id"`

@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"tectonic-api/database"
+	"time"
+)
 
 // InputGuild Model
 // @Description Model of new guild data
@@ -98,6 +101,17 @@ type RSN struct {
 	WomId   string `json:"wom_id"`
 	UserId  string `json:"user_id"`
 	GuildId string `json:"guild_id"`
+}
+
+type GuildTimes struct {
+	guild_id         string          `json:"guild_id"`
+	pb_channel_id    string          `json:"pb_channel_id"`
+	bosses           []database.Boss          `json:"bosses"`
+	categories       []database.Category      `json:"categories"`
+	guild_bosses     []database.GuildBoss     `json:"guild_bosses"`
+	guild_categories []database.GuildCategory `json:"guild_categories"`
+	pbs              []Time          `json:"pbs"`
+	teammates        []User          `json:"teammates"`
 }
 
 // Body Model

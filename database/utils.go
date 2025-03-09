@@ -1,6 +1,10 @@
 package database
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/jackc/pgx/v5/pgtype"
+)
 
 
 type DetailedRsn struct {
@@ -41,6 +45,31 @@ func NewDetailedUserFromRows(rows []GetDetailedUsersRow) []DetailedUserJSON {
 	}
 
 	return list
+}
+
+type DetailedGuildJSON struct {
+	GuildID         string      `json:"guild_id"`
+	PbChannelID     pgtype.Text `json:"pb_channel_id"`
+	Teammates       json.RawMessage      `json:"teammates"`
+	Pbs             json.RawMessage      `json:"pbs"`
+	Bosses          json.RawMessage      `json:"bosses"`
+	Categories      json.RawMessage      `json:"categories"`
+	GuildBosses     json.RawMessage      `json:"guild_bosses"`
+	GuildCategories json.RawMessage      `json:"guild_categories"`
+}
+
+
+func NewDetailedGuildFromRow(row GetDetailedGuildRow) DetailedGuildJSON {
+	return DetailedGuildJSON {
+		GuildID: row.GuildID,
+		PbChannelID: row.PbChannelID,
+		Teammates: row.Teammates,
+		Pbs: row.Pbs,
+		Bosses: row.Bosses,
+		Categories: row.Categories,
+		GuildBosses: row.GuildBosses,
+		GuildCategories: row.GuildCategories,
+	}
 }
 
 func NewLeaderboardFromRows(rows []GetLeaderboardRow) []UserData {

@@ -40,6 +40,7 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 
 	// Times
 	timesRouter := guildsRouter.PathPrefix("/{guild_id}/times").Subrouter()
+	timesRouter.HandleFunc("", handlers.GetGuildTimes).Methods("GET")
 	timesRouter.HandleFunc("", handlers.CreateTime).Methods("POST")
 	timesRouter.HandleFunc("/{time_id}", handlers.RemoveTime).Methods("DELETE")
 

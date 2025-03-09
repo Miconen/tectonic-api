@@ -14,6 +14,43 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+// @Summary Get all guild times
+// @Description Get all guild times in a detailed way
+// @Tags Guild
+// @Produce json
+// @Param guild_id path string true "Guild ID"
+// @Success 200 {object} models.GuildTimes
+// @Failure 400 {object} models.Empty
+// @Failure 401 {object} models.Empty
+// @Failure 404 {object} models.Empty
+// @Failure 429 {object} models.Empty
+// @Failure 500 {object} models.Empty
+// @Router /api/v1/guilds/{guild_id}/times [GET]
+func GetGuildTimes(w http.ResponseWriter, r *http.Request) {
+	status := http.StatusOK
+
+	v := mux.Vars(r)
+
+	guildId, ok := v["guild_id"]
+	if !ok {
+		fmt.Fprintf(os.Stderr, "No guild id found")
+		status = http.StatusBadRequest
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		return
+	}
+
+	row, err := queries.GetDetailedGuild(r.Context(), guildId)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error selecting guild: %v\n", err)
+		status = http.StatusNotFound
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		return
+	}
+
+	guild := database.NewDetailedGuildFromRow(row)
+	utils.JsonWriter(guild).IntoHTTP(status)(w, r)
+}
+
 // @Summary Add a new best time to guild
 // @Description Add a new time to a guild in our backend by unique guild Snowflake (ID)
 // @Tags Time

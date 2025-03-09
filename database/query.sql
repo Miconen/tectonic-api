@@ -237,3 +237,25 @@ AND boss = @boss;
 -- name: CreateTeam :exec
 INSERT INTO teams (run_id, user_id, guild_id)
 SELECT @run_id, unnest(@user_ids::text[]), @guild_id;
+
+-- name: GetDetailedGuild :one
+SELECT
+    g.guild_id,
+    g.pb_channel_id,
+    (SELECT json_agg(tm) FROM teams tm 
+     JOIN times t ON tm.run_id = t.run_id 
+     WHERE t.guild_id = g.guild_id) AS teammates,
+    (SELECT json_agg(t) FROM times t 
+     WHERE t.guild_id = g.guild_id) AS pbs,
+    (SELECT json_agg(b) FROM bosses b 
+     JOIN guild_bosses gb ON b.name = gb.boss 
+     WHERE gb.guild_id = g.guild_id) AS bosses,
+    (SELECT json_agg(c) FROM categories c 
+     JOIN guild_categories gc ON c.name = gc.category 
+     WHERE gc.guild_id = g.guild_id) AS categories,
+    (SELECT json_agg(gb) FROM guild_bosses gb 
+     WHERE gb.guild_id = g.guild_id) AS guild_bosses,
+    (SELECT json_agg(gc) FROM guild_categories gc 
+     WHERE gc.guild_id = g.guild_id) AS guild_categories
+FROM guilds g
+WHERE g.guild_id = @guild_id; 
