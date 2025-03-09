@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // @Summary Link an RSN to a user
@@ -47,8 +49,19 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 	err = queries.CreateRsn(r.Context(), params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating RSN: %v\n", err)
-		// TODO: Handle 404 Not Found errors
-		status = http.StatusConflict
+
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23503" {
+				// Foreign key violation (User not found)
+				status = http.StatusNotFound
+			} else if pgErr.Code == "23505" {
+				// Unique violation (Duplicate)
+				status = http.StatusConflict
+			} else {
+				status = http.StatusInternalServerError
+			}
+		}
 	}
 
 	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
