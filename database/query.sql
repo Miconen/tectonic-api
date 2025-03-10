@@ -182,9 +182,9 @@ WHERE guild_id = $1 LIMIT 1;
 
 -- name: UpdateGuild :one
 UPDATE guilds SET
-    multiplier = CASE WHEN $1::numeric IS NOT NULL AND $1::numeric != 0 THEN $1::numeric ELSE multiplier END,
-    pb_channel_id = CASE WHEN $2::text IS NOT NULL AND $2::text != '' THEN $2::text ELSE pb_channel_id END
-WHERE guild_id = $3 RETURNING guild_id, multiplier, pb_channel_id;
+    multiplier = CASE WHEN @multiplier::numeric IS NOT NULL AND @multiplier::numeric != 0 THEN @multiplier::numeric ELSE multiplier END,
+    pb_channel_id = CASE WHEN @pb_channel_id::text IS NOT NULL AND @pb_channel_id::text != '' THEN @pb_channel_id::text ELSE pb_channel_id END
+WHERE guild_id = @guild_id RETURNING guild_id, multiplier, pb_channel_id;
 
 -- name: CreateRsn :exec
 INSERT INTO rsn (
@@ -259,3 +259,11 @@ SELECT
      WHERE gc.guild_id = g.guild_id) AS guild_categories
 FROM guilds g
 WHERE g.guild_id = @guild_id; 
+
+-- name: UpdateCategoryMessageIds :execrows
+UPDATE guild_categories
+SET message_id = u.message_id
+FROM (SELECT unnest(@categories::text[]) as category,
+             unnest(@message_ids::text[]) as message_id) as u
+WHERE guild_categories.guild_id = @guild_id
+AND guild_categories.category = u.category;

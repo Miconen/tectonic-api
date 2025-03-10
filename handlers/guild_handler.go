@@ -10,6 +10,7 @@ import (
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // @Summary Get a guild by ID
@@ -119,6 +120,17 @@ func DeleteGuild(w http.ResponseWriter, r *http.Request) {
 	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
 }
 
+type CategoryMessage struct {
+	MessageID string `json:"message_id"`
+	Category  string `json:"category"`
+}
+
+type GuildParams struct {
+	Multiplier       pgtype.Numeric    `json:"multiplier"`
+	PbChannelID      string            `json:"pb_channel_id"`
+	CategoryMessages []CategoryMessage `json:"category_messages"`
+}
+
 // @Summary Updates a guild
 // @Description Update multiplier and/or time channel for a guild
 // @Tags Guild
@@ -136,9 +148,20 @@ func DeleteGuild(w http.ResponseWriter, r *http.Request) {
 func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNoContent
 
-	v := mux.Vars(r)
-	var p database.UpdateGuildParams
-	err := json.NewDecoder(r.Body).Decode(&p)
+	p := mux.Vars(r)
+
+	tx, err := database.CreateTx(r.Context())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating transaction: %v\n", err)
+		status = http.StatusInternalServerError
+		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	}
+
+	q := queries.WithTx(tx)
+	defer tx.Rollback(r.Context())
+
+	var params GuildParams
+	err = json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to parse request body\n")
 		status = http.StatusInternalServerError
@@ -146,24 +169,42 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guildId, exists := v["guild_id"]
-	if !exists {
-		fmt.Fprintf(os.Stderr, "No guild ID found in URL\n")
-		status = http.StatusBadRequest
-		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
-		return
+	categories := make([]string, len(params.CategoryMessages))
+	messageIds := make([]string, len(params.CategoryMessages))
+	for i, v := range params.CategoryMessages {
+		categories[i] = v.Category
+		messageIds[i] = v.MessageID
 	}
 
-	if p.GuildID != guildId {
-		http.Error(w, fmt.Errorf("guild_id in request body must match URI param").Error(), http.StatusBadRequest)
-		return
+	fmt.Println("Params:", params)
+	fmt.Println("Categories:", categories)
+	fmt.Println("Message IDs:", messageIds)
+
+	if len(params.CategoryMessages) > 0 {
+		message_params := database.UpdateCategoryMessageIdsParams{
+			GuildID:    p["guild_id"],
+			Categories: categories,
+			MessageIds: messageIds,
+		}
+		_, err = q.UpdateCategoryMessageIds(r.Context(), message_params)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error updating channel: %v\n", err)
+			status = http.StatusNotFound
+		}
 	}
 
-	_, err = queries.UpdateGuild(r.Context(), p)
+	guild_params := database.UpdateGuildParams{
+		Multiplier:  params.Multiplier,
+		PbChannelID: params.PbChannelID,
+		GuildID:     p["guild_id"],
+	}
+	_, err = q.UpdateGuild(r.Context(), guild_params)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error updating channel: %v\n", err)
 		status = http.StatusNotFound
 	}
+
+	tx.Commit(r.Context())
 
 	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
 }
