@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "62c26e71-b5e9-4bf8-873f-773223029785",
-		"name": "Integration testing REST",
+		"name": "Integrations",
 		"description": "# ⛓️ Get started here\n\nPostman allows you to test your APIs using simple Javascript code. You can evaluate your response body, headers, cookies, and more using the [ChaiJS BDD](https://www.chaijs.com/api/bdd/) syntax.\n\nThis template guides you through the process of setting up an integration test to ensure that all individual components of an API function together seamlessly.\n\nThe API under test in this collection includes three endpoints for registering and receiving a token, accessing your unique generated name, and unregistering a token:\n\n- POST `/register`\n- POST `/unregister`\n- GET `/my-name`\n    \n\nBy setting up requests in the order of the operation, we can test the flow of data to and from the endpoints and ensure they work together as expected. We also verify that the data persists between requests on the back end.\n\n## 🔖 **How to use this template**\n\n**Step 1:** Check out the requests' documentation to learn more about -\n\n- what each request is meant to do.\n- the tests we've added against each one.\n    \n\n**Step 2:** Run this collection by clicking on \"Run\".\n\n<img src=\"https://content.pstmn.io/84019b0f-69c8-4c5f-98b9-2c90a6f9a0b1/Y29sbGVjdGlvbi1ydW5uZXItYnV0dG9uLmpwZWc=\" alt=\"\" height=\"103\" width=\"266\">\n\n**Step 3:** To customize this template, replace the request URLs with your API endpoints and add or edit the tests if needed.\n\n## ℹ️ Resources\n\n[Scripting in Postman](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/)\n\n[Test script examples](https://learning.postman.com/docs/writing-scripts/script-references/test-examples/)\n\n[Postman Sandbox API reference](https://learning.postman.com/docs/sending-requests/grpc/postman-sandbox-api/#writing-assertions)\n\n[Using the Collection Runner](https://learning.postman.com/docs/collections/running-collections/intro-to-collection-runs/)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "26162138",
@@ -109,7 +109,8 @@
 							"    pm.collectionVariables.set(\"multiplier\", requestBody.multiplier);\r",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -123,7 +124,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"guild_id\": \"{{guildId}}\",\r\n    \"multiplier\": {{$randomInt}},\r\n    \"pb_channel_id\": \"{{$randomInt}}\"\r\n}",
+					"raw": "{\r\n    \"multiplier\": {{$randomInt}},\r\n    \"pb_channel_id\": \"{{$randomInt}}\",\r\n    \"category_messages\": [{\"message_id\": \"123\", \"category\": \"Chambers of Xeric\"}, {\"message_id\": \"321\", \"category\": \"Varlamore\"}, {\"message_id\": \"111\", \"category\": \"Miscellaneous\"}]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -511,7 +512,372 @@
 			]
 		},
 		{
+			"name": "Get Bosses",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Guild_id is a non-empty string\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.guild_id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Guild_id should not be empty\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Multiplier is a non-negative integer\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('object');\r",
+							"  pm.expect(responseData.multiplier).to.exist;\r",
+							"  pm.expect(responseData.multiplier).to.be.a('number');\r",
+							"  pm.expect(responseData.multiplier).to.be.at.least(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response contains specified fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData).to.have.all.keys('guild_id', 'multiplier', 'pb_channel_id');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Pb_channel_id is a non-null string\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.pb_channel_id).to.be.a('string').and.to.exist;\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response contains specified fields - guild_id, multiplier, and pb_channel_id\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData).to.include.all.keys('guild_id', 'multiplier', 'pb_channel_id');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Guild multiplier is equal to the specified value\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    const expectation = parseInt(pm.collectionVariables.get(\"multiplier\"));\r",
+							"\r",
+							"    pm.expect(responseData.multiplier).to.equal(expectation);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Pb_channel_id is equal to the specified value\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    const expectation = pm.collectionVariables.get(\"channelId\");\r",
+							"    \r",
+							"    pm.expect(responseData.pb_channel_id).to.equal(expectation);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}"
+					]
+				},
+				"description": "Get guild details by unique guild Snowflake (ID)"
+			},
+			"response": [
+				{
+					"name": "OK",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"guild_id\": \"<string>\",\n  \"multiplier\": \"<integer>\",\n  \"pb_channel_id\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get Categories",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Guild_id is a non-empty string\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.guild_id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Guild_id should not be empty\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Multiplier is a non-negative integer\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('object');\r",
+							"  pm.expect(responseData.multiplier).to.exist;\r",
+							"  pm.expect(responseData.multiplier).to.be.a('number');\r",
+							"  pm.expect(responseData.multiplier).to.be.at.least(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response contains specified fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData).to.have.all.keys('guild_id', 'multiplier', 'pb_channel_id');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Pb_channel_id is a non-null string\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.pb_channel_id).to.be.a('string').and.to.exist;\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response contains specified fields - guild_id, multiplier, and pb_channel_id\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData).to.include.all.keys('guild_id', 'multiplier', 'pb_channel_id');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Guild multiplier is equal to the specified value\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    const expectation = parseInt(pm.collectionVariables.get(\"multiplier\"));\r",
+							"\r",
+							"    pm.expect(responseData.multiplier).to.equal(expectation);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Pb_channel_id is equal to the specified value\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    const expectation = pm.collectionVariables.get(\"channelId\");\r",
+							"    \r",
+							"    pm.expect(responseData.pb_channel_id).to.equal(expectation);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/categories",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"categories"
+					]
+				},
+				"description": "Get guild details by unique guild Snowflake (ID)"
+			},
+			"response": [
+				{
+					"name": "OK",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"guild_id\": \"<string>\",\n  \"multiplier\": \"<integer>\",\n  \"pb_channel_id\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
 			"name": "User Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"\r",
+							"    const userId = pm.response.json().user_id;\r",
+							"    pm.collectionVariables.set(\"userId\", userId);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"rsn\": \"Comfy hug\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{$randomPhoneNumberExt}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{$randomPhoneNumberExt}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create RSN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"\r",
+							"    const userId = pm.response.json().user_id;\r",
+							"    pm.collectionVariables.set(\"userId\", userId);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{userId}}/rsns/Uncomfy hug",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{userId}}",
+						"rsns",
+						"Uncomfy hug"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete RSN",
 			"event": [
 				{
 					"listen": "test",
@@ -526,29 +892,21 @@
 							"    pm.collectionVariables.set(\"userId\", requestBody.user_id);\r",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
 			"request": {
-				"method": "POST",
+				"method": "DELETE",
 				"header": [
 					{
 						"key": "Accept",
 						"value": "application/json"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"guild_id\": \"{{guildId}}\",\r\n    \"user_id\": \"{{$randomPhoneNumberExt}}-{{$randomPhoneNumberExt}}\",\r\n    \"rsn\": \"Comfy hug\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users",
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{userId}}/rsns/Comfy hug",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -556,14 +914,17 @@
 						"v1",
 						"guilds",
 						"{{guildId}}",
-						"users"
+						"users",
+						"{{userId}}",
+						"rsns",
+						"Comfy hug"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "User Exists",
+			"name": "Single User Exists (By User ID)",
 			"event": [
 				{
 					"listen": "test",
@@ -573,7 +934,8 @@
 							"    pm.response.to.have.status(200);\r",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -596,23 +958,88 @@
 						"{{guildId}}",
 						"users",
 						"{{userId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Single User Exists (By Wom ID)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/wom/39527",
+					"host": [
+						"{{baseUrl}}"
 					],
-					"query": [
-						{
-							"key": "rsn",
-							"value": "Comfy hug",
-							"disabled": true
-						},
-						{
-							"key": "wom_id",
-							"value": "39527",
-							"disabled": true
-						},
-						{
-							"key": "api_key",
-							"value": "123",
-							"disabled": true
-						}
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"wom",
+						"39527"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Single User Exists (By RSN)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/rsn/Comfy hug",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"rsn",
+						"Comfy hug"
 					]
 				}
 			},
@@ -631,7 +1058,8 @@
 							"    const requestBody = JSON.parse(pm.request.body.raw)\r",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -643,17 +1071,8 @@
 						"value": "application/json"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"guild_id\": \"{{guildId}}\",\r\n    \"user_ids\": [\"{{userId}}\"],\r\n    \"event\": \"split_high\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/points/split_high",
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{userId}}/points/split_high",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -661,6 +1080,8 @@
 						"v1",
 						"guilds",
 						"{{guildId}}",
+						"users",
+						"{{userId}}",
 						"points",
 						"split_high"
 					]
@@ -914,7 +1335,8 @@
 							"    const requestBody = JSON.parse(pm.request.body.raw)\r",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -926,17 +1348,8 @@
 						"value": "application/json"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"guild_id\": \"{{guildId}}\",\r\n    \"user_ids\": [\"{{userId}}\"],\r\n    \"points\": 30\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/points/custom/30",
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{userId}}/points/custom/30",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -944,6 +1357,8 @@
 						"v1",
 						"guilds",
 						"{{guildId}}",
+						"users",
+						"{{userId}}",
 						"points",
 						"custom",
 						"30"
@@ -1168,344 +1583,6 @@
 							"path": [
 								"v1",
 								"guild"
-							]
-						}
-					},
-					"status": "Internal Server Error",
-					"code": 500,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json"
-						}
-					],
-					"cookie": [],
-					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
-				}
-			]
-		},
-		{
-			"name": "RSN Exists",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Response status code is 200\", function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Response has the required fields\", function () {\r",
-							"    const responseData = pm.response.json();\r",
-							"    \r",
-							"    pm.expect(responseData).to.be.an('array');\r",
-							"    responseData.forEach(function(item) {\r",
-							"        pm.expect(item.rsn).to.exist;\r",
-							"        pm.expect(item.wom_id).to.exist;\r",
-							"        pm.expect(item.user_id).to.exist;\r",
-							"        pm.expect(item.guild_id).to.exist;\r",
-							"    });\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Rsn is a non-empty string\", function () {\r",
-							"    const responseData = pm.response.json();\r",
-							"    \r",
-							"    responseData.forEach(function(item) {\r",
-							"        pm.expect(item.rsn).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Value should not be empty\");\r",
-							"    });\r",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"url": {
-					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{userId}}/rsns",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"v1",
-						"guilds",
-						"{{guildId}}",
-						"users",
-						"{{userId}}",
-						"rsns"
-					]
-				},
-				"description": "Get RSN related details by unique guild and user Snowflake (ID)"
-			},
-			"response": [
-				{
-					"name": "OK",
-					"originalRequest": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/rsn?guild_id=<string>&user_id=<string>",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"rsn"
-							],
-							"query": [
-								{
-									"key": "guild_id",
-									"value": "<string>",
-									"description": "Guild ID"
-								},
-								{
-									"key": "user_id",
-									"value": "<string>",
-									"description": "User ID"
-								}
-							]
-						}
-					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json"
-						}
-					],
-					"cookie": [],
-					"body": "{\n  \"guild_id\": \"<string>\",\n  \"points\": \"<integer>\",\n  \"user_id\": \"<string>\"\n}"
-				},
-				{
-					"name": "Bad Request",
-					"originalRequest": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/rsn?guild_id=<string>&user_id=<string>",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"rsn"
-							],
-							"query": [
-								{
-									"key": "guild_id",
-									"value": "<string>",
-									"description": "Guild ID"
-								},
-								{
-									"key": "user_id",
-									"value": "<string>",
-									"description": "User ID"
-								}
-							]
-						}
-					},
-					"status": "Bad Request",
-					"code": 400,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json"
-						}
-					],
-					"cookie": [],
-					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
-				},
-				{
-					"name": "Forbidden",
-					"originalRequest": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/rsn?guild_id=<string>&user_id=<string>",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"rsn"
-							],
-							"query": [
-								{
-									"key": "guild_id",
-									"value": "<string>",
-									"description": "Guild ID"
-								},
-								{
-									"key": "user_id",
-									"value": "<string>",
-									"description": "User ID"
-								}
-							]
-						}
-					},
-					"status": "Forbidden",
-					"code": 403,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json"
-						}
-					],
-					"cookie": [],
-					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
-				},
-				{
-					"name": "Not Found",
-					"originalRequest": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/rsn?guild_id=<string>&user_id=<string>",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"rsn"
-							],
-							"query": [
-								{
-									"key": "guild_id",
-									"value": "<string>",
-									"description": "Guild ID"
-								},
-								{
-									"key": "user_id",
-									"value": "<string>",
-									"description": "User ID"
-								}
-							]
-						}
-					},
-					"status": "Not Found",
-					"code": 404,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json"
-						}
-					],
-					"cookie": [],
-					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
-				},
-				{
-					"name": "Too Many Requests",
-					"originalRequest": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/rsn?guild_id=<string>&user_id=<string>",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"rsn"
-							],
-							"query": [
-								{
-									"key": "guild_id",
-									"value": "<string>",
-									"description": "Guild ID"
-								},
-								{
-									"key": "user_id",
-									"value": "<string>",
-									"description": "User ID"
-								}
-							]
-						}
-					},
-					"status": "Too Many Requests",
-					"code": 429,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json"
-						}
-					],
-					"cookie": [],
-					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
-				},
-				{
-					"name": "Internal Server Error",
-					"originalRequest": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/rsn?guild_id=<string>&user_id=<string>",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"rsn"
-							],
-							"query": [
-								{
-									"key": "guild_id",
-									"value": "<string>",
-									"description": "Guild ID"
-								},
-								{
-									"key": "user_id",
-									"value": "<string>",
-									"description": "User ID"
-								}
 							]
 						}
 					},
@@ -1846,39 +1923,54 @@
 			]
 		},
 		{
-			"name": "Users Exists",
+			"name": "End Competition",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
 							"pm.test(\"Response status code is 200\", function () {\r",
-							"    pm.response.to.have.status(200);\r",
+							"    pm.expect(pm.response.code).to.equal(200);\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Response includes an array of users\", function () {\r",
+							"\r",
+							"pm.test(\"Response contains a 'users' array\", function () {\r",
 							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
 							"    pm.expect(responseData.users).to.be.an('array');\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Each user object in the response contains required fields - user_id, guild_id, and points\", function () {\r",
+							"\r",
+							"pm.test(\"Guild_id in each user object is a non-empty string\", function () {\r",
 							"    const responseData = pm.response.json();\r",
 							"    \r",
-							"    pm.expect(responseData.users).to.be.an('array').that.is.not.empty;\r",
-							"\r",
+							"    pm.expect(responseData.users).to.be.an('array');\r",
+							"    \r",
 							"    responseData.users.forEach(function(user) {\r",
-							"        pm.expect(user).to.include.all.keys('user_id', 'guild_id', 'points');\r",
+							"        pm.expect(user.guild_id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Guild_id should be a non-empty string\");\r",
 							"    });\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Points are non-negative integers\", function () {\r",
+							"\r",
+							"pm.test(\"Points in each user object are non-negative integers\", function () {\r",
 							"    const responseData = pm.response.json();\r",
 							"    \r",
 							"    pm.expect(responseData.users).to.be.an('array');\r",
-							"    responseData.users.forEach(user => {\r",
+							"    responseData.users.forEach(function(user) {\r",
 							"        pm.expect(user.points).to.be.a('number');\r",
 							"        pm.expect(user.points).to.be.at.least(0);\r",
 							"    });\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"User IDs are non-empty strings\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData.users).to.be.an('array');\r",
+							"  responseData.users.forEach(function(user) {\r",
+							"    pm.expect(user.user_id).to.be.a('string').and.to.have.lengthOf.at.least(1, \"User ID should not be empty\");\r",
+							"  });\r",
 							"});\r",
 							"\r",
 							""
@@ -1896,7 +1988,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users?user_ids={{userId}}",
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/leaderboard",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -1904,16 +1996,10 @@
 						"v1",
 						"guilds",
 						"{{guildId}}",
-						"users"
-					],
-					"query": [
-						{
-							"key": "user_ids",
-							"value": "{{userId}}"
-						}
+						"leaderboard"
 					]
 				},
-				"description": "Get multiple users details by unique user Snowflakes (IDs)"
+				"description": "Get guilds leaderboard details by unique guild Snowflake (ID)"
 			},
 			"response": [
 				{
@@ -1927,24 +2013,19 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/v1/users?guild_id=<string>&user_ids=<string>",
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"v1",
-								"users"
+								"leaderboard"
 							],
 							"query": [
 								{
 									"key": "guild_id",
 									"value": "<string>",
 									"description": "Guild ID"
-								},
-								{
-									"key": "user_ids",
-									"value": "<string>",
-									"description": "User IDs"
 								}
 							]
 						}
@@ -1972,24 +2053,19 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/v1/users?guild_id=<string>&user_ids=<string>",
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"v1",
-								"users"
+								"leaderboard"
 							],
 							"query": [
 								{
 									"key": "guild_id",
 									"value": "<string>",
 									"description": "Guild ID"
-								},
-								{
-									"key": "user_ids",
-									"value": "<string>",
-									"description": "User IDs"
 								}
 							]
 						}
@@ -2017,24 +2093,19 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/v1/users?guild_id=<string>&user_ids=<string>",
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"v1",
-								"users"
+								"leaderboard"
 							],
 							"query": [
 								{
 									"key": "guild_id",
 									"value": "<string>",
 									"description": "Guild ID"
-								},
-								{
-									"key": "user_ids",
-									"value": "<string>",
-									"description": "User IDs"
 								}
 							]
 						}
@@ -2062,24 +2133,19 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/v1/users?guild_id=<string>&user_ids=<string>",
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"v1",
-								"users"
+								"leaderboard"
 							],
 							"query": [
 								{
 									"key": "guild_id",
 									"value": "<string>",
 									"description": "Guild ID"
-								},
-								{
-									"key": "user_ids",
-									"value": "<string>",
-									"description": "User IDs"
 								}
 							]
 						}
@@ -2107,24 +2173,19 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/v1/users?guild_id=<string>&user_ids=<string>",
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"v1",
-								"users"
+								"leaderboard"
 							],
 							"query": [
 								{
 									"key": "guild_id",
 									"value": "<string>",
 									"description": "Guild ID"
-								},
-								{
-									"key": "user_ids",
-									"value": "<string>",
-									"description": "User IDs"
 								}
 							]
 						}
@@ -2152,24 +2213,19 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/v1/users?guild_id=<string>&user_ids=<string>",
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"v1",
-								"users"
+								"leaderboard"
 							],
 							"query": [
 								{
 									"key": "guild_id",
 									"value": "<string>",
 									"description": "Guild ID"
-								},
-								{
-									"key": "user_ids",
-									"value": "<string>",
-									"description": "User IDs"
 								}
 							]
 						}
@@ -2226,7 +2282,8 @@
 							"    pm.expect(responseData.team).to.have.lengthOf(1);\r",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -2240,7 +2297,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"user_ids\": [\"{{userId}}\"],\r\n    \"time\": {{$randomInt}},\r\n    \"boss_name\": \"vardorvis\"\r\n}",
+					"raw": "{\r\n    \"guild_id\": \"{{guildId}}\",\r\n    \"user_ids\": [\"{{userId}}\"],\r\n    \"time\": {{$randomInt}},\r\n    \"boss_name\": \"vardorvis\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -2496,7 +2553,7 @@
 			]
 		},
 		{
-			"name": "User Delete",
+			"name": "User Delete (By User ID)",
 			"event": [
 				{
 					"listen": "test",
@@ -2529,6 +2586,194 @@
 						"{{guildId}}",
 						"users",
 						"{{userId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"\r",
+							"    const userId = pm.response.json().user_id;\r",
+							"    pm.collectionVariables.set(\"userId\", userId);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"rsn\": \"Comfy hug\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{$randomPhoneNumberExt}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{$randomPhoneNumberExt}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Delete (By Wom ID)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/wom/39527",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"wom",
+						"39527"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"\r",
+							"    const userId = pm.response.json().user_id;\r",
+							"    pm.collectionVariables.set(\"userId\", userId);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"rsn\": \"Comfy hug\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{$randomPhoneNumberExt}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{$randomPhoneNumberExt}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Delete (By RSN)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/rsn/Comfy hug",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"rsn",
+						"Comfy hug"
 					]
 				}
 			},
