@@ -8,8 +8,6 @@ import (
 	"tectonic-api/handlers"
 	"tectonic-api/routes"
 	"tectonic-api/utils"
-
-	ghandlers "github.com/gorilla/handlers"
 )
 
 var log = utils.NewLogger()
@@ -45,8 +43,7 @@ func main() {
 
 	log.Info("server listening to requests", "port", port)
 
-	loggedRouter := ghandlers.LoggingHandler(os.Stderr, router)
-	err = http.ListenAndServe(":"+port, loggedRouter)
+	err = http.ListenAndServe(":"+port, router)
 	if err != nil {
 		log.Error("Server failed to start", "error", err)
 	}

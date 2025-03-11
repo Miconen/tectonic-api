@@ -3,6 +3,7 @@ package routes
 import (
 	"tectonic-api/handlers"
 	"tectonic-api/middleware"
+	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
 
@@ -26,7 +27,7 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	b.router.PathPrefix("/swagger/v1").Handler(httpSwagger.WrapHandler)
 
 	r := b.router.PathPrefix("/api/v1").Subrouter()
-	r.Use(middleware.Authentication)
+	r.Use(middleware.Authentication, utils.LoggingHandler)
 
 	// Non-guild functionality
 	r.HandleFunc("/bosses", handlers.GetBosses).Methods("GET")

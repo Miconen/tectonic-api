@@ -2,8 +2,10 @@ package utils
 
 import (
 	"log/slog"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 var log = NewLogger()
@@ -54,4 +56,49 @@ func NewLogger() *slog.Logger {
 
 	}
 
+}
+
+// statusRecorder wraps the ResponseWriter to capture the status code
+type statusRecorder struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+// WriteHeader captures the status code before calling the wrapped WriteHeader
+func (sr *statusRecorder) WriteHeader(code int) {
+	sr.statusCode = code
+	sr.ResponseWriter.WriteHeader(code)
+}
+
+func LoggingHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		recorder := &statusRecorder{
+			ResponseWriter: w,
+			statusCode:     http.StatusOK,
+		}
+
+		start := time.Now()
+		h.ServeHTTP(recorder, r)
+		duration := time.Since(start)
+
+		if os.Getenv("RAILWAY_PROJECT_ID") != "" {
+			log.Info(r.URL.Path,
+				"header", r.Header,
+				"method", r.Method,
+				"status", recorder.statusCode,
+				"path", r.URL,
+				"time", start,
+				"host", r.Host,
+				"duration", duration.String(),
+			)
+		} else {
+			log.Info(r.URL.Path,
+				"method", r.Method,
+				"status", recorder.statusCode,
+				"time", start,
+				"duration", duration.String(),
+			)
+		}
+
+	})
 }
