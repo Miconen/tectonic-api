@@ -1,5 +1,5 @@
 # Use the official Golang image as the base image
-FROM golang:latest
+FROM golang:latest AS builder
 
 # Set the working directory inside the container
 WORKDIR /api
@@ -18,11 +18,16 @@ COPY . .
 RUN sqlc generate -f database/sqlc.yaml
 
 # Build the Go application
-RUN go build -o main .
+RUN CGO_ENABLED=0 go build -o main .
+
+# Use scratch to reduce image size
+FROM scratch
+
+# Copy executable
+COPY --from=builder /api/main /main
 
 # Expose the port that the application runs on
 EXPOSE 8080
 
 # Command to run the application
-RUN ["chmod", "+x", "./wait-for-it.sh"]
-CMD ./wait-for-it.sh 0.0.0.0:5432 -- ./main
+ENTRYPOINT ["/main"]
