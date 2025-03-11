@@ -14,6 +14,11 @@ services:
       - 5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   api:
     build: .
@@ -23,13 +28,17 @@ services:
         DATABASE_URL: postgresql://postgres:postgres@db:5432/tectonic
         API_KEY: 123
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   adminer:
-      image: adminer
-      restart: always
-      ports:
-          - 5433:8080
+    image: adminer
+    restart: always
+    ports:
+        - 5433:8080
+    depends_on:
+      db:
+        condition: service_healthy
 
 #added for frontend container stack to connect to
 networks:

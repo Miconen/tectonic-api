@@ -5,7 +5,7 @@ FROM golang:latest
 WORKDIR /api
 
 # Install sqlc CLI tool
-RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+        RUN CGO_ENABLED=0 go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
 # Copy the Go module files and download dependencies
 COPY go.mod go.sum ./
@@ -20,9 +20,14 @@ RUN sqlc generate -f database/sqlc.yaml
 # Build the Go application
 RUN go build -o main .
 
+# Use scratch to reduce image size
+FROM scratch
+
+# Copy executable
+COPY --from=builder /api/main /main
+
 # Expose the port that the application runs on
 EXPOSE 8080
 
 # Command to run the application
-RUN ["chmod", "+x", "./wait-for-it.sh"]
-CMD ./wait-for-it.sh 0.0.0.0:5432 -- ./main
+ENTRYPOINT ["/main"]
