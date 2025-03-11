@@ -122,6 +122,19 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		user_ids[i] = v.UserID
 	}
 
+	given_params := database.GetPointsValueParams{
+		Event:   "event_participation",
+		GuildID: p["guild_id"],
+	}
+
+	given, err := q.GetPointsValue(r.Context(), given_params)
+	if err != nil {
+		log.Error("Error fetching points value to give by event", "error", err)
+		jw.SetStatus(http.StatusInternalServerError)
+		jw.WriteResponse(http.NoBody)
+		return
+	}
+
 	points_params := database.UpdatePointsByEventParams{
 		Event:   "event_participation",
 		GuildID: p["guild_id"],
@@ -138,47 +151,23 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 
 	tx.Commit(r.Context())
 
+	if len(points) == 0 {
+		log.Info("no activated users found in competition")
+	}
+
+	for i := range users {
+		// Users stored points dont include given points, so we add them here
+		users[i].Points = given
+	}
+
 	response := CompetitionResponse{
 		Title:            competition.Title,
 		ParticipantCount: competition.ParticipantCount,
 		Participants:     users,
 		Accounts:         params.Rsns,
 		Cutoff:           cutoff,
-		PointsGiven:      0,
+		PointsGiven:      int(given),
 	}
-
-	if len(points) == 0 {
-		log.Info("no activated users found in competition")
-		jw.WriteResponse(response)
-		return
-	}
-
-	// Copy updated point values from "points" to "users"
-	pointsMap := make(map[string]int)
-	for _, user := range points {
-		pointsMap[user.UserID] = int(user.Points)
-	}
-
-	// We grab a user to track point changes with
-	keyUser := points[0].UserID
-	var pointsBefore int
-	var pointsAfter int
-
-	for i := range users {
-		if val, exists := pointsMap[points[i].UserID]; exists {
-			// Handle tracking of changing point values to calculate given points
-			if users[i].UserID == keyUser {
-				pointsBefore = int(users[i].Points)
-				pointsAfter = val
-			}
-
-			// Replace old point value with new one
-			users[i].Points = int32(val)
-		}
-	}
-
-	// Calculate given points dynamically
-	response.PointsGiven = pointsAfter - pointsBefore
 
 	jw.WriteResponse(response)
 }
