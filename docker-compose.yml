@@ -44,6 +44,7 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "8080:8080"
+    user: "${UID}:${GID}"
     volumes:
       - ./:/api
     environment:
