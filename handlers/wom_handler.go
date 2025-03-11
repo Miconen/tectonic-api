@@ -54,6 +54,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 
 	competition, err := utils.GetCompetition(id)
 	if err != nil {
+		log.Error("Error fetching WOM competition", "error", err)
 		jw.SetStatus(http.StatusBadRequest)
 		jw.WriteResponse(err)
 		return
@@ -87,7 +88,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 
 	if len(params.Rsns) == 0 {
 		log.Info("no participations found with specified cutoff")
-		jw.SetStatus(http.StatusBadRequest)
+		jw.SetStatus(http.StatusNotFound)
 		jw.WriteResponse(err)
 		return
 	}
