@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // @Summary Get one or more users by ID(s)
@@ -176,10 +178,18 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	user, err := queries.CreateUser(r.Context(), params)
 	if err != nil {
 		log.Error("Error inserting user", "error", err)
-		if err.Error() == database.ERROR_UNACTIVATED_GUILD {
-			jw.SetStatus(http.StatusNotFound)
-		} else {
-			jw.SetStatus(http.StatusConflict)
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch pgErr.ConstraintName {
+			case "users_ibfk_1":
+				jw.SetStatus(http.StatusNotFound)
+			case "users_pkey":
+				jw.SetStatus(http.StatusConflict)
+			default:
+				jw.SetStatus(http.StatusInternalServerError)
+				jw.WriteResponse(http.NoBody)
+				return
+			}
 		}
 	}
 
