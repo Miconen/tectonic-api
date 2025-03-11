@@ -91,7 +91,7 @@ RETURNING user_id, guild_id, points, (SELECT points FROM point_value) AS given_p
 UPDATE users
 SET points = points + @points
 WHERE user_id = ANY(@user_ids::text[])
-AND guild_id = @guild_id RETURNING user_id, guild_id, points, points + @points;
+AND guild_id = @guild_id RETURNING user_id, guild_id, points;
 
 -- name: GetDetailedUsers :many
 SELECT 
@@ -275,3 +275,9 @@ FROM (SELECT unnest(@categories::text[]) as category,
              unnest(@message_ids::text[]) as message_id) as u
 WHERE guild_categories.guild_id = @guild_id
 AND guild_categories.category = u.category;
+
+-- name: GetBosses :many
+SELECT name, display_name, category, solo FROM bosses;
+
+-- name: GetCategories :many
+SELECT "thumbnail", "order", "name" FROM categories;

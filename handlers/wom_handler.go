@@ -40,15 +40,17 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(p["competition_id"])
 	if err != nil {
+		log.Error("Invalid competition ID, could not convert ASCII to int")
 		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(err)
+		jw.WriteResponse(http.NoBody)
 		return
 	}
 
 	cutoff, err := strconv.Atoi(p["cutoff"])
 	if err != nil {
+		log.Error("Invalid cutoff, could not convert ASCII to int")
 		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(err)
+		jw.WriteResponse(http.NoBody)
 		return
 	}
 

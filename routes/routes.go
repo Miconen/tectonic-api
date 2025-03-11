@@ -28,6 +28,10 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	r := b.router.PathPrefix("/api/v1").Subrouter()
 	r.Use(middleware.Authentication)
 
+	// Non-guild functionality
+	r.HandleFunc("/bosses", handlers.GetBosses).Methods("GET")
+	r.HandleFunc("/categories", handlers.GetCategories).Methods("GET")
+
 	// Guilds
 	guildsRouter := r.PathPrefix("/guilds").Subrouter()
 	guildsRouter.HandleFunc("", handlers.CreateGuild).Methods("POST")
