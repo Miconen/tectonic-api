@@ -68,22 +68,30 @@ AND users.user_id IN (
     WHERE rsn.guild_id = users.guild_id AND rsn.wom_id = $2
 );
 
+-- name: GetPointsValue :one
+SELECT points
+FROM point_sources
+WHERE source = @event
+AND guild_id = @guild_id;
+
 -- name: UpdatePointsByEvent :many
-UPDATE users
-SET points = points + (
+WITH point_value AS (
     SELECT points
     FROM point_sources
     WHERE source = @event
-    AND "point_sources"."guild_id" = @guild_id
+    AND guild_id = @guild_id
 )
+UPDATE users
+SET points = points + (SELECT points FROM point_value)
 WHERE user_id = ANY(@user_ids::text[])
-AND guild_id = @guild_id RETURNING user_id, guild_id, points;
+AND users.guild_id = @guild_id 
+RETURNING user_id, guild_id, points, (SELECT points FROM point_value) AS given_points;
 
 -- name: UpdatePointsCustom :many
 UPDATE users
 SET points = points + @points
 WHERE user_id = ANY(@user_ids::text[])
-AND guild_id = @guild_id RETURNING user_id, guild_id, points;
+AND guild_id = @guild_id RETURNING user_id, guild_id, points, points + @points;
 
 -- name: GetDetailedUsers :many
 SELECT 
