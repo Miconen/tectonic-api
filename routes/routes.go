@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"io"
+	"net/http"
 	"tectonic-api/handlers"
 	"tectonic-api/middleware"
 	"tectonic-api/utils"
@@ -25,6 +27,10 @@ func NewAPIBuilder() *APIBuilder {
 func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	// Serve Swagger UI
 	b.router.PathPrefix("/swagger/v1").Handler(httpSwagger.WrapHandler)
+
+	b.router.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "pong\n")
+	})
 
 	r := b.router.PathPrefix("/api/v1").Subrouter()
 	r.Use(middleware.Authentication, utils.LoggingHandler)
