@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"tectonic-api/database"
 	"tectonic-api/utils"
 
@@ -23,17 +21,24 @@ import (
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/leaderboard [GET]
 func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusOK
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
 
-	leaderboard, err := database.SelectLeaderboard(r.Context(), p)
+	params := database.GetLeaderboardParams{
+		GuildID:   p["guild_id"],
+		UserLimit: 50,
+	}
+
+	log.DebugContext(r.Context(), "querying leaderboard from database", "guild_id", params.GuildID, "user_limit", params.UserLimit)
+	rows, err := queries.GetLeaderboard(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error fetching users: %v\n", err)
-		status = http.StatusNotFound
-		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		log.Error("Error fetching users", "error", err)
+		jw.SetStatus(http.StatusNotFound)
+		jw.WriteResponse(http.NoBody)
 		return
 	}
 
-	utils.JsonWriter(leaderboard).IntoHTTP(status)(w, r)
+	leaderboard := database.NewLeaderboardFromRows(rows)
+	jw.WriteResponse(leaderboard)
 }

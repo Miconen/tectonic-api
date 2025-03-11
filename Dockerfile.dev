@@ -1,0 +1,19 @@
+# Use the official Golang image as the base image
+FROM golang:alpine
+
+# Set the working directory inside the container
+WORKDIR /api
+
+# Install CLI tools
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+RUN go install github.com/air-verse/air@latest
+
+# Copy the Go module files and download dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy the rest of the application source code
+COPY . .
+
+# Build the Go application
+CMD ["air", "-c", ".air.toml"]

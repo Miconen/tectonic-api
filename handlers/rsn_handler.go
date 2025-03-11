@@ -1,44 +1,15 @@
 package handlers
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
-	"os"
+	"strconv"
 	"tectonic-api/database"
-	"tectonic-api/models"
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgconn"
 )
-
-// @Summary Get RSN related information by guild and user ID
-// @Description Get RSN related details by unique guild and user Snowflake (ID)
-// @Tags RSN
-// @Produce json
-// @Param guild_id path string false "Guild ID"
-// @Param user_id path string false "User ID"
-// @Success 200 {object} []models.RSN
-// @Failure 400 {object} models.Empty
-// @Failure 401 {object} models.Empty
-// @Failure 404 {object} models.Empty
-// @Failure 429 {object} models.Empty
-// @Failure 500 {object} models.Empty
-// @Router /api/v1/guilds/{guild_id}/users/{user_id}/rsns [GET]
-func GetRSNs(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusOK
-
-	p := mux.Vars(r)
-
-	rsns, err := database.SelectRsns(r.Context(), p)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error selecting RSN: %v\n", err)
-		status = http.StatusNotFound
-		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
-		return
-	}
-
-	utils.JsonWriter(rsns).IntoHTTP(status)(w, r)
-}
 
 // @Summary Link an RSN to a user
 // @Description Link an RSN to a guild and user in our backend by unique guild and user Snowflake (ID)
@@ -54,38 +25,46 @@ func GetRSNs(w http.ResponseWriter, r *http.Request) {
 // @Failure 409 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
-// @Router /api/v1/guilds/{guild_id}/users/{user_id}/rsns [POST]
+// @Router /api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn} [POST]
 func CreateRSN(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusCreated
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
-	v := mux.Vars(r)
-	p := models.InputRSN{}
-	err := utils.ParseRequestBody(w, r, &p)
-	if err != nil {
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
-		return
-	}
-	if p.GuildId != v["guild_id"] {
-		http.Error(w, fmt.Errorf("guild_id in request body must match URI param").Error(), http.StatusBadRequest)
-		return
+	p := mux.Vars(r)
+	params := database.CreateRsnParams{
+		GuildID: p["guild_id"],
+		UserID:  p["user_id"],
+		Rsn:     p["rsn"],
 	}
 
-	wid, err := utils.GetWomId(p.RSN)
+	wom, err := utils.GetWom(params.Rsn)
 	if err != nil {
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		jw.SetStatus(http.StatusBadRequest)
+		jw.WriteResponse(err)
 		return
 	}
 
-	err = database.InsertRsn(r.Context(), p, wid)
+	params.WomID = strconv.Itoa(wom.Id)
+	params.Rsn = wom.DisplayName
+
+	err = queries.CreateRsn(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating RSN: %v\n", err)
-		// TODO: Handle 404 Not Found errors
-		status = http.StatusConflict
+		log.Error("Error creating RSN", "error", err)
+
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23503" {
+				// Foreign key violation (User not found)
+				jw.SetStatus(http.StatusNotFound)
+			} else if pgErr.Code == "23505" {
+				// Unique violation (Duplicate)
+				jw.SetStatus(http.StatusConflict)
+			} else {
+				jw.SetStatus(http.StatusInternalServerError)
+			}
+		}
 	}
 
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	jw.WriteResponse(http.NoBody)
 }
 
 // @Summary Remove RSN from guild and user
@@ -95,7 +74,7 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 // @Param guild_id path string true "Guild ID"
 // @Param user_id path string true "User ID"
 // @Param rsn path string true "RSN"
-// @Success 204 {object} models.Empty
+// @Success 201 {object} models.Empty
 // @Failure 400 {object} models.Empty
 // @Failure 401 {object} models.Empty
 // @Failure 404 {object} models.Empty
@@ -103,15 +82,24 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn} [DELETE]
 func RemoveRSN(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusNoContent
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
-
-	err := database.DeleteRsn(r.Context(), p)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error deleting RSN: %v\n", err)
-		status = http.StatusNotFound
+	params := database.DeleteRsnParams{
+		GuildID: p["guild_id"],
+		UserID:  p["user_id"],
+		Rsn:     p["rsn"],
 	}
 
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	rows, err := queries.DeleteRsn(r.Context(), params)
+	if err != nil {
+		log.Error("Error deleting RSN", "error", err)
+		jw.SetStatus(http.StatusInternalServerError)
+	}
+
+	if rows == 0 {
+		jw.SetStatus(http.StatusNotFound)
+	}
+
+	jw.WriteResponse(http.NoBody)
 }

@@ -14,22 +14,59 @@ services:
       - 5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - dev
+      - prod
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
         DATABASE_URL: postgresql://postgres:postgres@db:5432/tectonic
         API_KEY: 123
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    profiles:
+      - prod
+
+  api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:8080"
+    user: "${UID}:${GID}"
+    volumes:
+      - ./:/api
+    environment:
+        DATABASE_URL: postgresql://postgres:postgres@db:5432/tectonic
+        API_KEY: 123
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - dev
 
   adminer:
-      image: adminer
-      restart: always
-      ports:
-          - 5433:8080
+    image: adminer
+    restart: always
+    ports:
+        - 5433:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - dev
+      - prod
 
 #added for frontend container stack to connect to
 networks:
