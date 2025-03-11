@@ -23,17 +23,35 @@ func NewLogger() *slog.Logger {
 		level = slog.LevelError
 	}
 
-	return slog.New(slog.NewTextHandler(os.Stderr,
-		&slog.HandlerOptions{
-			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-				if a.Key == slog.TimeKey {
-					t := a.Value.Time()
-					a.Value = slog.StringValue(t.Format("15:04:05"))
-				}
-				return a
+	if os.Getenv("API_URL") != "" {
+		return slog.New(slog.NewJSONHandler(os.Stderr,
+			&slog.HandlerOptions{
+				ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+					if a.Key == slog.TimeKey {
+						t := a.Value.Time()
+						a.Value = slog.StringValue(t.Format("15:04:05"))
+					}
+					return a
+				},
+				AddSource: true,
+				Level:     level,
 			},
-			AddSource: true,
-			Level:     level,
-		},
-	))
+		))
+	} else {
+		return slog.New(slog.NewTextHandler(os.Stderr,
+			&slog.HandlerOptions{
+				ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+					if a.Key == slog.TimeKey {
+						t := a.Value.Time()
+						a.Value = slog.StringValue(t.Format("15:04:05"))
+					}
+					return a
+				},
+				AddSource: true,
+				Level:     level,
+			},
+		))
+
+	}
+
 }
