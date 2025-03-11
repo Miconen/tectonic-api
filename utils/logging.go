@@ -23,7 +23,7 @@ func NewLogger() *slog.Logger {
 		level = slog.LevelError
 	}
 
-	if os.Getenv("API_URL") != "" {
+	if os.Getenv("RAILWAY_PROJECT_ID") != "" {
 		return slog.New(slog.NewJSONHandler(os.Stderr,
 			&slog.HandlerOptions{
 				ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
