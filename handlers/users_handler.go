@@ -182,7 +182,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		if errors.As(err, &pgErr) {
 			switch pgErr.ConstraintName {
 			case "users_ibfk_1":
-				jw.SetStatus(http.StatusNotFound)
+				jw.SetStatus(http.StatusBadRequest)
 			case "users_pkey":
 				jw.SetStatus(http.StatusConflict)
 			default:
