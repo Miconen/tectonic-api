@@ -1,11 +1,11 @@
 # Use the official Golang image as the base image
-FROM golang:latest
+FROM golang:latest AS builder
 
 # Set the working directory inside the container
 WORKDIR /api
 
 # Install sqlc CLI tool
-        RUN CGO_ENABLED=0 go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
 # Copy the Go module files and download dependencies
 COPY go.mod go.sum ./
@@ -18,7 +18,7 @@ COPY . .
 RUN sqlc generate -f database/sqlc.yaml
 
 # Build the Go application
-RUN go build -o main .
+RUN CGO_ENABLED=0 go build -o main .
 
 # Use scratch to reduce image size
 FROM scratch
