@@ -59,9 +59,16 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(competition.Participations) == 0 {
+		log.Info("no participations found")
+		jw.SetStatus(http.StatusBadRequest)
+		jw.WriteResponse(err)
+		return
+	}
+
 	params := database.GetDetailedUsersByRSNParams{
 		GuildID: p["guild_id"],
-		Rsns:    make([]string, len(competition.Participations)),
+		Rsns:    []string{},
 	}
 
 	accounts := make([]string, len(competition.Participations))
@@ -75,7 +82,14 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		params.Rsns[i] = val.Player.DisplayName
+		params.Rsns = append(params.Rsns, val.Player.DisplayName)
+	}
+
+	if len(params.Rsns) == 0 {
+		log.Info("no participations found with specified cutoff")
+		jw.SetStatus(http.StatusBadRequest)
+		jw.WriteResponse(err)
+		return
 	}
 
 	tx, err := database.CreateTx(r.Context())
@@ -83,6 +97,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		log.Error("Error creating transaction", "error", err)
 		jw.SetStatus(http.StatusInternalServerError)
 		jw.WriteResponse(http.NoBody)
+		return
 	}
 
 	q := queries.WithTx(tx)
@@ -121,6 +136,23 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tx.Commit(r.Context())
+
+	response := CompetitionResponse{
+		Title:            competition.Title,
+		ParticipantCount: competition.ParticipantCount,
+		Participants:     users,
+		Accounts:         params.Rsns,
+		Cutoff:           cutoff,
+		PointsGiven:      0,
+	}
+
+	if len(points) == 0 {
+		log.Info("no activated users found in competition")
+		jw.WriteResponse(response)
+		return
+	}
+
 	// Copy updated point values from "points" to "users"
 	pointsMap := make(map[string]int)
 	for _, user := range points {
@@ -146,19 +178,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Calculate given points dynamically
-	given := pointsAfter - pointsBefore
-
-	tx.Commit(r.Context())
-
-	// TODO: Add points given to response
-	response := CompetitionResponse{
-		Title:            competition.Title,
-		ParticipantCount: competition.ParticipantCount,
-		Participants:     users,
-		Accounts:         accounts,
-		Cutoff:           cutoff,
-		PointsGiven:      given,
-	}
+	response.PointsGiven = pointsAfter - pointsBefore
 
 	jw.WriteResponse(response)
 }
