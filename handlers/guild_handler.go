@@ -153,6 +153,7 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 		log.Error("Error creating transaction", "error", err)
 		jw.SetStatus(http.StatusInternalServerError)
 		jw.WriteResponse(http.NoBody)
+		return
 	}
 
 	q := queries.WithTx(tx)
@@ -193,7 +194,7 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 		PbChannelID: params.PbChannelID,
 		GuildID:     p["guild_id"],
 	}
-	
+
 	_, err = q.UpdateGuild(r.Context(), guild_params)
 	if err != nil {
 		log.Error("Error updating channel", "error", err)

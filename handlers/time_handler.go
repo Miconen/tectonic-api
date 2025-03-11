@@ -95,6 +95,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 		log.Error("Error creating transaction", "error", err)
 		jw.SetStatus(http.StatusInternalServerError)
 		jw.WriteResponse(http.NoBody)
+		return
 	}
 
 	q := queries.WithTx(tx)
