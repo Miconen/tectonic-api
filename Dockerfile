@@ -23,6 +23,10 @@ RUN CGO_ENABLED=0 go build -o main .
 # Use scratch to reduce image size
 FROM scratch
 
+# Copy certificates and 
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+
 # Copy executable
 COPY --from=builder /api/main /main
 
