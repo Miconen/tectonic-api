@@ -2,9 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"tectonic-api/database"
@@ -27,7 +25,7 @@ import (
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/{user_ids} [GET]
 func GetUsersById(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusOK
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
 
@@ -38,9 +36,9 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := queries.GetDetailedUsers(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error fetching user: %v\n", err)
-		status = http.StatusNotFound
-		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		log.Error("Error fetching user", "error", err)
+		jw.SetStatus(http.StatusNotFound)
+		jw.WriteResponse(http.NoBody)
 		return
 	}
 
@@ -50,7 +48,7 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 		users = append(users, user)
 	}
 
-	utils.JsonWriter(users).IntoHTTP(status)(w, r)
+	jw.WriteResponse(users)
 }
 
 // @Summary Get one or more users by RSN(s)
@@ -67,7 +65,7 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/rsn/{rsns} [GET]
 func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusOK
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
 
@@ -78,9 +76,9 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := queries.GetDetailedUsersByRSN(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error fetching user: %v\n", err)
-		status = http.StatusNotFound
-		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		log.Error("Error fetching user", "error", err)
+		jw.SetStatus(http.StatusNotFound)
+		jw.WriteResponse(http.NoBody)
 		return
 	}
 
@@ -90,7 +88,7 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 		users = append(users, user)
 	}
 
-	utils.JsonWriter(users).IntoHTTP(status)(w, r)
+	jw.WriteResponse(users)
 }
 
 // @Summary Get one or more users by WomID(s)
@@ -107,7 +105,7 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/wom/{wom_ids} [GET]
 func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusOK
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
 
@@ -118,9 +116,9 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := queries.GetDetailedUsersByWomID(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error fetching user: %v\n", err)
-		status = http.StatusNotFound
-		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		log.Error("Error fetching user", "error", err)
+		jw.SetStatus(http.StatusNotFound)
+		jw.WriteResponse(http.NoBody)
 		return
 	}
 
@@ -130,7 +128,7 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 		users = append(users, user)
 	}
 
-	utils.JsonWriter(users).IntoHTTP(status)(w, r)
+	jw.WriteResponse(users)
 }
 
 // @Summary Create / Initialize a new user
@@ -149,7 +147,7 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/{user_id} [POST]
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusCreated
+	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
 
 	v := mux.Vars(r)
 	params := database.CreateUserParams{
@@ -159,16 +157,16 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		fmt.Println("Error decoding request body: ", err)
-		status = http.StatusInternalServerError
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		log.Error("Error decoding request body: ", "error", err)
+		jw.SetStatus(http.StatusInternalServerError)
+		jw.WriteResponse(err)
 		return
 	}
 
 	wom, err := utils.GetWom(params.Rsn)
 	if err != nil {
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		jw.SetStatus(http.StatusBadRequest)
+		jw.WriteResponse(err)
 		return
 	}
 
@@ -177,15 +175,15 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := queries.CreateUser(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error inserting user: %v\n", err)
+		log.Error("Error inserting user", "error", err)
 		if err.Error() == database.ERROR_UNACTIVATED_GUILD {
-			status = http.StatusNotFound
+			jw.SetStatus(http.StatusNotFound)
 		} else {
-			status = http.StatusConflict
+			jw.SetStatus(http.StatusConflict)
 		}
 	}
 
-	utils.JsonWriter(user).IntoHTTP(status)(w, r)
+	jw.WriteResponse(user)
 }
 
 // @Summary Delete a user from guild by User ID
@@ -202,7 +200,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/{user_id} [DELETE]
 func RemoveUserById(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusNoContent
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
 
@@ -213,15 +211,15 @@ func RemoveUserById(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := queries.DeleteUserById(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
-		status = http.StatusInternalServerError
+		log.Error("Error deleting user", "error", err)
+		jw.SetStatus(http.StatusInternalServerError)
 	}
 
 	if rows == 0 {
-		status = http.StatusNotFound
+		jw.SetStatus(http.StatusNotFound)
 	}
 
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	jw.WriteResponse(http.NoBody)
 }
 
 // @Summary Delete a user from guild by RSN
@@ -238,7 +236,7 @@ func RemoveUserById(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/rsn/{rsn} [DELETE]
 func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusNoContent
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
 
@@ -249,15 +247,15 @@ func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := queries.DeleteUserByRsn(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
-		status = http.StatusInternalServerError
+		log.Error("Error deleting user", "error", err)
+		jw.SetStatus(http.StatusInternalServerError)
 	}
 
 	if rows == 0 {
-		status = http.StatusNotFound
+		jw.SetStatus(http.StatusNotFound)
 	}
 
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	jw.WriteResponse(http.NoBody)
 }
 
 // @Summary Delete a user from guild by Wom ID
@@ -274,7 +272,7 @@ func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/wom/{wom_id} [DELETE]
 func RemoveUserByWom(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusNoContent
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
 
@@ -285,13 +283,13 @@ func RemoveUserByWom(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := queries.DeleteUserByWom(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error deleting user: %v\n", err)
-		status = http.StatusInternalServerError
+		log.Error("Error deleting user", "error", err)
+		jw.SetStatus(http.StatusInternalServerError)
 	}
 
 	if rows == 0 {
-		status = http.StatusNotFound
+		jw.SetStatus(http.StatusNotFound)
 	}
 
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	jw.WriteResponse(http.NoBody)
 }

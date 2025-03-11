@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"tectonic-api/database"
@@ -28,7 +26,7 @@ import (
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/{user_ids}/points/{point_event} [PUT]
 func UpdatePoints(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusOK
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
 	params := database.UpdatePointsByEventParams{
@@ -39,11 +37,11 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 
 	user, err := queries.UpdatePointsByEvent(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error updating points: %v\n", err)
-		status = http.StatusNotFound
+		log.Error("Error updating points", "error", err)
+		jw.SetStatus(http.StatusNotFound)
 	}
 
-	utils.JsonWriter(user).IntoHTTP(status)(w, r)
+	jw.WriteResponse(user)
 }
 
 // @Summary Update a user(s) points
@@ -62,7 +60,7 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/{user_ids}/points/custom/{points} [PUT]
 func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusOK
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
 	params := database.UpdatePointsCustomParams{
@@ -73,9 +71,9 @@ func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
 
 	points, err := strconv.Atoi(p["points"])
 	if err != nil {
-		status = http.StatusBadRequest
-		fmt.Println("Error parsing points:", err)
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		log.Error("Error parsing points", "error", err)
+		jw.SetStatus(http.StatusBadRequest)
+		jw.WriteResponse(err)
 		return
 	}
 
@@ -83,9 +81,9 @@ func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
 
 	user, err := queries.UpdatePointsCustom(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error updating points: %v\n", err)
-		status = http.StatusNotFound
+		log.Error("Error updating points", "error", err)
+		jw.SetStatus(http.StatusNotFound)
 	}
 
-	utils.JsonWriter(user).IntoHTTP(status)(w, r)
+	jw.WriteResponse(user)
 }

@@ -2,13 +2,17 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"tectonic-api/database"
 	"tectonic-api/handlers"
 	"tectonic-api/routes"
+	"tectonic-api/utils"
+
+	ghandlers "github.com/gorilla/handlers"
 )
+
+var log = utils.NewLogger()
 
 // @title			Tectonic API
 // @version			0.1
@@ -28,19 +32,22 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error running migrations: %v\n", err)
 		os.Exit(1)
 	}
+	log.Info("migrations ran")
 
 	handlers.InitHandlers(conn)
 	router := routes.NewAPIBuilder().AttachV1Routes()
+	log.Info("routes registered")
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	fmt.Println("Server will listen on port:", port)
+	log.Info("server listening to requests", "port", port)
 
-	err = http.ListenAndServe(":"+port, router)
+	loggedRouter := ghandlers.LoggingHandler(os.Stderr, router)
+	err = http.ListenAndServe(":"+port, loggedRouter)
 	if err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+		log.Error("Server failed to start", "error", err)
 	}
 }

@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"tectonic-api/database"
 	"tectonic-api/utils"
@@ -36,28 +34,28 @@ type CompetitionResponse struct {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/wom/competition/{competition_id}/cutoff/{cutoff} [GET]
 func EndCompetition(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusOK
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
 
 	id, err := strconv.Atoi(p["competition_id"])
 	if err != nil {
-		status = http.StatusInternalServerError
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		jw.SetStatus(http.StatusInternalServerError)
+		jw.WriteResponse(err)
 		return
 	}
 
 	cutoff, err := strconv.Atoi(p["cutoff"])
 	if err != nil {
-		status = http.StatusInternalServerError
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		jw.SetStatus(http.StatusInternalServerError)
+		jw.WriteResponse(err)
 		return
 	}
 
 	competition, err := utils.GetCompetition(id)
 	if err != nil {
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		jw.SetStatus(http.StatusBadRequest)
+		jw.WriteResponse(err)
 		return
 	}
 
@@ -82,9 +80,9 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 
 	tx, err := database.CreateTx(r.Context())
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating transaction: %v\n", err)
-		status = http.StatusInternalServerError
-		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		log.Error("Error creating transaction", "error", err)
+		jw.SetStatus(http.StatusInternalServerError)
+		jw.WriteResponse(http.NoBody)
 	}
 
 	q := queries.WithTx(tx)
@@ -92,9 +90,9 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := q.GetDetailedUsersByRSN(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error fetching user: %v\n", err)
-		status = http.StatusNotFound
-		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		log.Error("Error fetching user", "error", err)
+		jw.SetStatus(http.StatusNotFound)
+		jw.WriteResponse(http.NoBody)
 		return
 	}
 
@@ -117,9 +115,9 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 
 	points, err := q.UpdatePointsByEvent(r.Context(), points_params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error adding points to users: %v\n", err)
-		status = http.StatusNotFound
-		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		log.Error("Error adding points to users", "error", err)
+		jw.SetStatus(http.StatusNotFound)
+		jw.WriteResponse(http.NoBody)
 		return
 	}
 
@@ -162,5 +160,5 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		PointsGiven:      given,
 	}
 
-	utils.JsonWriter(response).IntoHTTP(status)(w, r)
+	jw.WriteResponse(response)
 }

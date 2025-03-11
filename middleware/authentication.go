@@ -6,19 +6,28 @@ import (
 	"tectonic-api/utils"
 )
 
+var log = utils.NewLogger()
+
 func Authentication(next http.Handler) http.Handler {
+	log.Debug("Adding authentication handler")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Get the API key from the URL query parameters
+		rlog := log.With(
+			"method", r.Method,
+			"url", r.URL,
+		)
+
 		apiKey := r.Header.Get("Authorization")
 
-		// Validate the API key (you may replace this with your own validation logic)
+		rlog.Debug("Validating API key")
 		validApiKey := os.Getenv("API_KEY")
 		if apiKey != validApiKey {
-			utils.JsonWriter(http.NoBody).IntoHTTP(http.StatusUnauthorized)(w, r)
+			rlog.Warn("Authentication key is invalid", "key", apiKey)
+			jw := utils.NewJsonWriter(w, r, http.StatusUnauthorized)
+			jw.WriteResponse(http.NoBody)
 			return
 		}
 
-		// Call the next handler in the chain
+		rlog.Debug("API key is valid")
 		next.ServeHTTP(w, r)
 	})
 }

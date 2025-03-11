@@ -2,9 +2,7 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"tectonic-api/database"
 	"tectonic-api/utils"
@@ -29,7 +27,7 @@ import (
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn} [POST]
 func CreateRSN(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusNoContent
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
 	params := database.CreateRsnParams{
@@ -40,8 +38,8 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 
 	wom, err := utils.GetWom(params.Rsn)
 	if err != nil {
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		jw.SetStatus(http.StatusBadRequest)
+		jw.WriteResponse(err)
 		return
 	}
 
@@ -50,23 +48,23 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 
 	err = queries.CreateRsn(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating RSN: %v\n", err)
+		log.Error("Error creating RSN", "error", err)
 
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23503" {
 				// Foreign key violation (User not found)
-				status = http.StatusNotFound
+				jw.SetStatus(http.StatusNotFound)
 			} else if pgErr.Code == "23505" {
 				// Unique violation (Duplicate)
-				status = http.StatusConflict
+				jw.SetStatus(http.StatusConflict)
 			} else {
-				status = http.StatusInternalServerError
+				jw.SetStatus(http.StatusInternalServerError)
 			}
 		}
 	}
 
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	jw.WriteResponse(http.NoBody)
 }
 
 // @Summary Remove RSN from guild and user
@@ -84,7 +82,7 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn} [DELETE]
 func RemoveRSN(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusNoContent
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
 	params := database.DeleteRsnParams{
@@ -95,13 +93,13 @@ func RemoveRSN(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := queries.DeleteRsn(r.Context(), params)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error deleting RSN: %v\n", err)
-		status = http.StatusInternalServerError
+		log.Error("Error deleting RSN", "error", err)
+		jw.SetStatus(http.StatusInternalServerError)
 	}
 
 	if rows == 0 {
-		status = http.StatusNotFound
+		jw.SetStatus(http.StatusNotFound)
 	}
 
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	jw.WriteResponse(http.NoBody)
 }
