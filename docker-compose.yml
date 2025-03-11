@@ -14,9 +14,19 @@ services:
       - 5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - dev
+      - prod
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
@@ -47,10 +57,16 @@ services:
       - dev
 
   adminer:
-      image: adminer
-      restart: always
-      ports:
-          - 5433:8080
+    image: adminer
+    restart: always
+    ports:
+        - 5433:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - dev
+      - prod
 
 #added for frontend container stack to connect to
 networks:

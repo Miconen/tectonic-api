@@ -5,30 +5,37 @@ import (
 	"net/http"
 )
 
-type jsonWriter struct {
-	data any
+type JsonWriter struct {
+	statusCode int
+	w          http.ResponseWriter
+	r          *http.Request
 }
 
-func JsonWriter(data any) *jsonWriter {
-	return &jsonWriter{
-		data: data,
+func NewJsonWriter(w http.ResponseWriter, r *http.Request, statusCode int) *JsonWriter {
+	return &JsonWriter{
+		w:          w,
+		r:          r,
+		statusCode: statusCode,
 	}
 }
 
-func (jsonWriter *jsonWriter) IntoHTTP(status int) http.HandlerFunc {
-	// TODO(robertoesteves13): Resolve json writes bug
-	return func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(status)
+func (jw *JsonWriter) SetStatus(statusCode int) {
+	jw.statusCode = statusCode
+}
 
-		// We can pass the response writer directly because it won't write the
-		// response if the marshalling had errors.
-		enc := json.NewEncoder(w)
-		err := enc.Encode(jsonWriter.data)
+func (jw *JsonWriter) WriteResponse(body any) {
+	log.Debug("writing http response", "body", body, "status", jw.statusCode)
+
+	jw.w.Header().Set("Content-Type", "application/json")
+	jw.w.WriteHeader(jw.statusCode)
+
+	if body != nil && body != http.NoBody {
+		enc := json.NewEncoder(jw.w)
+		err := enc.Encode(body)
 
 		if err != nil {
-			// Can't write JSON, we have a big problem.
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			log.Error("failed to write response", "error", err)
+			http.Error(jw.w, "Internal server error", http.StatusInternalServerError)
 		}
 	}
 }

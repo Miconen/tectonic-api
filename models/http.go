@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"tectonic-api/database"
+	"time"
+)
 
 // InputGuild Model
 // @Description Model of new guild data
@@ -56,9 +59,19 @@ type Users struct {
 // InputTime Model
 // @Description Model of a new time
 type InputTime struct {
+	GuildId  string   `json:"guild_id"`
 	Time     int      `json:"time"`
 	BossName string   `json:"boss_name"`
 	UserIds  []string `json:"user_ids"`
+}
+
+// TimeResponse Model
+// @Description Return type of times endpoint retaining information to new and old time
+type TimeResponse struct {
+	BossName string `json:"boss_name"`
+	Time     int    `json:"time"`
+	OldTime  int    `json:"time_old"`
+	RunID    int    `json:"run_id"`
 }
 
 // Time Model
@@ -88,6 +101,17 @@ type RSN struct {
 	WomId   string `json:"wom_id"`
 	UserId  string `json:"user_id"`
 	GuildId string `json:"guild_id"`
+}
+
+type GuildTimes struct {
+	guild_id         string          `json:"guild_id"`
+	pb_channel_id    string          `json:"pb_channel_id"`
+	bosses           []database.Boss          `json:"bosses"`
+	categories       []database.Category      `json:"categories"`
+	guild_bosses     []database.GuildBoss     `json:"guild_bosses"`
+	guild_categories []database.GuildCategory `json:"guild_categories"`
+	pbs              []Time          `json:"pbs"`
+	teammates        []User          `json:"teammates"`
 }
 
 // Body Model

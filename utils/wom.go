@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"tectonic-api/models"
 )
 
 type Wom struct {
@@ -13,38 +14,53 @@ type Wom struct {
 	DisplayName string `json:"displayName"`
 }
 
-var endpoint = "https://api.wiseoldman.net/v2/players/search?username="
+var endpoint = "https://api.wiseoldman.net/v2"
+var players = endpoint + "/players/"
+var competitions = endpoint + "/competitions/"
 
-func GetWomId(rsn string) (string, error) {
-	response, err := http.Get(endpoint + rsn)
+func GetWom(rsn string) (Wom, error) {
+	var result Wom
+
+	response, err := http.Get(players + rsn)
 	if err != nil {
-		return "", err
+		return result, err
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
 		fmt.Println("Unexpected status code:", response.StatusCode)
-		return "", errors.New("Unexpected status code:" + strconv.Itoa(response.StatusCode))
+		return result, errors.New("Unexpected status code:" + strconv.Itoa(response.StatusCode))
 	}
 
-	var result []Wom
 	err = json.NewDecoder(response.Body).Decode(&result)
 	if err != nil {
 		fmt.Println("Error decoding JSON:", err)
-		return "", err
+		return result, err
 	}
 
-	if len(result) == 0 {
-		fmt.Println("RSN not found")
-		return "", errors.New("RSN not found")
+	return result, nil
+}
+
+func GetCompetition(id int) (models.WomCompetition, error) {
+	var result models.WomCompetition
+
+	response, err := http.Get(competitions + strconv.Itoa(id))
+	if err != nil {
+		return result, err
 	}
 
-	id := strconv.Itoa(result[0].Id)
-	name := result[0].DisplayName
-	if name != rsn {
-		fmt.Printf("Provided RSN (%s) doesn't match fetched RSN (%s)\n", rsn, name)
-		return "", errors.New("Provided RSN doesn't match fetched RSN")
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		fmt.Println("Unexpected status code:", response.StatusCode)
+		return result, errors.New("Unexpected status code:" + strconv.Itoa(response.StatusCode))
 	}
 
-	return id, nil
+	err = json.NewDecoder(response.Body).Decode(&result)
+	if err != nil {
+		fmt.Println("Error decoding JSON:", err)
+		return result, err
+	}
+
+	return result, nil
 }

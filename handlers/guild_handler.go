@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
-	"os"
 	"tectonic-api/database"
 	"tectonic-api/models"
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // @Summary Get a guild by ID
@@ -24,20 +24,28 @@ import (
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id} [GET]
 func GetGuild(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusOK
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
-	p := mux.Vars(r)
+	v := mux.Vars(r)
 
-	guild, err := database.SelectGuild(r.Context(), p)
+	guildId, ok := v["guild_id"]
+	if !ok {
+		log.Error("no guild id found")
+		jw.SetStatus(http.StatusBadRequest)
+		jw.WriteResponse(http.NoBody)
+		return
+	}
+
+	guild, err := queries.GetGuild(r.Context(), guildId)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error selecting guild: %v\n", err)
-		status = http.StatusNotFound
-		utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+		log.Error("Error selecting guild", "error", err)
+		jw.SetStatus(http.StatusNotFound)
+		jw.WriteResponse(http.NoBody)
 		return
 	}
 
 	// Write JSON response
-	utils.JsonWriter(guild).IntoHTTP(status)(w, r)
+	jw.WriteResponse(guild)
 }
 
 // @Summary Create / Initialize a guild
@@ -54,7 +62,7 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds [POST]
 func CreateGuild(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusCreated
+	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
 
 	p := models.InputGuild{
 		Multiplier: 1,
@@ -62,18 +70,18 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 
 	err := utils.ParseRequestBody(w, r, &p)
 	if err != nil {
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		jw.SetStatus(http.StatusBadRequest)
+		jw.WriteResponse(err)
 		return
 	}
 
-	err = database.InsertGuild(r.Context(), p)
+	_, err = queries.CreateGuild(r.Context(), p.GuildId)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating guild: %v\n", err)
-		status = http.StatusConflict
+		log.Error("Error creating guild", "error", err)
+		jw.SetStatus(http.StatusConflict)
 	}
 
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	jw.WriteResponse(http.NoBody)
 }
 
 // @Summary Delete a guild
@@ -88,18 +96,37 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id} [DELETE]
-func RemoveGuild(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusNoContent
+func DeleteGuild(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
-	p := mux.Vars(r)
+	v := mux.Vars(r)
 
-	err := database.DeleteGuild(r.Context(), p)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error deleting guild: %v\n", err)
-		status = http.StatusNotFound
+	guildId, ok := v["guild_id"]
+	if !ok {
+		log.Error("no guild id found")
+		jw.SetStatus(http.StatusBadRequest)
+		jw.WriteResponse(http.NoBody)
+		return
 	}
 
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	_, err := queries.DeleteGuild(r.Context(), guildId)
+	if err != nil {
+		log.Error("Error deleting guild", "error", err)
+		jw.SetStatus(http.StatusNotFound)
+	}
+
+	jw.WriteResponse(http.NoBody)
+}
+
+type CategoryMessage struct {
+	MessageID string `json:"message_id"`
+	Category  string `json:"category"`
+}
+
+type GuildParams struct {
+	Multiplier       pgtype.Numeric    `json:"multiplier"`
+	PbChannelID      string            `json:"pb_channel_id"`
+	CategoryMessages []CategoryMessage `json:"category_messages"`
 }
 
 // @Summary Updates a guild
@@ -117,28 +144,64 @@ func RemoveGuild(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Empty
 // @Router /api/v1/guilds/{guild_id} [PUT]
 func UpdateGuild(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusNoContent
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
-	v := mux.Vars(r)
-	p := models.UpdateGuild{}
+	p := mux.Vars(r)
 
-	err := utils.ParseRequestBody(w, r, &p)
+	tx, err := database.CreateTx(r.Context())
 	if err != nil {
-		status = http.StatusBadRequest
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		log.Error("Error creating transaction", "error", err)
+		jw.SetStatus(http.StatusInternalServerError)
+		jw.WriteResponse(http.NoBody)
 		return
 	}
 
-	if p.GuildId != v["guild_id"] {
-		http.Error(w, fmt.Errorf("guild_id in request body must match URI param").Error(), http.StatusBadRequest)
+	q := queries.WithTx(tx)
+	defer tx.Rollback(r.Context())
+
+	var params GuildParams
+	err = json.NewDecoder(r.Body).Decode(&params)
+	if err != nil {
+		log.Error("Failed to parse request body")
+		jw.SetStatus(http.StatusInternalServerError)
+		jw.WriteResponse(http.NoBody)
 		return
 	}
 
-	err = database.UpdateGuild(r.Context(), p)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error updating channel: %v\n", err)
-		status = http.StatusNotFound
+	categories := make([]string, len(params.CategoryMessages))
+	messageIds := make([]string, len(params.CategoryMessages))
+	for i, v := range params.CategoryMessages {
+		categories[i] = v.Category
+		messageIds[i] = v.MessageID
 	}
 
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	if len(params.CategoryMessages) > 0 {
+		message_params := database.UpdateCategoryMessageIdsParams{
+			GuildID:    p["guild_id"],
+			Categories: categories,
+			MessageIds: messageIds,
+		}
+
+		_, errUpdate := q.UpdateCategoryMessageIds(r.Context(), message_params)
+		if errUpdate != nil {
+			log.Error("Error updating channel", "error", errUpdate)
+			jw.SetStatus(http.StatusNotFound)
+		}
+	}
+
+	guild_params := database.UpdateGuildParams{
+		Multiplier:  params.Multiplier,
+		PbChannelID: params.PbChannelID,
+		GuildID:     p["guild_id"],
+	}
+
+	_, err = q.UpdateGuild(r.Context(), guild_params)
+	if err != nil {
+		log.Error("Error updating channel", "error", err)
+		jw.SetStatus(http.StatusNotFound)
+	}
+
+	tx.Commit(r.Context())
+
+	jw.WriteResponse(http.NoBody)
 }

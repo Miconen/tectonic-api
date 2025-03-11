@@ -1,43 +1,14 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"strconv"
+	"strings"
 	"tectonic-api/database"
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
 )
-
-type InputPointsEvent struct {
-	GuildID string   `json:"guild_id"`
-	UserIDs []string `json:"user_ids"`
-	Event   string   `json:"event"`
-}
-
-func (i InputPointsEvent) GetUserIDs() []string {
-	return i.UserIDs
-}
-
-func (i InputPointsEvent) GetGuildID() string {
-	return i.GuildID
-}
-
-type InputPointsCustom struct {
-	GuildID string   `json:"guild_id"`
-	UserIDs []string `json:"user_ids"`
-	Points  int      `json:"points"`
-}
-
-func (i InputPointsCustom) GetUserIDs() []string {
-	return i.UserIDs
-}
-
-func (i InputPointsCustom) GetGuildID() string {
-	return i.GuildID
-}
 
 // @Summary Update a user(s) points
 // @Description Update a user(s)' points in our backend by unique user Snowflake (ID)
@@ -47,47 +18,30 @@ func (i InputPointsCustom) GetGuildID() string {
 // @Param guild_id path string true "Guild ID"
 // @Param point_event path string true "Point event"
 // @Param guild body models.User true "User"
-// @Success 204 {object} models.Empty
+// @Success 200 {object} models.User
 // @Failure 400 {object} models.Empty
 // @Failure 401 {object} models.Empty
 // @Failure 409 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
-// @Router /api/v1/guilds/{guild_id}/points/{point_event} [PUT]
+// @Router /api/v1/guilds/{guild_id}/users/{user_ids}/points/{point_event} [PUT]
 func UpdatePoints(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusNoContent
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
-	v := mux.Vars(r)
-	p := InputPointsEvent{}
+	p := mux.Vars(r)
+	params := database.UpdatePointsByEventParams{
+		Event:   p["point_event"],
+		GuildID: p["guild_id"],
+		UserIds: strings.Split(p["user_ids"], ","),
+	}
 
-	err := utils.ParseRequestBody(w, r, &p)
+	user, err := queries.UpdatePointsByEvent(r.Context(), params)
 	if err != nil {
-		status = http.StatusBadRequest
-		fmt.Println("Error parsing request body:", err)
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
-		return
+		log.Error("Error updating points", "error", err)
+		jw.SetStatus(http.StatusNotFound)
 	}
 
-	if p.GuildID != v["guild_id"] {
-		http.Error(w, fmt.Errorf("guild_id in request body must match URI param").Error(), http.StatusBadRequest)
-		return
-	}
-
-	if p.Event != v["point_event"] {
-		fmt.Println(p.Event, v["points"])
-		http.Error(w, "event in request body must match URI param", http.StatusBadRequest)
-		return
-	}
-
-	s := database.PointEventSubquery(p.GuildID, p.Event)
-
-	err = database.UpdatePoints(r.Context(), p, s)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error updating points: %v\n", err)
-		status = http.StatusNotFound
-	}
-
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	jw.WriteResponse(user)
 }
 
 // @Summary Update a user(s) points
@@ -98,52 +52,38 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 // @Param guild_id path string true "Guild ID"
 // @Param points path string true "Points"
 // @Param guild body models.User true "User"
-// @Success 204 {object} models.Empty
+// @Success 200 {object} models.User
 // @Failure 400 {object} models.Empty
 // @Failure 401 {object} models.Empty
 // @Failure 409 {object} models.Empty
 // @Failure 429 {object} models.Empty
 // @Failure 500 {object} models.Empty
-// @Router /api/v1/guilds/{guild_id}/points/custom/{points} [PUT]
+// @Router /api/v1/guilds/{guild_id}/users/{user_ids}/points/custom/{points} [PUT]
 func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusNoContent
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
-	v := mux.Vars(r)
-	p := InputPointsCustom{}
+	p := mux.Vars(r)
+	params := database.UpdatePointsCustomParams{
+		Points:  0,
+		UserIds: strings.Split(p["user_ids"], ","),
+		GuildID: p["guild_id"],
+	}
 
-	err := utils.ParseRequestBody(w, r, &p)
+	points, err := strconv.Atoi(p["points"])
 	if err != nil {
-		status = http.StatusBadRequest
-		fmt.Println("Error parsing request body:", err)
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
+		log.Error("Error parsing points", "error", err)
+		jw.SetStatus(http.StatusBadRequest)
+		jw.WriteResponse(err)
 		return
 	}
 
-	if p.GuildID != v["guild_id"] {
-		http.Error(w, fmt.Errorf("guild_id in request body must match URI param").Error(), http.StatusBadRequest)
-		return
-	}
+	params.Points = int32(points)
 
-	vp, err := strconv.Atoi(v["points"])
+	user, err := queries.UpdatePointsCustom(r.Context(), params)
 	if err != nil {
-		status = http.StatusBadRequest
-		fmt.Println("Error parsing points:", err)
-		utils.JsonWriter(err).IntoHTTP(status)(w, r)
-		return
+		log.Error("Error updating points", "error", err)
+		jw.SetStatus(http.StatusNotFound)
 	}
 
-	if p.Points != vp {
-		http.Error(w, fmt.Errorf("points in request body must match URI param").Error(), http.StatusBadRequest)
-		return
-	}
-
-	s := database.CustomPointSubquery(p.Points)
-
-	err = database.UpdatePoints(r.Context(), p, s)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error updating points: %v\n", err)
-		status = http.StatusNotFound
-	}
-
-	utils.JsonWriter(http.NoBody).IntoHTTP(status)(w, r)
+	jw.WriteResponse(user)
 }
