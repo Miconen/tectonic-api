@@ -1,7 +1,32 @@
 basePath: /api
 definitions:
+  database.DetailedUser:
+    properties:
+      guild_id:
+        type: string
+      points:
+        type: integer
+      rsns: {}
+      user_id:
+        type: string
+    type: object
+  database.User:
+    properties:
+      guild_id:
+        type: string
+      points:
+        type: integer
+      user_id:
+        type: string
+    type: object
   models.Empty:
     description: HTTP Body model for all responses
+    type: object
+  models.ErrorResponse:
+    description: Model representing the error messages
+    properties:
+      message:
+        type: string
     type: object
   models.Guild:
     description: Model of guild data
@@ -12,6 +37,8 @@ definitions:
         type: integer
       pb_channel_id:
         $ref: '#/definitions/models.NullString'
+    type: object
+  models.GuildTimes:
     type: object
   models.InputGuild:
     description: Model of new guild data
@@ -37,6 +64,8 @@ definitions:
     properties:
       boss_name:
         type: string
+      guild_id:
+        type: string
       time:
         type: integer
       user_ids:
@@ -44,34 +73,7 @@ definitions:
           type: string
         type: array
     type: object
-  models.InputUser:
-    description: Model of new active guild member
-    properties:
-      guild_id:
-        type: string
-      rsn:
-        type: string
-      user_id:
-        type: string
-    type: object
   models.NullString:
-    properties:
-      string:
-        type: string
-      valid:
-        description: Valid is true if String is not NULL
-        type: boolean
-    type: object
-  models.RSN:
-    properties:
-      guild_id:
-        type: string
-      rsn:
-        type: string
-      user_id:
-        type: string
-      wom_id:
-        type: string
     type: object
   models.UpdateGuild:
     description: Model of updated guild data (Exists so PbChannelId can be properly
@@ -109,6 +111,27 @@ info:
   title: Tectonic API
   version: "0.1"
 paths:
+  /api/v1/bosses:
+    get:
+      description: Get all categories tracked by the application
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Guild'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Empty'
+      summary: Get all categories
+      tags:
+      - Miscellaneous
   /api/v1/guilds:
     post:
       consumes:
@@ -312,30 +335,14 @@ paths:
       summary: Get a guilds leaderboard by ID
       tags:
       - Leaderboard
-  /api/v1/guilds/{guild_id}/users:
+  /api/v1/guilds/{guild_id}/times:
     get:
-      description: Get multiple users details by unique user Snowflakes (IDs)
+      description: Get all guild times in a detailed way
       parameters:
       - description: Guild ID
         in: path
         name: guild_id
         required: true
-        type: string
-      - description: User IDs
-        in: query
-        name: user_ids
-        type: string
-      - description: WOM IDs
-        in: query
-        name: wom_ids
-        type: string
-      - description: RSNs
-        in: query
-        name: rsns
-        type: string
-      - description: User IDs
-        in: query
-        name: user_ids
         type: string
       produces:
       - application/json
@@ -343,7 +350,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Users'
+            $ref: '#/definitions/models.GuildTimes'
         "400":
           description: Bad Request
           schema:
@@ -364,55 +371,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Empty'
-      summary: Get multiple users
+      summary: Get all guild times
       tags:
-      - Users
-    post:
-      consumes:
-      - application/json
-      description: Initialize a user in our backend by unique user Snowflake (ID)
-      parameters:
-      - description: Guild ID
-        in: path
-        name: guild_id
-        required: true
-        type: string
-      - description: User
-        in: body
-        name: guild
-        required: true
-        schema:
-          $ref: '#/definitions/models.InputUser'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/models.Empty'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Empty'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.Empty'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/models.Empty'
-        "429":
-          description: Too Many Requests
-          schema:
-            $ref: '#/definitions/models.Empty'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Empty'
-      summary: Create / Initialize a new user
-      tags:
-      - User
+      - Guild
   /api/v1/guilds/{guild_id}/users/{user_id}:
     delete:
       description: Delete a user in our backend by unique user and guild Snowflake
@@ -455,56 +416,13 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Empty'
-      summary: Delete a user from guild
+      summary: Delete a user from guild by User ID
       tags:
       - User
-    get:
-      description: Get user details by unique user Snowflake (ID)
-      parameters:
-      - description: Guild ID
-        in: path
-        name: guild_id
-        required: true
-        type: string
-      - description: User ID
-        in: path
-        name: user_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.User'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Empty'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.Empty'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/models.Empty'
-        "429":
-          description: Too Many Requests
-          schema:
-            $ref: '#/definitions/models.Empty'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Empty'
-      summary: Get a user by ID
-      tags:
-      - User
-    put:
+    post:
       consumes:
       - application/json
-      description: Update a user in our backend by unique user Snowflake (ID)
+      description: Initialize a user in our backend by unique user Snowflake (ID)
       parameters:
       - description: Guild ID
         in: path
@@ -516,23 +434,23 @@ paths:
         name: user_id
         required: true
         type: string
-      - description: User
+      - description: RSN
         in: body
-        name: guild
+        name: rsn
         required: true
         schema:
-          $ref: '#/definitions/models.User'
+          type: string
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/models.Empty'
         "400":
-          description: Bad Request
+          description: Guild isn't registered in our system
           schema:
-            $ref: '#/definitions/models.Empty'
+            $ref: '#/definitions/models.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
@@ -549,30 +467,36 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Empty'
-      summary: Update a user
+      summary: Create / Initialize a new user
       tags:
       - User
-  /api/v1/guilds/{guild_id}/users/{user_id}/rsns:
-    get:
-      description: Get RSN related details by unique guild and user Snowflake (ID)
+  /api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn}:
+    delete:
+      description: Delete a RSN in our backend by unique guild and user Snowflake
+        (ID)
       parameters:
       - description: Guild ID
         in: path
         name: guild_id
+        required: true
         type: string
       - description: User ID
         in: path
         name: user_id
+        required: true
+        type: string
+      - description: RSN
+        in: path
+        name: rsn
+        required: true
         type: string
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            items:
-              $ref: '#/definitions/models.RSN'
-            type: array
+            $ref: '#/definitions/models.Empty'
         "400":
           description: Bad Request
           schema:
@@ -593,7 +517,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Empty'
-      summary: Get RSN related information by guild and user ID
+      summary: Remove RSN from guild and user
       tags:
       - RSN
     post:
@@ -648,9 +572,55 @@ paths:
       summary: Link an RSN to a user
       tags:
       - RSN
-  /api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn}:
-    delete:
-      description: Delete a RSN in our backend by unique guild and user Snowflake
+  /api/v1/guilds/{guild_id}/users/{user_ids}:
+    get:
+      description: Get user details by unique user Snowflake (ID)
+      parameters:
+      - description: Guild ID
+        in: path
+        name: guild_id
+        required: true
+        type: string
+      - description: User ID(s)
+        in: path
+        name: user_ids
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/database.DetailedUser'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Empty'
+      summary: Get one or more users by ID(s)
+      tags:
+      - Users
+  /api/v1/guilds/{guild_id}/users/{user_ids}/points/{point_event}:
+    put:
+      consumes:
+      - application/json
+      description: Update a user(s)' points in our backend by unique user Snowflake
         (ID)
       parameters:
       - description: Guild ID
@@ -658,9 +628,108 @@ paths:
         name: guild_id
         required: true
         type: string
-      - description: User ID
+      - description: Point event
         in: path
-        name: user_id
+        name: point_event
+        required: true
+        type: string
+      - description: User
+        in: body
+        name: guild
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Empty'
+      summary: Update a user(s) points
+      tags:
+      - Points
+  /api/v1/guilds/{guild_id}/users/{user_ids}/points/custom/{points}:
+    put:
+      consumes:
+      - application/json
+      description: Update a user(s)' points in our backend by unique user Snowflake
+        (ID)
+      parameters:
+      - description: Guild ID
+        in: path
+        name: guild_id
+        required: true
+        type: string
+      - description: Points
+        in: path
+        name: points
+        required: true
+        type: string
+      - description: User
+        in: body
+        name: guild
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Empty'
+      summary: Update a user(s) points
+      tags:
+      - Points
+  /api/v1/guilds/{guild_id}/users/rsn/{rsn}:
+    delete:
+      description: Delete a user in our backend by unique user and guild Snowflake
+        (ID)
+      parameters:
+      - description: Guild ID
+        in: path
+        name: guild_id
         required: true
         type: string
       - description: RSN
@@ -695,7 +764,193 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Empty'
-      summary: Remove RSN from guild and user
+      summary: Delete a user from guild by RSN
+      tags:
+      - User
+  /api/v1/guilds/{guild_id}/users/rsn/{rsns}:
+    get:
+      description: Get user details by unique user Snowflake (ID)
+      parameters:
+      - description: Guild ID
+        in: path
+        name: guild_id
+        required: true
+        type: string
+      - description: User RSN(s)
+        in: path
+        name: rsns
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/database.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Empty'
+      summary: Get one or more users by RSN(s)
+      tags:
+      - Users
+  /api/v1/guilds/{guild_id}/users/wom/{wom_id}:
+    delete:
+      description: Delete a user in our backend by unique user and guild Snowflake
+        (ID)
+      parameters:
+      - description: Guild ID
+        in: path
+        name: guild_id
+        required: true
+        type: string
+      - description: Wom ID
+        in: path
+        name: wom_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Empty'
+      summary: Delete a user from guild by Wom ID
+      tags:
+      - User
+  /api/v1/guilds/{guild_id}/users/wom/{wom_ids}:
+    get:
+      description: Get user details by unique user Snowflake (ID)
+      parameters:
+      - description: Guild ID
+        in: path
+        name: guild_id
+        required: true
+        type: string
+      - description: User WomID(s)
+        in: path
+        name: wom_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/database.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Empty'
+      summary: Get one or more users by WomID(s)
+      tags:
+      - Users
+  /api/v1/guilds/{guild_id}/wom/competition/{competition_id}/cutoff/{cutoff}:
+    get:
+      consumes:
+      - application/json
+      description: Link an RSN to a guild and user in our backend by unique guild
+        and user Snowflake (ID)
+      parameters:
+      - description: Guild ID
+        in: path
+        name: guild_id
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: RSN
+        in: body
+        name: rsn
+        required: true
+        schema:
+          $ref: '#/definitions/models.InputRSN'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Empty'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Empty'
+      summary: Link an RSN to a user
       tags:
       - RSN
   /v1/guilds/{guild_id}/times:

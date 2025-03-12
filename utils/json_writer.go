@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"net/http"
+	"tectonic-api/models"
 )
 
 type JsonWriter struct {
@@ -38,4 +39,8 @@ func (jw *JsonWriter) WriteResponse(body any) {
 			http.Error(jw.w, "Internal server error", http.StatusInternalServerError)
 		}
 	}
+}
+
+func (jw *JsonWriter) WriteError(message string) {
+	jw.WriteResponse(models.ErrorResponse{Message: message})
 }

@@ -18,21 +18,21 @@ type CompetitionResponse struct {
 	PointsGiven      int                         `json:"points_given"`
 }
 
-// @Summary Link an RSN to a user
-// @Description Link an RSN to a guild and user in our backend by unique guild and user Snowflake (ID)
-// @Tags RSN
-// @Accept json
-// @Produce json
-// @Param guild_id path string true "Guild ID"
-// @Param user_id path string true "User ID"
-// @Param rsn body models.InputRSN true "RSN"
-// @Success 200 {object} models.Empty
-// @Failure 400 {object} models.Empty
-// @Failure 401 {object} models.Empty
-// @Failure 409 {object} models.Empty
-// @Failure 429 {object} models.Empty
-// @Failure 500 {object} models.Empty
-// @Router /api/v1/guilds/{guild_id}/wom/competition/{competition_id}/cutoff/{cutoff} [GET]
+//	@Summary		Link an RSN to a user
+//	@Description	Link an RSN to a guild and user in our backend by unique guild and user Snowflake (ID)
+//	@Tags			RSN
+//	@Accept			json
+//	@Produce		json
+//	@Param			guild_id	path		string			true	"Guild ID"
+//	@Param			user_id		path		string			true	"User ID"
+//	@Param			rsn			body		models.InputRSN	true	"RSN"
+//	@Success		200			{object}	models.Empty
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		409			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/api/v1/guilds/{guild_id}/wom/competition/{competition_id}/cutoff/{cutoff} [GET]
 func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 

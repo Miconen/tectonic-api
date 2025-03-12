@@ -12,11 +12,11 @@ import (
 
 var log = utils.NewLogger()
 
-// @title			Tectonic API
-// @version			0.1
-// @description		Functionality provider for Tectonic guild.
-// @host			localhost:8080
-// @BasePath		/api
+//	@title			Tectonic API
+//	@version		0.1
+//	@description	Functionality provider for Tectonic guild.
+//	@host			localhost:8080
+//	@BasePath		/api
 func main() {
 	conn, err := database.InitDB()
 	if err != nil {

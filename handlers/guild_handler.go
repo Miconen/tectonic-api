@@ -11,18 +11,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// @Summary Get a guild by ID
-// @Description Get guild details by unique guild Snowflake (ID)
-// @Tags Guild
-// @Produce json
-// @Param guild_id path string true "Guild ID"
-// @Success 200 {object} models.Guild
-// @Failure 400 {object} models.Empty
-// @Failure 401 {object} models.Empty
-// @Failure 404 {object} models.Empty
-// @Failure 429 {object} models.Empty
-// @Failure 500 {object} models.Empty
-// @Router /api/v1/guilds/{guild_id} [GET]
+//	@Summary		Get a guild by ID
+//	@Description	Get guild details by unique guild Snowflake (ID)
+//	@Tags			Guild
+//	@Produce		json
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Success		200			{object}	models.Guild
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		404			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/api/v1/guilds/{guild_id} [GET]
 func GetGuild(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
@@ -48,19 +48,19 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(guild)
 }
 
-// @Summary Create / Initialize a guild
-// @Description Initialize a guild in our backend by unique guild Snowflake (ID)
-// @Tags Guild
-// @Accept json
-// @Produce json
-// @Param guild body models.InputGuild true "Guild"
-// @Success 201 {object} models.Empty
-// @Failure 400 {object} models.Empty
-// @Failure 401 {object} models.Empty
-// @Failure 409 {object} models.Empty
-// @Failure 429 {object} models.Empty
-// @Failure 500 {object} models.Empty
-// @Router /api/v1/guilds [POST]
+//	@Summary		Create / Initialize a guild
+//	@Description	Initialize a guild in our backend by unique guild Snowflake (ID)
+//	@Tags			Guild
+//	@Accept			json
+//	@Produce		json
+//	@Param			guild	body		models.InputGuild	true	"Guild"
+//	@Success		201		{object}	models.Empty
+//	@Failure		400		{object}	models.Empty
+//	@Failure		401		{object}	models.Empty
+//	@Failure		409		{object}	models.Empty
+//	@Failure		429		{object}	models.Empty
+//	@Failure		500		{object}	models.Empty
+//	@Router			/api/v1/guilds [POST]
 func CreateGuild(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
 
@@ -84,18 +84,18 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(http.NoBody)
 }
 
-// @Summary Delete a guild
-// @Description Delete a guild in our backend by unique guild Snowflake (ID)
-// @Tags Guild
-// @Produce json
-// @Param guild_id path string true "Guild ID"
-// @Success 204 {object} models.Empty
-// @Failure 400 {object} models.Empty
-// @Failure 401 {object} models.Empty
-// @Failure 404 {object} models.Empty
-// @Failure 429 {object} models.Empty
-// @Failure 500 {object} models.Empty
-// @Router /api/v1/guilds/{guild_id} [DELETE]
+//	@Summary		Delete a guild
+//	@Description	Delete a guild in our backend by unique guild Snowflake (ID)
+//	@Tags			Guild
+//	@Produce		json
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Success		204			{object}	models.Empty
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		404			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/api/v1/guilds/{guild_id} [DELETE]
 func DeleteGuild(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
@@ -129,20 +129,20 @@ type GuildParams struct {
 	CategoryMessages []CategoryMessage `json:"category_messages"`
 }
 
-// @Summary Updates a guild
-// @Description Update multiplier and/or time channel for a guild
-// @Tags Guild
-// @Accept json
-// @Produce json
-// @Param guild_id path string true "Guild ID"
-// @Param guild body models.UpdateGuild true "Guild"
-// @Success 204 {object} models.Empty
-// @Failure 400 {object} models.Empty
-// @Failure 401 {object} models.Empty
-// @Failure 404 {object} models.Empty
-// @Failure 429 {object} models.Empty
-// @Failure 500 {object} models.Empty
-// @Router /api/v1/guilds/{guild_id} [PUT]
+//	@Summary		Updates a guild
+//	@Description	Update multiplier and/or time channel for a guild
+//	@Tags			Guild
+//	@Accept			json
+//	@Produce		json
+//	@Param			guild_id	path		string				true	"Guild ID"
+//	@Param			guild		body		models.UpdateGuild	true	"Guild"
+//	@Success		204			{object}	models.Empty
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		404			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/api/v1/guilds/{guild_id} [PUT]
 func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
