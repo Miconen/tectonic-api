@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "62c26e71-b5e9-4bf8-873f-773223029785",
+		"_postman_id": "c103bbf1-ee74-4f02-b999-7507251907f3",
 		"name": "Integrations",
 		"description": "# ⛓️ Get started here\n\nPostman allows you to test your APIs using simple Javascript code. You can evaluate your response body, headers, cookies, and more using the [ChaiJS BDD](https://www.chaijs.com/api/bdd/) syntax.\n\nThis template guides you through the process of setting up an integration test to ensure that all individual components of an API function together seamlessly.\n\nThe API under test in this collection includes three endpoints for registering and receiving a token, accessing your unique generated name, and unregistering a token:\n\n- POST `/register`\n- POST `/unregister`\n- GET `/my-name`\n    \n\nBy setting up requests in the order of the operation, we can test the flow of data to and from the endpoints and ensure they work together as expected. We also verify that the data persists between requests on the back end.\n\n## 🔖 **How to use this template**\n\n**Step 1:** Check out the requests' documentation to learn more about -\n\n- what each request is meant to do.\n- the tests we've added against each one.\n    \n\n**Step 2:** Run this collection by clicking on \"Run\".\n\n<img src=\"https://content.pstmn.io/84019b0f-69c8-4c5f-98b9-2c90a6f9a0b1/Y29sbGVjdGlvbi1ydW5uZXItYnV0dG9uLmpwZWc=\" alt=\"\" height=\"103\" width=\"266\">\n\n**Step 3:** To customize this template, replace the request URLs with your API endpoints and add or edit the tests if needed.\n\n## ℹ️ Resources\n\n[Scripting in Postman](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/)\n\n[Test script examples](https://learning.postman.com/docs/writing-scripts/script-references/test-examples/)\n\n[Postman Sandbox API reference](https://learning.postman.com/docs/sending-requests/grpc/postman-sandbox-api/#writing-assertions)\n\n[Using the Collection Runner](https://learning.postman.com/docs/collections/running-collections/intro-to-collection-runs/)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "26162138",
-		"_collection_link": "https://tectonicdev.postman.co/workspace/Tectonic~41def119-01bd-4f59-aae9-c19950bc7534/collection/32645835-62c26e71-b5e9-4bf8-873f-773223029785?action=share&source=collection_link&creator=26162138"
+		"_collection_link": "https://tectonicdev.postman.co/workspace/Tectonic~41def119-01bd-4f59-aae9-c19950bc7534/collection/26162138-c103bbf1-ee74-4f02-b999-7507251907f3?action=share&source=collection_link&creator=26162138"
 	},
 	"item": [
 		{
@@ -681,8 +681,8 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Response status code is 201\", function () {\r",
-							"    pm.response.to.have.status(201);\r",
+							"pm.test(\"Response status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
 							"\r",
 							"    const userId = pm.response.json().user_id;\r",
 							"    pm.collectionVariables.set(\"userId\", userId);\r",
@@ -729,11 +729,6 @@
 						"exec": [
 							"pm.test(\"Response status code is 204\", function () {\r",
 							"    pm.response.to.have.status(204);\r",
-							"\r",
-							"    const requestBody = JSON.parse(pm.request.body.raw)\r",
-							"\r",
-							"    // Store the guild_id parameter in a collection variable\r",
-							"    pm.collectionVariables.set(\"userId\", requestBody.user_id);\r",
 							"});"
 						],
 						"type": "text/javascript",
@@ -898,8 +893,6 @@
 						"exec": [
 							"pm.test(\"Response status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
-							"\r",
-							"    const requestBody = JSON.parse(pm.request.body.raw)\r",
 							"});"
 						],
 						"type": "text/javascript",
@@ -1175,8 +1168,6 @@
 						"exec": [
 							"pm.test(\"Response status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
-							"\r",
-							"    const requestBody = JSON.parse(pm.request.body.raw)\r",
 							"});"
 						],
 						"type": "text/javascript",
