@@ -31,17 +31,14 @@ func GetGuildTimes(w http.ResponseWriter, r *http.Request) {
 
 	guildId, ok := v["guild_id"]
 	if !ok {
-		log.Error("no guild id found")
-		jw.SetStatus(http.StatusBadRequest)
-		jw.WriteResponse(http.NoBody)
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return
 	}
 
 	row, err := queries.GetDetailedGuild(r.Context(), guildId)
+	ei := database.ClassifyError(err)
 	if err != nil {
-		log.Error("Error selecting guild", "error", err)
-		jw.SetStatus(http.StatusNotFound)
-		jw.WriteResponse(http.NoBody)
+		handleDatabaseError(*ei, jw, models.ERROR_GUILD_NOT_FOUND)
 		return
 	}
 
@@ -72,16 +69,13 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	params := models.InputTime{}
 	err := utils.ParseRequestBody(w, r, &params)
 	if err != nil {
-		log.Error("Error parsing request body", "error", err)
-		jw.SetStatus(http.StatusBadRequest)
-		jw.WriteResponse(err)
+		jw.WriteError(models.ERROR_WRONG_BODY)
 		return
 	}
 
 	if len(params.UserIds) == 0 {
 		log.Error("Empty User IDs array not permitted")
-		jw.SetStatus(http.StatusBadRequest)
-		jw.WriteResponse(err)
+		jw.WriteError(models.ERROR_WRONG_BODY)
 		return
 	}
 
@@ -93,8 +87,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	tx, err := database.CreateTx(r.Context())
 	if err != nil {
 		log.Error("Error creating transaction", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+		jw.WriteError(models.ERROR_API_UNAVAILABLE)
 		return
 	}
 
@@ -107,10 +100,9 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pb, err := q.CheckPb(r.Context(), pb_params)
-	if err != nil {
-		log.Error("Error checking pb", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
 		return
 	}
 
@@ -132,10 +124,9 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	}
 
 	run_id, err := q.CreateTime(r.Context(), time_params)
+	ei = database.ClassifyError(err)
 	if err != nil {
-		log.Error("Error inserting time", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
 		return
 	}
 
@@ -149,10 +140,9 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = q.UpdatePb(r.Context(), changed_pb_params)
+	ei = database.ClassifyError(err)
 	if err != nil {
-		log.Error("Error updating pb", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
 		return
 	}
 
@@ -163,14 +153,18 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = q.CreateTeam(r.Context(), team_params)
+	ei = database.ClassifyError(err)
 	if err != nil {
-		log.Error("Error creating team", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
 		return
 	}
 
-	tx.Commit(r.Context())
+	err = tx.Commit(r.Context())
+	ei = database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
+		return
+	}
 
 	jw.SetStatus(http.StatusCreated)
 	res.RunID = int(run_id)
@@ -202,23 +196,21 @@ func RemoveTime(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(p["time_id"])
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return
 	}
 
 	params.RunID = int32(id)
 
 	deleted, err := queries.DeleteTime(r.Context(), params)
-	if err != nil {
-		log.Error("Error deleting time", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
 		return
 	}
 
 	if deleted == 0 {
-		jw.SetStatus(http.StatusNotFound)
-		jw.WriteResponse(http.NoBody)
+		jw.WriteError(models.ERROR_TIME_NOT_FOUND)
 		return
 	}
 

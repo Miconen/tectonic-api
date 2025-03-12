@@ -2,10 +2,8 @@ package database
 
 import (
 	"encoding/json"
-
 	"github.com/jackc/pgx/v5/pgtype"
 )
-
 
 type DetailedRsn struct {
 	Rsn   string `json:"rsn"`

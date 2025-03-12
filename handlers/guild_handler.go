@@ -30,17 +30,15 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 
 	guildId, ok := v["guild_id"]
 	if !ok {
-		log.Error("no guild id found")
-		jw.SetStatus(http.StatusBadRequest)
-		jw.WriteResponse(http.NoBody)
+		log.Error("no guild id found in params")
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return
 	}
 
 	guild, err := queries.GetGuild(r.Context(), guildId)
-	if err != nil {
-		log.Error("Error selecting guild", "error", err)
-		jw.SetStatus(http.StatusNotFound)
-		jw.WriteResponse(http.NoBody)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_GUILD_NOT_FOUND)
 		return
 	}
 
@@ -70,15 +68,15 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 
 	err := utils.ParseRequestBody(w, r, &p)
 	if err != nil {
-		jw.SetStatus(http.StatusBadRequest)
-		jw.WriteResponse(err)
+		jw.WriteError(models.ERROR_WRONG_BODY)
 		return
 	}
 
 	_, err = queries.CreateGuild(r.Context(), p.GuildId)
-	if err != nil {
-		log.Error("Error creating guild", "error", err)
-		jw.SetStatus(http.StatusConflict)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_GUILD_NOT_FOUND)
+		return
 	}
 
 	jw.WriteResponse(http.NoBody)
@@ -104,15 +102,15 @@ func DeleteGuild(w http.ResponseWriter, r *http.Request) {
 	guildId, ok := v["guild_id"]
 	if !ok {
 		log.Error("no guild id found")
-		jw.SetStatus(http.StatusBadRequest)
-		jw.WriteResponse(http.NoBody)
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return
 	}
 
 	_, err := queries.DeleteGuild(r.Context(), guildId)
+	ei := database.ClassifyError(err)
 	if err != nil {
-		log.Error("Error deleting guild", "error", err)
-		jw.SetStatus(http.StatusNotFound)
+		handleDatabaseError(*ei, jw, models.ERROR_GUILD_NOT_FOUND)
+		return
 	}
 
 	jw.WriteResponse(http.NoBody)
@@ -151,8 +149,7 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 	tx, err := database.CreateTx(r.Context())
 	if err != nil {
 		log.Error("Error creating transaction", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+		jw.WriteError(models.ERROR_API_UNAVAILABLE)
 		return
 	}
 
@@ -163,8 +160,7 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
 		log.Error("Failed to parse request body")
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+		jw.WriteError(models.ERROR_WRONG_BODY)
 		return
 	}
 
@@ -183,9 +179,10 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 		}
 
 		_, errUpdate := q.UpdateCategoryMessageIds(r.Context(), message_params)
-		if errUpdate != nil {
-			log.Error("Error updating channel", "error", errUpdate)
-			jw.SetStatus(http.StatusNotFound)
+		eiUpdate := database.ClassifyError(errUpdate)
+		if eiUpdate != nil {
+			handleDatabaseError(*eiUpdate, jw, models.ERROR_GUILD_NOT_FOUND)
+			return
 		}
 	}
 
@@ -196,9 +193,9 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = q.UpdateGuild(r.Context(), guild_params)
-	if err != nil {
-		log.Error("Error updating channel", "error", err)
-		jw.SetStatus(http.StatusNotFound)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_GUILD_NOT_FOUND)
 	}
 
 	tx.Commit(r.Context())

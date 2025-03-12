@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"tectonic-api/database"
+	"tectonic-api/models"
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
@@ -40,32 +41,25 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(p["competition_id"])
 	if err != nil {
-		log.Error("Invalid competition ID, could not convert ASCII to int")
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return
 	}
 
 	cutoff, err := strconv.Atoi(p["cutoff"])
 	if err != nil {
-		log.Error("Invalid cutoff, could not convert ASCII to int")
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return
 	}
 
 	competition, err := utils.GetCompetition(id)
 	if err != nil {
-		log.Error("Error fetching WOM competition", "error", err)
-		jw.SetStatus(http.StatusBadRequest)
-		jw.WriteResponse(err)
+		// TODO: differentiate response errors from request errors
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return
 	}
 
 	if len(competition.Participations) == 0 {
-		log.Info("no participations found")
-		jw.SetStatus(http.StatusBadRequest)
-		jw.WriteResponse(err)
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return
 	}
 
@@ -89,17 +83,13 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(params.Rsns) == 0 {
-		log.Info("no participations found with specified cutoff")
-		jw.SetStatus(http.StatusNotFound)
-		jw.WriteResponse(err)
+		jw.WriteError(models.ERROR_PARTICIPATION_NOT_FOUND)
 		return
 	}
 
 	tx, err := database.CreateTx(r.Context())
 	if err != nil {
-		log.Error("Error creating transaction", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+		jw.WriteError(models.ERROR_API_UNAVAILABLE)
 		return
 	}
 
@@ -107,10 +97,9 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	defer tx.Rollback(r.Context())
 
 	rows, err := q.GetDetailedUsersByRSN(r.Context(), params)
-	if err != nil {
-		log.Error("Error fetching user", "error", err)
-		jw.SetStatus(http.StatusNotFound)
-		jw.WriteResponse(http.NoBody)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
 		return
 	}
 
@@ -131,10 +120,9 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	}
 
 	given, err := q.GetPointsValue(r.Context(), given_params)
-	if err != nil {
-		log.Error("Error fetching points value to give by event", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+	ei = database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
 		return
 	}
 
@@ -145,10 +133,9 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	}
 
 	points, err := q.UpdatePointsByEvent(r.Context(), points_params)
+	ei = database.ClassifyError(err)
 	if err != nil {
-		log.Error("Error adding points to users", "error", err)
-		jw.SetStatus(http.StatusNotFound)
-		jw.WriteResponse(http.NoBody)
+		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
 		return
 	}
 

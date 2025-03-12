@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"net/http"
+	"tectonic-api/database"
+	"tectonic-api/models"
 	"tectonic-api/utils"
 )
 
@@ -17,10 +19,9 @@ func GetBosses(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	bosses, err := queries.GetBosses(r.Context())
+	ei := database.ClassifyError(err)
 	if err != nil {
-		log.Error("Error fetching bosses", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
 		return
 	}
 
@@ -40,10 +41,9 @@ func GetCategories(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	categories, err := queries.GetCategories(r.Context())
-	if err != nil {
-		log.Error("Error fetching categories", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
 		return
 	}
 

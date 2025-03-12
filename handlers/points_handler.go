@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"tectonic-api/database"
+	"tectonic-api/models"
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
@@ -37,9 +38,16 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := queries.UpdatePointsByEvent(r.Context(), params)
+	ei := database.ClassifyError(err)
 	if err != nil {
-		log.Error("Error updating points", "error", err)
-		jw.SetStatus(http.StatusNotFound)
+		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		return
+	}
+
+	if len(user) == 0 {
+		// TODO: check what parameters were wrong, this shouldn't return empty
+		jw.WriteError(models.ERROR_TODO)
+		return
 	}
 
 	jw.WriteResponse(user)
@@ -54,7 +62,7 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 // @Param			user_ids	path		[]string	true	"User ID"
 // @Param			points		path		string		true	"Points"
 // @Param			guild		body		models.User	true	"User"
-// @Success		200			{object}	models.User
+// @Success		200			{object}	models.Empty
 // @Failure		400			{object}	models.Empty
 // @Failure		401			{object}	models.Empty
 // @Failure		409			{object}	models.Empty
@@ -73,19 +81,24 @@ func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
 
 	points, err := strconv.Atoi(p["points"])
 	if err != nil {
-		log.Error("Error parsing points", "error", err)
-		jw.SetStatus(http.StatusBadRequest)
-		jw.WriteResponse(err)
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return
 	}
 
 	params.Points = int32(points)
 
-	user, err := queries.UpdatePointsCustom(r.Context(), params)
-	if err != nil {
-		log.Error("Error updating points", "error", err)
-		jw.SetStatus(http.StatusNotFound)
+	rowsaf, err := queries.UpdatePointsCustom(r.Context(), params)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_TODO)
+		return
 	}
 
-	jw.WriteResponse(user)
+	if rowsaf == 0 {
+		// TODO: check what parameters were wrong, this shouldn't return empty
+		jw.WriteError(models.ERROR_TODO)
+		return
+	}
+
+	jw.WriteResponse(http.NoBody)
 }
