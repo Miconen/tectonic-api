@@ -13,19 +13,19 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-// @Summary		Get one or more users by ID(s)
-// @Description	Get user details by unique user Snowflake (ID)
-// @Tags			Users
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			user_ids	path		string	true	"User ID(s)"
-// @Success		200			{object}	database.DetailedUser[]
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_ids} [GET]
+//	@Summary		Get one or more users by ID(s)
+//	@Description	Get user details by unique user Snowflake (ID)
+//	@Tags			Users
+//	@Produce		json
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Param			user_ids	path		string	true	"User ID(s)"
+//	@Success		200			{object}	database.DetailedUser[]
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		404			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/api/v1/guilds/{guild_id}/users/{user_ids} [GET]
 func GetUsersById(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
@@ -53,19 +53,19 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(users)
 }
 
-// @Summary		Get one or more users by RSN(s)
-// @Description	Get user details by unique user Snowflake (ID)
-// @Tags			Users
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			rsns		path		string	true	"User RSN(s)"
-// @Success		200			{object}	database.User[]
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/rsn/{rsns} [GET]
+//	@Summary		Get one or more users by RSN(s)
+//	@Description	Get user details by unique user Snowflake (ID)
+//	@Tags			Users
+//	@Produce		json
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Param			rsns		path		string	true	"User RSN(s)"
+//	@Success		200			{object}	database.User[]
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		404			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/api/v1/guilds/{guild_id}/users/rsn/{rsns} [GET]
 func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
@@ -93,19 +93,19 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(users)
 }
 
-// @Summary		Get one or more users by WomID(s)
-// @Description	Get user details by unique user Snowflake (ID)
-// @Tags			Users
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			wom_ids		path		[]string	true	"User WomID(s)"
-// @Success		200			{object}	database.User[]
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/wom/{wom_ids} [GET]
+//	@Summary		Get one or more users by WomID(s)
+//	@Description	Get user details by unique user Snowflake (ID)
+//	@Tags			Users
+//	@Produce		json
+//	@Param			guild_id	path		string		true	"Guild ID"
+//	@Param			wom_ids		path		[]string	true	"User WomID(s)"
+//	@Success		200			{object}	database.User[]
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		404			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/api/v1/guilds/{guild_id}/users/wom/{wom_ids} [GET]
 func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
@@ -133,21 +133,21 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(users)
 }
 
-// @Summary		Create / Initialize a new user
-// @Description	Initialize a user in our backend by unique user Snowflake (ID)
-// @Tags			User
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			user_id		path		string	true	"User ID"
-// @Param			rsn			body		string	true	"RSN"
-// @Success		201			{object}	models.Empty
-// @Failure		400			{object}	models.ErrorResponse
-// @Failure		401			{object}	models.Empty
-// @Failure		409			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_id} [POST]
+//	@Summary		Create / Initialize a new user
+//	@Description	Initialize a user in our backend by unique user Snowflake (ID)
+//	@Tags			User
+//	@Accept			json
+//	@Produce		json
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Param			user_id		path		string	true	"User ID"
+//	@Param			rsn			body		string	true	"RSN"
+//	@Success		201			{object}	models.Empty
+//	@Failure		400			{object}	models.ErrorResponse
+//	@Failure		401			{object}	models.Empty
+//	@Failure		409			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/api/v1/guilds/{guild_id}/users/{user_id} [POST]
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
 
@@ -196,19 +196,19 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(user)
 }
 
-// @Summary		Delete a user from guild by User ID
-// @Description	Delete a user in our backend by unique user and guild Snowflake (ID)
-// @Tags			User
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			user_id		path		string	true	"User ID"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_id} [DELETE]
+//	@Summary		Delete a user from guild by User ID
+//	@Description	Delete a user in our backend by unique user and guild Snowflake (ID)
+//	@Tags			User
+//	@Produce		json
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Param			user_id		path		string	true	"User ID"
+//	@Success		204			{object}	models.Empty
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		404			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/api/v1/guilds/{guild_id}/users/{user_id} [DELETE]
 func RemoveUserById(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
@@ -232,19 +232,19 @@ func RemoveUserById(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(http.NoBody)
 }
 
-// @Summary		Delete a user from guild by RSN
-// @Description	Delete a user in our backend by Runescape name
-// @Tags			User
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			rsn			path		string	true	"RSN"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/rsn/{rsn} [DELETE]
+//	@Summary		Delete a user from guild by RSN
+//	@Description	Delete a user in our backend by Runescape name
+//	@Tags			User
+//	@Produce		json
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Param			rsn			path		string	true	"RSN"
+//	@Success		204			{object}	models.Empty
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		404			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/api/v1/guilds/{guild_id}/users/rsn/{rsn} [DELETE]
 func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
@@ -268,19 +268,19 @@ func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(http.NoBody)
 }
 
-// @Summary		Delete a user from guild by Wom ID
-// @Description	Delete a user in our backend by unique user and guild Snowflake (ID)
-// @Tags			User
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			wom_id		path		string	true	"Wom ID"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/wom/{wom_id} [DELETE]
+//	@Summary		Delete a user from guild by Wom ID
+//	@Description	Delete a user in our backend by unique user and guild Snowflake (ID)
+//	@Tags			User
+//	@Produce		json
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Param			wom_id		path		string	true	"Wom ID"
+//	@Success		204			{object}	models.Empty
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		404			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/api/v1/guilds/{guild_id}/users/wom/{wom_id} [DELETE]
 func RemoveUserByWom(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
