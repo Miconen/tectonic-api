@@ -11,21 +11,21 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-//	@Summary		Link an RSN to a user
-//	@Description	Link an RSN to a guild and user in our backend by unique guild and user Snowflake (ID)
-//	@Tags			RSN
-//	@Accept			json
-//	@Produce		json
-//	@Param			guild_id	path		string			true	"Guild ID"
-//	@Param			user_id		path		string			true	"User ID"
-//	@Param			rsn			path		models.InputRSN	true	"RSN"
-//	@Success		201			{object}	models.Empty
-//	@Failure		400			{object}	models.Empty
-//	@Failure		401			{object}	models.Empty
-//	@Failure		409			{object}	models.Empty
-//	@Failure		429			{object}	models.Empty
-//	@Failure		500			{object}	models.Empty
-//	@Router			/api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn} [POST]
+// @Summary		Link an RSN to a user
+// @Description	Link an RSN to a guild and user in our backend by unique guild and user Snowflake (ID)
+// @Tags			RSN
+// @Accept			json
+// @Produce		json
+// @Param			guild_id	path		string			true	"Guild ID"
+// @Param			user_id		path		string			true	"User ID"
+// @Param			rsn			path		models.InputRSN	true	"RSN"
+// @Success		201			{object}	models.Empty
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		409			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn} [POST]
 func CreateRSN(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
@@ -67,20 +67,20 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(http.NoBody)
 }
 
-//	@Summary		Remove RSN from guild and user
-//	@Description	Delete a RSN in our backend by unique guild and user Snowflake (ID)
-//	@Tags			RSN
-//	@Produce		json
-//	@Param			guild_id	path		string	true	"Guild ID"
-//	@Param			user_id		path		string	true	"User ID"
-//	@Param			rsn			path		string	true	"RSN"
-//	@Success		201			{object}	models.Empty
-//	@Failure		400			{object}	models.Empty
-//	@Failure		401			{object}	models.Empty
-//	@Failure		404			{object}	models.Empty
-//	@Failure		429			{object}	models.Empty
-//	@Failure		500			{object}	models.Empty
-//	@Router			/api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn} [DELETE]
+// @Summary		Remove RSN from guild and user
+// @Description	Delete a RSN in our backend by unique guild and user Snowflake (ID)
+// @Tags			RSN
+// @Produce		json
+// @Param			guild_id	path		string	true	"Guild ID"
+// @Param			user_id		path		string	true	"User ID"
+// @Param			rsn			path		string	true	"RSN"
+// @Success		201			{object}	models.Empty
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		404			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn} [DELETE]
 func RemoveRSN(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
