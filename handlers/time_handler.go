@@ -12,18 +12,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// @Summary Get all guild times
-// @Description Get all guild times in a detailed way
-// @Tags Guild
-// @Produce json
-// @Param guild_id path string true "Guild ID"
-// @Success 200 {object} models.GuildTimes
-// @Failure 400 {object} models.Empty
-// @Failure 401 {object} models.Empty
-// @Failure 404 {object} models.Empty
-// @Failure 429 {object} models.Empty
-// @Failure 500 {object} models.Empty
-// @Router /api/v1/guilds/{guild_id}/times [GET]
+//	@Summary		Get all guild times
+//	@Description	Get all guild times in a detailed way
+//	@Tags			Guild
+//	@Produce		json
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Success		200			{object}	models.GuildTimes
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		404			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/api/v1/guilds/{guild_id}/times [GET]
 func GetGuildTimes(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
@@ -49,21 +49,21 @@ func GetGuildTimes(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(guild)
 }
 
-// @Summary Add a new best time to guild
-// @Description Add a new time to a guild in our backend by unique guild Snowflake (ID)
-// @Tags Time
-// @Accept json
-// @Produce json
-// @Param guild_id path string true "Guild ID"
-// @Param time body models.InputTime true "Time"
-// @Success 200 {object} models.Empty
-// @Success 201 {object} models.Empty
-// @Failure 400 {object} models.Empty
-// @Failure 401 {object} models.Empty
-// @Failure 409 {object} models.Empty
-// @Failure 429 {object} models.Empty
-// @Failure 500 {object} models.Empty
-// @Router /v1/guilds/{guild_id}/times [POST]
+//	@Summary		Add a new best time to guild
+//	@Description	Add a new time to a guild in our backend by unique guild Snowflake (ID)
+//	@Tags			Time
+//	@Accept			json
+//	@Produce		json
+//	@Param			guild_id	path		string				true	"Guild ID"
+//	@Param			time		body		models.InputTime	true	"Time"
+//	@Success		200			{object}	models.Empty
+//	@Success		201			{object}	models.Empty
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		409			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/v1/guilds/{guild_id}/times [POST]
 func CreateTime(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
@@ -178,19 +178,19 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(res)
 }
 
-// @Summary Remove time from guilds best times
-// @Description Delete a time in our backend by unique guild Snowflake (ID)
-// @Tags Time
-// @Produce json
-// @Param guild_id path string true "Guild ID"
-// @Param time_id path string true "Time ID"
-// @Success 204 {object} models.Empty
-// @Failure 400 {object} models.Empty
-// @Failure 401 {object} models.Empty
-// @Failure 404 {object} models.Empty
-// @Failure 429 {object} models.Empty
-// @Failure 500 {object} models.Empty
-// @Router /v1/guilds/{guild_id}/times/{time_id} [DELETE]
+//	@Summary		Remove time from guilds best times
+//	@Description	Delete a time in our backend by unique guild Snowflake (ID)
+//	@Tags			Time
+//	@Produce		json
+//	@Param			guild_id	path		string	true	"Guild ID"
+//	@Param			time_id		path		string	true	"Time ID"
+//	@Success		204			{object}	models.Empty
+//	@Failure		400			{object}	models.Empty
+//	@Failure		401			{object}	models.Empty
+//	@Failure		404			{object}	models.Empty
+//	@Failure		429			{object}	models.Empty
+//	@Failure		500			{object}	models.Empty
+//	@Router			/v1/guilds/{guild_id}/times/{time_id} [DELETE]
 func RemoveTime(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 

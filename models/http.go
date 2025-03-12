@@ -120,6 +120,12 @@ type Body struct {
 	Content interface{} `json:"content,omitempty"`
 }
 
+// Error Response Model
+// @Description Model representing the error messages
+type ErrorResponse struct {
+	Message string `json:"message,omitempty"`
+}
+
 // Body Model
 // @Description HTTP Body model for all responses
 type Empty struct{}

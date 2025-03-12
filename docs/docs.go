@@ -15,6 +15,38 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/bosses": {
+            "get": {
+                "description": "Get all categories tracked by the application",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Miscellaneous"
+                ],
+                "summary": "Get all categories",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Guild"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/guilds": {
             "post": {
                 "description": "Initialize a guild in our backend by unique guild Snowflake (ID)",
@@ -322,16 +354,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/guilds/{guild_id}/users": {
+        "/api/v1/guilds/{guild_id}/times": {
             "get": {
-                "description": "Get multiple users details by unique user Snowflakes (IDs)",
+                "description": "Get all guild times in a detailed way",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Guild"
                 ],
-                "summary": "Get multiple users",
+                "summary": "Get all guild times",
                 "parameters": [
                     {
                         "type": "string",
@@ -339,37 +371,13 @@ const docTemplate = `{
                         "name": "guild_id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "User IDs",
-                        "name": "user_ids",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "WOM IDs",
-                        "name": "wom_ids",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "RSNs",
-                        "name": "rsns",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User IDs",
-                        "name": "user_ids",
-                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Users"
+                            "$ref": "#/definitions/models.GuildTimes"
                         }
                     },
                     "400": {
@@ -403,19 +411,18 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "post": {
-                "description": "Initialize a user in our backend by unique user Snowflake (ID)",
-                "consumes": [
-                    "application/json"
-                ],
+            }
+        },
+        "/api/v1/guilds/{guild_id}/users/rsn/{rsns}": {
+            "get": {
+                "description": "Get user details by unique user Snowflake (ID)",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Users"
                 ],
-                "summary": "Create / Initialize a new user",
+                "summary": "Get one or more users by RSN(s)",
                 "parameters": [
                     {
                         "type": "string",
@@ -425,20 +432,438 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "User RSN(s)",
+                        "name": "rsns",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/database.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/guilds/{guild_id}/users/rsn/{rsn}": {
+            "delete": {
+                "description": "Delete a user in our backend by unique user and guild Snowflake (ID)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Delete a user from guild by RSN",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Guild ID",
+                        "name": "guild_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "RSN",
+                        "name": "rsn",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/guilds/{guild_id}/users/wom/{wom_ids}": {
+            "get": {
+                "description": "Get user details by unique user Snowflake (ID)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get one or more users by WomID(s)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Guild ID",
+                        "name": "guild_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User WomID(s)",
+                        "name": "wom_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/database.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/guilds/{guild_id}/users/wom/{wom_id}": {
+            "delete": {
+                "description": "Delete a user in our backend by unique user and guild Snowflake (ID)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Delete a user from guild by Wom ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Guild ID",
+                        "name": "guild_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Wom ID",
+                        "name": "wom_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/guilds/{guild_id}/users/{user_ids}": {
+            "get": {
+                "description": "Get user details by unique user Snowflake (ID)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get one or more users by ID(s)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Guild ID",
+                        "name": "guild_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID(s)",
+                        "name": "user_ids",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/database.DetailedUser"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/guilds/{guild_id}/users/{user_ids}/points/custom/{points}": {
+            "put": {
+                "description": "Update a user(s)' points in our backend by unique user Snowflake (ID)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Points"
+                ],
+                "summary": "Update a user(s) points",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Guild ID",
+                        "name": "guild_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Points",
+                        "name": "points",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "User",
                         "name": "guild",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.InputUser"
+                            "$ref": "#/definitions/models.User"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/guilds/{guild_id}/users/{user_ids}/points/{point_event}": {
+            "put": {
+                "description": "Update a user(s)' points in our backend by unique user Snowflake (ID)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Points"
+                ],
+                "summary": "Update a user(s) points",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Guild ID",
+                        "name": "guild_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Point event",
+                        "name": "point_event",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "User",
+                        "name": "guild",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
                         }
                     },
                     "400": {
@@ -475,72 +900,8 @@ const docTemplate = `{
             }
         },
         "/api/v1/guilds/{guild_id}/users/{user_id}": {
-            "get": {
-                "description": "Get user details by unique user Snowflake (ID)",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Get a user by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Guild ID",
-                        "name": "guild_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "user_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.User"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "429": {
-                        "description": "Too Many Requests",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Update a user in our backend by unique user Snowflake (ID)",
+            "post": {
+                "description": "Initialize a user in our backend by unique user Snowflake (ID)",
                 "consumes": [
                     "application/json"
                 ],
@@ -550,7 +911,7 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "Update a user",
+                "summary": "Create / Initialize a new user",
                 "parameters": [
                     {
                         "type": "string",
@@ -567,26 +928,26 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "User",
-                        "name": "guild",
+                        "description": "RSN",
+                        "name": "rsn",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "type": "string"
                         }
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "No Content",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Guild isn't registered in our system",
                         "schema": {
-                            "$ref": "#/definitions/models.Empty"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "401": {
@@ -623,7 +984,7 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "Delete a user from guild",
+                "summary": "Delete a user from guild by User ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -680,72 +1041,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/guilds/{guild_id}/users/{user_id}/rsns": {
-            "get": {
-                "description": "Get RSN related details by unique guild and user Snowflake (ID)",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "RSN"
-                ],
-                "summary": "Get RSN related information by guild and user ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Guild ID",
-                        "name": "guild_id",
-                        "in": "path"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "user_id",
-                        "in": "path"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.RSN"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "429": {
-                        "description": "Too Many Requests",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    }
-                }
-            },
+        "/api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn}": {
             "post": {
                 "description": "Link an RSN to a guild and user in our backend by unique guild and user Snowflake (ID)",
                 "consumes": [
@@ -821,9 +1117,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn}": {
+            },
             "delete": {
                 "description": "Delete a RSN in our backend by unique guild and user Snowflake (ID)",
                 "produces": [
@@ -857,8 +1151,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "No Content",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -877,6 +1171,84 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/guilds/{guild_id}/wom/competition/{competition_id}/cutoff/{cutoff}": {
+            "get": {
+                "description": "Link an RSN to a guild and user in our backend by unique guild and user Snowflake (ID)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "RSN"
+                ],
+                "summary": "Link an RSN to a user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Guild ID",
+                        "name": "guild_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "RSN",
+                        "name": "rsn",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.InputRSN"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -1041,9 +1413,47 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "database.DetailedUser": {
+            "type": "object",
+            "properties": {
+                "guild_id": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "rsns": {},
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.User": {
+            "type": "object",
+            "properties": {
+                "guild_id": {
+                    "type": "string"
+                },
+                "points": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Empty": {
             "description": "HTTP Body model for all responses",
             "type": "object"
+        },
+        "models.ErrorResponse": {
+            "description": "Model representing the error messages",
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
         },
         "models.Guild": {
             "description": "Model of guild data",
@@ -1059,6 +1469,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.NullString"
                 }
             }
+        },
+        "models.GuildTimes": {
+            "type": "object"
         },
         "models.InputGuild": {
             "description": "Model of new guild data",
@@ -1096,6 +1509,9 @@ const docTemplate = `{
                 "boss_name": {
                     "type": "string"
                 },
+                "guild_id": {
+                    "type": "string"
+                },
                 "time": {
                     "type": "integer"
                 },
@@ -1107,49 +1523,8 @@ const docTemplate = `{
                 }
             }
         },
-        "models.InputUser": {
-            "description": "Model of new active guild member",
-            "type": "object",
-            "properties": {
-                "guild_id": {
-                    "type": "string"
-                },
-                "rsn": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
         "models.NullString": {
-            "type": "object",
-            "properties": {
-                "string": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if String is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
-        "models.RSN": {
-            "type": "object",
-            "properties": {
-                "guild_id": {
-                    "type": "string"
-                },
-                "rsn": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                },
-                "wom_id": {
-                    "type": "string"
-                }
-            }
+            "type": "object"
         },
         "models.UpdateGuild": {
             "description": "Model of updated guild data (Exists so PbChannelId can be properly parsed)",

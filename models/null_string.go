@@ -10,8 +10,9 @@ import (
 
 // Local wrapper of sql.NullString that implements
 // required interfaces for struct mapping from SQL
+// swagger:model
 type NullString struct {
-	sql.NullString
+	sql.NullString `swaggerignore:"true"`
 }
 
 // Implement the MarshalJSON interface on our wrapper type
