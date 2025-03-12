@@ -11,6 +11,38 @@
     "paths": {
         "/api/v1/bosses": {
             "get": {
+                "description": "Get all bosses tracked by the application",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Miscellaneous"
+                ],
+                "summary": "Get all bosses",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Guild"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/categories": {
+            "get": {
                 "description": "Get all categories tracked by the application",
                 "produces": [
                     "application/json"
@@ -305,7 +337,8 @@
                         "type": "string",
                         "description": "Guild ID",
                         "name": "guild_id",
-                        "in": "path"
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -372,6 +405,147 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.GuildTimes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Add a new time to a guild in our backend by unique guild Snowflake (ID)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Time"
+                ],
+                "summary": "Add a new best time to guild",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Guild ID",
+                        "name": "guild_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Time",
+                        "name": "time",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.InputTime"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/guilds/{guild_id}/times/{time_id}": {
+            "delete": {
+                "description": "Delete a time in our backend by unique guild Snowflake (ID)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Time"
+                ],
+                "summary": "Remove time from guilds best times",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Guild ID",
+                        "name": "guild_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Time ID",
+                        "name": "time_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/models.Empty"
                         }
                     },
                     "400": {
@@ -475,7 +649,7 @@
         },
         "/api/v1/guilds/{guild_id}/users/rsn/{rsn}": {
             "delete": {
-                "description": "Delete a user in our backend by unique user and guild Snowflake (ID)",
+                "description": "Delete a user in our backend by Runescape name",
                 "produces": [
                     "application/json"
                 ],
@@ -558,9 +732,13 @@
                         "required": true
                     },
                     {
-                        "type": "string",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
                         "description": "User WomID(s)",
-                        "name": "wom_id",
+                        "name": "wom_ids",
                         "in": "path",
                         "required": true
                     }
@@ -759,6 +937,17 @@
                         "required": true
                     },
                     {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "User ID",
+                        "name": "user_ids",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "type": "string",
                         "description": "Points",
                         "name": "points",
@@ -833,6 +1022,17 @@
                         "type": "string",
                         "description": "Guild ID",
                         "name": "guild_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "User IDs",
+                        "name": "user_ids",
                         "in": "path",
                         "required": true
                     },
@@ -939,7 +1139,7 @@
                         }
                     },
                     "400": {
-                        "description": "Guild isn't registered in our system",
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -1064,13 +1264,19 @@
                         "required": true
                     },
                     {
-                        "description": "RSN",
+                        "type": "string",
+                        "name": "guild_id",
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
                         "name": "rsn",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.InputRSN"
-                        }
+                        "in": "path"
+                    },
+                    {
+                        "type": "string",
+                        "name": "user_id",
+                        "in": "path"
                     }
                 ],
                 "responses": {
@@ -1207,19 +1413,17 @@
                     },
                     {
                         "type": "string",
-                        "description": "User ID",
-                        "name": "user_id",
+                        "description": "Guild ID",
+                        "name": "competition_id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "RSN",
-                        "name": "rsn",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.InputRSN"
-                        }
+                        "type": "integer",
+                        "description": "Guild ID",
+                        "name": "cutoff",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1243,149 +1447,6 @@
                     },
                     "409": {
                         "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "429": {
-                        "description": "Too Many Requests",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/guilds/{guild_id}/times": {
-            "post": {
-                "description": "Add a new time to a guild in our backend by unique guild Snowflake (ID)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Time"
-                ],
-                "summary": "Add a new best time to guild",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Guild ID",
-                        "name": "guild_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Time",
-                        "name": "time",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.InputTime"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "429": {
-                        "description": "Too Many Requests",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/guilds/{guild_id}/times/{time_id}": {
-            "delete": {
-                "description": "Delete a time in our backend by unique guild Snowflake (ID)",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Time"
-                ],
-                "summary": "Remove time from guilds best times",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Guild ID",
-                        "name": "guild_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Time ID",
-                        "name": "time_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.Empty"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/models.Empty"
                         }
@@ -1478,20 +1539,6 @@
                     "type": "integer"
                 },
                 "pb_channel_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.InputRSN": {
-            "type": "object",
-            "properties": {
-                "guild_id": {
-                    "type": "string"
-                },
-                "rsn": {
-                    "type": "string"
-                },
-                "user_id": {
                     "type": "string"
                 }
             }

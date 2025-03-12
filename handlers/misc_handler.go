@@ -35,7 +35,7 @@ func GetBosses(w http.ResponseWriter, r *http.Request) {
 //	@Success		200	{object}	models.Guild
 //	@Failure		429	{object}	models.Empty
 //	@Failure		500	{object}	models.Empty
-//	@Router			/api/v1/bosses [GET]
+//	@Router			/api/v1/categories [GET]
 func GetCategories(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 

@@ -63,7 +63,7 @@ func GetGuildTimes(w http.ResponseWriter, r *http.Request) {
 //	@Failure		409			{object}	models.Empty
 //	@Failure		429			{object}	models.Empty
 //	@Failure		500			{object}	models.Empty
-//	@Router			/v1/guilds/{guild_id}/times [POST]
+//	@Router			/api/v1/guilds/{guild_id}/times [POST]
 func CreateTime(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
@@ -190,7 +190,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 //	@Failure		404			{object}	models.Empty
 //	@Failure		429			{object}	models.Empty
 //	@Failure		500			{object}	models.Empty
-//	@Router			/v1/guilds/{guild_id}/times/{time_id} [DELETE]
+//	@Router			/api/v1/guilds/{guild_id}/times/{time_id} [DELETE]
 func RemoveTime(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 

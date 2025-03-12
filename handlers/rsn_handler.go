@@ -18,7 +18,7 @@ import (
 //	@Produce		json
 //	@Param			guild_id	path		string			true	"Guild ID"
 //	@Param			user_id		path		string			true	"User ID"
-//	@Param			rsn			body		models.InputRSN	true	"RSN"
+//	@Param			rsn			path		models.InputRSN	true	"RSN"
 //	@Success		201			{object}	models.Empty
 //	@Failure		400			{object}	models.Empty
 //	@Failure		401			{object}	models.Empty
