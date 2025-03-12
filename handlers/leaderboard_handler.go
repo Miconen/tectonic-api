@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"tectonic-api/database"
+	"tectonic-api/models"
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
@@ -32,10 +33,14 @@ func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 
 	log.DebugContext(r.Context(), "querying leaderboard from database", "guild_id", params.GuildID, "user_limit", params.UserLimit)
 	rows, err := queries.GetLeaderboard(r.Context(), params)
-	if err != nil {
-		log.Error("Error fetching users", "error", err)
-		jw.SetStatus(http.StatusNotFound)
-		jw.WriteResponse(http.NoBody)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		return
+	}
+
+	if len(rows) == 0 {
+		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
 		return
 	}
 

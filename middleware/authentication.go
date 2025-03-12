@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"os"
+	"tectonic-api/models"
 	"tectonic-api/utils"
 )
 
@@ -23,7 +24,7 @@ func Authentication(next http.Handler) http.Handler {
 		if apiKey != validApiKey {
 			rlog.Warn("Authentication key is invalid", "key", apiKey)
 			jw := utils.NewJsonWriter(w, r, http.StatusUnauthorized)
-			jw.WriteResponse(http.NoBody)
+			jw.WriteError(models.ERROR_INVALID_TOKEN)
 			return
 		}
 

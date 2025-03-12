@@ -893,7 +893,7 @@ func (q *Queries) UpdatePointsByEvent(ctx context.Context, arg UpdatePointsByEve
 	return items, nil
 }
 
-const updatePointsCustom = `-- name: UpdatePointsCustom :many
+const updatePointsCustom = `-- name: UpdatePointsCustom :execrows
 UPDATE users
 SET points = points + $1
 WHERE user_id = ANY($2::text[])
@@ -906,22 +906,10 @@ type UpdatePointsCustomParams struct {
 	GuildID string   `json:"guild_id"`
 }
 
-func (q *Queries) UpdatePointsCustom(ctx context.Context, arg UpdatePointsCustomParams) ([]User, error) {
-	rows, err := q.db.Query(ctx, updatePointsCustom, arg.Points, arg.UserIds, arg.GuildID)
+func (q *Queries) UpdatePointsCustom(ctx context.Context, arg UpdatePointsCustomParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updatePointsCustom, arg.Points, arg.UserIds, arg.GuildID)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	defer rows.Close()
-	var items []User
-	for rows.Next() {
-		var i User
-		if err := rows.Scan(&i.UserID, &i.GuildID, &i.Points); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+	return result.RowsAffected(), nil
 }

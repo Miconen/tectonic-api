@@ -123,7 +123,8 @@ type Body struct {
 // Error Response Model
 // @Description Model representing the error messages
 type ErrorResponse struct {
-	Message string `json:"message,omitempty"`
+	Code uint `json:code`
+	Message string `json:"message"`
 }
 
 // Body Model

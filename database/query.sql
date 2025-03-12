@@ -87,7 +87,7 @@ WHERE user_id = ANY(@user_ids::text[])
 AND users.guild_id = @guild_id 
 RETURNING user_id, guild_id, points, (SELECT points FROM point_value) AS given_points;
 
--- name: UpdatePointsCustom :many
+-- name: UpdatePointsCustom :execrows
 UPDATE users
 SET points = points + @points
 WHERE user_id = ANY(@user_ids::text[])

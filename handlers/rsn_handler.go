@@ -1,14 +1,13 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 	"tectonic-api/database"
+	"tectonic-api/models"
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // @Summary		Link an RSN to a user
@@ -38,8 +37,7 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 
 	wom, err := utils.GetWom(params.Rsn)
 	if err != nil {
-		jw.SetStatus(http.StatusBadRequest)
-		jw.WriteResponse(err)
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return
 	}
 
@@ -47,21 +45,17 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 	params.Rsn = wom.DisplayName
 
 	err = queries.CreateRsn(r.Context(), params)
-	if err != nil {
-		log.Error("Error creating RSN", "error", err)
-
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			if pgErr.Code == "23503" {
-				// Foreign key violation (User not found)
-				jw.SetStatus(http.StatusNotFound)
-			} else if pgErr.Code == "23505" {
-				// Unique violation (Duplicate)
-				jw.SetStatus(http.StatusConflict)
-			} else {
-				jw.SetStatus(http.StatusInternalServerError)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseErrorCustom(*ei, jw, func(dh *dbHandler, jw *utils.JsonWriter) {
+			switch dh.Code {
+			case "23503":
+				jw.WriteResponse(models.ERROR_USER_NOT_FOUND)
+			case "23505":
+				jw.WriteResponse(models.ERROR_GUILD_EXISTS)
 			}
-		}
+		})
+		return
 	}
 
 	jw.WriteResponse(http.NoBody)
@@ -92,13 +86,15 @@ func RemoveRSN(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := queries.DeleteRsn(r.Context(), params)
-	if err != nil {
-		log.Error("Error deleting RSN", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+		return
 	}
 
 	if rows == 0 {
-		jw.SetStatus(http.StatusNotFound)
+		jw.WriteError(models.ERROR_RSN_NOT_FOUND)
+		return
 	}
 
 	jw.WriteResponse(http.NoBody)

@@ -2,15 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 	"tectonic-api/database"
+	"tectonic-api/models"
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 //	@Summary		Get one or more users by ID(s)
@@ -37,10 +36,14 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := queries.GetDetailedUsers(r.Context(), params)
-	if err != nil {
-		log.Error("Error fetching user", "error", err)
-		jw.SetStatus(http.StatusNotFound)
-		jw.WriteResponse(http.NoBody)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		return
+	}
+
+	if len(rows) == 0 {
+		jw.WriteError(models.ERROR_USER_NOT_FOUND)
 		return
 	}
 
@@ -77,10 +80,14 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := queries.GetDetailedUsersByRSN(r.Context(), params)
-	if err != nil {
-		log.Error("Error fetching user", "error", err)
-		jw.SetStatus(http.StatusNotFound)
-		jw.WriteResponse(http.NoBody)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		return
+	}
+
+	if len(rows) == 0 {
+		jw.WriteError(models.ERROR_USER_NOT_FOUND)
 		return
 	}
 
@@ -117,10 +124,14 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := queries.GetDetailedUsersByWomID(r.Context(), params)
-	if err != nil {
-		log.Error("Error fetching user", "error", err)
-		jw.SetStatus(http.StatusNotFound)
-		jw.WriteResponse(http.NoBody)
+	ei :=  database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		return
+	}
+
+	if len(rows) == 0 {
+		jw.WriteError(models.ERROR_USER_NOT_FOUND)
 		return
 	}
 
@@ -159,16 +170,13 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		log.Error("Error decoding request body: ", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
-		jw.WriteResponse(http.NoBody)
+		jw.WriteError(models.ERROR_WRONG_BODY)
 		return
 	}
 
 	wom, err := utils.GetWom(params.Rsn)
 	if err != nil {
-		jw.SetStatus(http.StatusNotFound)
-		jw.WriteError("RSN doesn't exist")
+		jw.WriteError(models.ERROR_RSN_NOT_FOUND)
 		return
 	}
 
@@ -177,19 +185,17 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := queries.CreateUser(r.Context(), params)
 	if err != nil {
-		log.Error("Error inserting user", "error", err)
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			switch pgErr.ConstraintName {
-			case "users_ibfk_1":
-				jw.SetStatus(http.StatusBadRequest)
-			case "users_pkey":
-				jw.SetStatus(http.StatusConflict)
-			default:
-				jw.SetStatus(http.StatusInternalServerError)
-				jw.WriteError("Guild isn't registered in our system")
-				return
-			}
+		ei := database.ClassifyError(err)
+		if ei != nil {
+			handleDatabaseErrorCustom(*ei, jw, func(dh *dbHandler, jw *utils.JsonWriter) {
+				switch dh.Err.ConstraintName {
+				case "users_ibfk_1":
+					jw.WriteError(models.ERROR_GUILD_EXISTS)
+				case "users_pkey":
+					jw.WriteError(models.ERROR_USER_EXISTS)
+				}
+			})
+			return
 		}
 	}
 
@@ -220,13 +226,14 @@ func RemoveUserById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := queries.DeleteUserById(r.Context(), params)
-	if err != nil {
-		log.Error("Error deleting user", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		return
 	}
 
 	if rows == 0 {
-		jw.SetStatus(http.StatusNotFound)
+		jw.WriteError(models.ERROR_USER_NOT_FOUND)
 	}
 
 	jw.WriteResponse(http.NoBody)
@@ -256,13 +263,14 @@ func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := queries.DeleteUserByRsn(r.Context(), params)
-	if err != nil {
-		log.Error("Error deleting user", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		return
 	}
 
 	if rows == 0 {
-		jw.SetStatus(http.StatusNotFound)
+		jw.WriteError(models.ERROR_USER_NOT_FOUND)
 	}
 
 	jw.WriteResponse(http.NoBody)
@@ -292,13 +300,14 @@ func RemoveUserByWom(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := queries.DeleteUserByWom(r.Context(), params)
-	if err != nil {
-		log.Error("Error deleting user", "error", err)
-		jw.SetStatus(http.StatusInternalServerError)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		return
 	}
 
 	if rows == 0 {
-		jw.SetStatus(http.StatusNotFound)
+		jw.WriteError(models.ERROR_USER_NOT_FOUND)
 	}
 
 	jw.WriteResponse(http.NoBody)

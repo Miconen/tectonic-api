@@ -41,6 +41,7 @@ func (jw *JsonWriter) WriteResponse(body any) {
 	}
 }
 
-func (jw *JsonWriter) WriteError(message string) {
-	jw.WriteResponse(models.ErrorResponse{Message: message})
+func (jw *JsonWriter) WriteError(code models.APIV1Error) {
+	jw.SetStatus(code.Status())
+	jw.WriteResponse(code.ToErrorResponse())
 }
