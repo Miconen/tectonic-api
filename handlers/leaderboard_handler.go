@@ -12,7 +12,7 @@ import (
 //	@Description	Get guilds leaderboard details by unique guild Snowflake (ID)
 //	@Tags			Leaderboard
 //	@Produce		json
-//	@Param			guild_id	path		string	false	"Guild ID"
+//	@Param			guild_id	path		string	true	"Guild ID"
 //	@Success		200			{object}	models.Users
 //	@Failure		400			{object}	models.Empty
 //	@Failure		401			{object}	models.Empty
