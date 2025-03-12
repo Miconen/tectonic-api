@@ -645,14 +645,9 @@ paths:
         required: true
         type: string
       - in: path
-        name: guild_id
-        type: string
-      - in: path
         name: rsn
         type: string
-      - in: path
-        name: user_id
-        type: string
+        required: true
       produces:
       - application/json
       responses:
