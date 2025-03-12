@@ -683,9 +683,6 @@
 						"exec": [
 							"pm.test(\"Response status code is 204\", function () {\r",
 							"    pm.response.to.have.status(204);\r",
-							"\r",
-							"    const userId = pm.response.json().user_id;\r",
-							"    pm.collectionVariables.set(\"userId\", userId);\r",
 							"});\r",
 							""
 						],
