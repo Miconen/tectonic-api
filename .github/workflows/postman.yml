@@ -1,17 +1,40 @@
 name: Automated API tests using Postman CLI
-
-on: push
-
+'on': push
 jobs:
-  automated-api-tests:
+  build-and-test:
     runs-on: ubuntu-latest
+    env:
+      API_KEY: "foobar"
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.1'
+      - name: Build
+        run: go build -o myapp
+      - name: Start Go application
+        run: >
+          ./myapp &
+
+          echo "APP_PID=$!" >> $GITHUB_ENV  # Store the process ID
+
+          sleep 5
+
+          echo "APP_URL=http://localhost:8080" >> $GITHUB_ENV
       - name: Install Postman CLI
         run: |
           curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
-      - name: Login to Postman CLI
-        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+      # - name: Login to Postman CLI
+      #   run: 'postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}'
+      # - name: Run API tests
+      #   run: >
+      #     postman collection run "${{ github.workspace }}/Integrations.postman_collection.json" --integration-id "175265-${{ github.run_id }}" --env-var "Authorization=$API_KEY"
       - name: Run API tests
+        run: >
+          postman collection run "${{ github.workspace }}/Integrations.postman_collection.json" --env-var "Authorization=$API_KEY"
+      - name: Cleanup
+        if: always()
         run: |
-          postman collection run "${{ github.workspace }}/Integrations.postman_collection.json" --integration-id "175265-${{ github.run_id }}" --env-var "baseUrl=${{ secrets.API_BASE_URL }}" --env-var "Authorization=${{ secrets.AUTH_KEY }}"
+          kill ${{ env.APP_PID }} || true
+
