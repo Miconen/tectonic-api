@@ -5,6 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       API_KEY: "foobar"
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Go
@@ -19,7 +20,7 @@ jobs:
 
           echo "APP_PID=$!" >> $GITHUB_ENV  # Store the process ID
 
-          sleep 5
+          sleep 10
 
           echo "APP_URL=http://localhost:8080" >> $GITHUB_ENV
       - name: Install Postman CLI
@@ -32,7 +33,7 @@ jobs:
       #     postman collection run "${{ github.workspace }}/Integrations.postman_collection.json" --integration-id "175265-${{ github.run_id }}" --env-var "Authorization=$API_KEY"
       - name: Run API tests
         run: >
-          postman collection run "${{ github.workspace }}/Integrations.postman_collection.json" --env-var "Authorization=$API_KEY"
+          postman collection run "${{ github.workspace }}/Integrations.postman_collection.json" --env-var "Authorization=$API_KEY" --env-var "baseUrl=http://localhost:8080"
       - name: Cleanup
         if: always()
         run: |
