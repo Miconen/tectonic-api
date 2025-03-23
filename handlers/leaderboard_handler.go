@@ -40,7 +40,7 @@ func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(rows) == 0 {
-		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		jw.WriteError(models.ERROR_USER_NOT_FOUND)
 		return
 	}
 
