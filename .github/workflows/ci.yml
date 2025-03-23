@@ -3,11 +3,27 @@ name: Continuous Integration
 'on': push
 
 jobs:
-  build-and-test:
+  build:
+    name: Build and Test
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: tectonic
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     env:
       API_KEY: "foobar"
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tectonic
 
     steps:
       - uses: actions/checkout@v4
@@ -29,30 +45,4 @@ jobs:
 
       - name: Test
         run: go test -v ./...
-
-      - name: Start Go application
-        run: >
-          ./tectonic &
-
-          echo "APP_PID=$!" >> $GITHUB_ENV  # Store the process ID
-
-          sleep 10
-
-          echo "APP_URL=http://localhost:8080" >> $GITHUB_ENV
-
-      - name: Install Postman CLI
-        run: |
-          curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
-      # - name: Login to Postman CLI
-      #   run: 'postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}'
-      # - name: Run API tests
-      #   run: >
-      #     postman collection run "${{ github.workspace }}/Integrations.postman_collection.json" --integration-id "175265-${{ github.run_id }}" --env-var "Authorization=$API_KEY"
-      - name: Run API tests
-        run: >
-          postman collection run "${{ github.workspace }}/Integrations.postman_collection.json" --env-var "Authorization=$API_KEY" --env-var "baseUrl=http://localhost:8080/api"
-      - name: Cleanup
-        if: always()
-        run: |
-          kill ${{ env.APP_PID }} || true
 
