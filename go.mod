@@ -1,6 +1,8 @@
 module tectonic-api
 
-go 1.21.5
+go 1.23.0
+
+toolchain go1.24.2
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
@@ -31,10 +33,10 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/pressly/goose/v3 v3.23.0
 	github.com/swaggo/files v1.0.1 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/net v0.36.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
