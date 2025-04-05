@@ -30,14 +30,16 @@ func (jw *JsonWriter) WriteResponse(body any) {
 	jw.w.Header().Set("Content-Type", "application/json")
 	jw.w.WriteHeader(jw.statusCode)
 
-	if body != nil && body != http.NoBody {
-		enc := json.NewEncoder(jw.w)
-		err := enc.Encode(body)
+	if body == nil || body == http.NoBody {
+		body = struct{}{}
+	}
 
-		if err != nil {
-			log.Error("failed to write response", "error", err)
-			http.Error(jw.w, "Internal server error", http.StatusInternalServerError)
-		}
+	enc := json.NewEncoder(jw.w)
+	err := enc.Encode(body)
+
+	if err != nil {
+		log.Error("failed to write response", "error", err)
+		http.Error(jw.w, "Internal server error", http.StatusInternalServerError)
 	}
 }
 
