@@ -75,7 +75,7 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 	_, err = queries.CreateGuild(r.Context(), p.GuildId)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_GUILD_NOT_FOUND)
+		handleDatabaseError(*ei, jw, models.ERROR_GUILD_EXISTS)
 		return
 	}
 
