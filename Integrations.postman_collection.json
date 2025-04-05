@@ -1,0 +1,2612 @@
+{
+	"info": {
+		"_postman_id": "c103bbf1-ee74-4f02-b999-7507251907f3",
+		"name": "Integrations",
+		"description": "# ⛓️ Get started here\n\nPostman allows you to test your APIs using simple Javascript code. You can evaluate your response body, headers, cookies, and more using the [ChaiJS BDD](https://www.chaijs.com/api/bdd/) syntax.\n\nThis template guides you through the process of setting up an integration test to ensure that all individual components of an API function together seamlessly.\n\nThe API under test in this collection includes three endpoints for registering and receiving a token, accessing your unique generated name, and unregistering a token:\n\n- POST `/register`\n- POST `/unregister`\n- GET `/my-name`\n    \n\nBy setting up requests in the order of the operation, we can test the flow of data to and from the endpoints and ensure they work together as expected. We also verify that the data persists between requests on the back end.\n\n## 🔖 **How to use this template**\n\n**Step 1:** Check out the requests' documentation to learn more about -\n\n- what each request is meant to do.\n- the tests we've added against each one.\n    \n\n**Step 2:** Run this collection by clicking on \"Run\".\n\n<img src=\"https://content.pstmn.io/84019b0f-69c8-4c5f-98b9-2c90a6f9a0b1/Y29sbGVjdGlvbi1ydW5uZXItYnV0dG9uLmpwZWc=\" alt=\"\" height=\"103\" width=\"266\">\n\n**Step 3:** To customize this template, replace the request URLs with your API endpoints and add or edit the tests if needed.\n\n## ℹ️ Resources\n\n[Scripting in Postman](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/)\n\n[Test script examples](https://learning.postman.com/docs/writing-scripts/script-references/test-examples/)\n\n[Postman Sandbox API reference](https://learning.postman.com/docs/sending-requests/grpc/postman-sandbox-api/#writing-assertions)\n\n[Using the Collection Runner](https://learning.postman.com/docs/collections/running-collections/intro-to-collection-runs/)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26162138",
+		"_collection_link": "https://tectonicdev.postman.co/workspace/Tectonic~41def119-01bd-4f59-aae9-c19950bc7534/collection/26162138-c103bbf1-ee74-4f02-b999-7507251907f3?action=share&source=collection_link&creator=26162138"
+	},
+	"item": [
+		{
+			"name": "Guild Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"\r",
+							"    // Store the guild_id parameter in a collection variable\r",
+							"    pm.collectionVariables.set(\"guildId\", JSON.parse(pm.request.body.raw).guild_id);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"guild_id\": \"{{$randomPhoneNumberExt}}-{{$randomPhoneNumberExt}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds"
+					]
+				},
+				"description": "Initialize a guild in our backend by unique guild Snowflake (ID)"
+			},
+			"response": [
+				{
+					"name": "OK",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"guild_id\": \"<string>\",\n  \"multiplier\": \"<integer>\",\n  \"pb_channel_id\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Update Guild",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"\r",
+							"    const requestBody = JSON.parse(pm.request.body.raw)\r",
+							"\r",
+							"    // Store the pb_channel_id parameter in a collection variable\r",
+							"    pm.collectionVariables.set(\"channelId\", requestBody.pb_channel_id);\r",
+							"    // Store the multiplier parameter in a collection variable\r",
+							"    pm.collectionVariables.set(\"multiplier\", requestBody.multiplier);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"multiplier\": {{$randomInt}},\r\n    \"pb_channel_id\": \"{{$randomInt}}\",\r\n    \"category_messages\": [{\"message_id\": \"123\", \"category\": \"Chambers of Xeric\"}, {\"message_id\": \"321\", \"category\": \"Varlamore\"}, {\"message_id\": \"111\", \"category\": \"Miscellaneous\"}]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}"
+					]
+				},
+				"description": "Update a guild in our backend by unique guild Snowflake (ID)"
+			},
+			"response": [
+				{
+					"name": "OK",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"guild_id\": \"<string>\",\n  \"multiplier\": \"<integer>\",\n  \"pb_channel_id\": \"<string>\"\n}"
+				},
+				{
+					"name": "Created",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"guild_id\": \"<string>\",\n  \"multiplier\": \"<integer>\",\n  \"pb_channel_id\": \"<string>\"\n}"
+				},
+				{
+					"name": "Bad Request",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Forbidden",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Not Found",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Too Many Requests",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Too Many Requests",
+					"code": 429,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Internal Server Error",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Guild Exists",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}"
+					]
+				},
+				"description": "Get guild details by unique guild Snowflake (ID)"
+			},
+			"response": [
+				{
+					"name": "OK",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"guild_id\": \"<string>\",\n  \"multiplier\": \"<integer>\",\n  \"pb_channel_id\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get Bosses",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/bosses",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"bosses"
+					]
+				},
+				"description": "Get guild details by unique guild Snowflake (ID)"
+			},
+			"response": [
+				{
+					"name": "OK",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"guild_id\": \"<string>\",\n  \"multiplier\": \"<integer>\",\n  \"pb_channel_id\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get Categories",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/categories",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"categories"
+					]
+				},
+				"description": "Get guild details by unique guild Snowflake (ID)"
+			},
+			"response": [
+				{
+					"name": "OK",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"guild_id\": \"<string>\",\n  \"multiplier\": \"<integer>\",\n  \"pb_channel_id\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "User Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"\r",
+							"    const userId = pm.response.json().user_id;\r",
+							"    pm.collectionVariables.set(\"userId\", userId);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"rsn\": \"Comfy hug\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{$randomPhoneNumberExt}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{$randomPhoneNumberExt}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create RSN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{userId}}/rsns/Uncomfy hug",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{userId}}",
+						"rsns",
+						"Uncomfy hug"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete RSN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{userId}}/rsns/Uncomfy hug",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{userId}}",
+						"rsns",
+						"Uncomfy hug"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Single User Exists (By User ID)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{userId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Single User Exists (By Wom ID)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/wom/39527",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"wom",
+						"39527"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Single User Exists (By RSN)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/rsn/Comfy hug",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"rsn",
+						"Comfy hug"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Points (Event)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{userId}}/points/split_high",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{userId}}",
+						"points",
+						"split_high"
+					]
+				},
+				"description": "Update a guild in our backend by unique guild Snowflake (ID)"
+			},
+			"response": [
+				{
+					"name": "OK",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"guild_id\": \"<string>\",\n  \"multiplier\": \"<integer>\",\n  \"pb_channel_id\": \"<string>\"\n}"
+				},
+				{
+					"name": "Created",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"guild_id\": \"<string>\",\n  \"multiplier\": \"<integer>\",\n  \"pb_channel_id\": \"<string>\"\n}"
+				},
+				{
+					"name": "Bad Request",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Forbidden",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Not Found",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Too Many Requests",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Too Many Requests",
+					"code": 429,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Internal Server Error",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Update Points (Custom)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{userId}}/points/custom/30",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{userId}}",
+						"points",
+						"custom",
+						"30"
+					]
+				},
+				"description": "Update a guild in our backend by unique guild Snowflake (ID)"
+			},
+			"response": [
+				{
+					"name": "OK",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"guild_id\": \"<string>\",\n  \"multiplier\": \"<integer>\",\n  \"pb_channel_id\": \"<string>\"\n}"
+				},
+				{
+					"name": "Created",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"guild_id\": \"<string>\",\n  \"multiplier\": \"<integer>\",\n  \"pb_channel_id\": \"<string>\"\n}"
+				},
+				{
+					"name": "Bad Request",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Forbidden",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Not Found",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Too Many Requests",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Too Many Requests",
+					"code": 429,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Internal Server Error",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/guild",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"guild"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Leaderboard Exists",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/leaderboard",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"leaderboard"
+					]
+				},
+				"description": "Get guilds leaderboard details by unique guild Snowflake (ID)"
+			},
+			"response": [
+				{
+					"name": "OK",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"users\": [\n    {\n      \"guild_id\": \"<string>\",\n      \"points\": \"<integer>\",\n      \"user_id\": \"<string>\"\n    },\n    {\n      \"guild_id\": \"<string>\",\n      \"points\": \"<integer>\",\n      \"user_id\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Bad Request",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Forbidden",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Not Found",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Too Many Requests",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "Too Many Requests",
+					"code": 429,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Internal Server Error",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "End Competition",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/wom/competition/66321/cutoff/30",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"wom",
+						"competition",
+						"66321",
+						"cutoff",
+						"30"
+					]
+				},
+				"description": "Get guilds leaderboard details by unique guild Snowflake (ID)"
+			},
+			"response": [
+				{
+					"name": "OK",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"users\": [\n    {\n      \"guild_id\": \"<string>\",\n      \"points\": \"<integer>\",\n      \"user_id\": \"<string>\"\n    },\n    {\n      \"guild_id\": \"<string>\",\n      \"points\": \"<integer>\",\n      \"user_id\": \"<string>\"\n    }\n  ]\n}"
+				},
+				{
+					"name": "Bad Request",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Forbidden",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Not Found",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Too Many Requests",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "Too Many Requests",
+					"code": 429,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Internal Server Error",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/leaderboard?guild_id=<string>",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"leaderboard"
+							],
+							"query": [
+								{
+									"key": "guild_id",
+									"value": "<string>",
+									"description": "Guild ID"
+								}
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Time Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.expect(pm.response.code).to.equal(201);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"guild_id\": \"{{guildId}}\",\r\n    \"user_ids\": [\"{{userId}}\"],\r\n    \"time\": {{$randomInt}},\r\n    \"boss_name\": \"vardorvis\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/times",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"times"
+					]
+				},
+				"description": "Add a new time to a guild in our backend by unique guild Snowflake (ID)"
+			},
+			"response": [
+				{
+					"name": "OK",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/time",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"time"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "<string>"
+				},
+				{
+					"name": "Created",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/time",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"time"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "<string>"
+				},
+				{
+					"name": "Bad Request",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/time",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"time"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Forbidden",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/time",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"time"
+							]
+						}
+					},
+					"status": "Forbidden",
+					"code": 403,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Not Found",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/time",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"time"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Too Many Requests",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/time",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"time"
+							]
+						}
+					},
+					"status": "Too Many Requests",
+					"code": 429,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				},
+				{
+					"name": "Internal Server Error",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/v1/time",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v1",
+								"time"
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"code\": \"<integer>\",\n  \"content\": \"<string>\",\n  \"error\": \"<string>\"\n}"
+				}
+			]
+		},
+		{
+			"name": "User Delete (By User ID)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{userId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"\r",
+							"    const userId = pm.response.json().user_id;\r",
+							"    pm.collectionVariables.set(\"userId\", userId);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"rsn\": \"Comfy hug\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{$randomPhoneNumberExt}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{$randomPhoneNumberExt}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Delete (By Wom ID)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/wom/39527",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"wom",
+						"39527"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"\r",
+							"    const userId = pm.response.json().user_id;\r",
+							"    pm.collectionVariables.set(\"userId\", userId);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"rsn\": \"Comfy hug\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/{{$randomPhoneNumberExt}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"{{$randomPhoneNumberExt}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Delete (By RSN)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}/users/rsn/Comfy hug",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}",
+						"users",
+						"rsn",
+						"Comfy hug"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Guild Delete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/v1/guilds/{{guildId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"v1",
+						"guilds",
+						"{{guildId}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "{{Authorization}}",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "Authorization",
+				"type": "string"
+			},
+			{
+				"key": "in",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "guildId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": ""
+		},
+		{
+			"key": "channelId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "multiplier",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
