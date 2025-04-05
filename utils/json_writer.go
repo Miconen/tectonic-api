@@ -27,19 +27,21 @@ func (jw *JsonWriter) SetStatus(statusCode int) {
 func (jw *JsonWriter) WriteResponse(body any) {
 	log.Debug("writing http response", "body", body, "status", jw.statusCode)
 
-	jw.w.Header().Set("Content-Type", "application/json")
 	jw.w.WriteHeader(jw.statusCode)
 
 	if body == nil || body == http.NoBody {
 		body = struct{}{}
 	}
 
-	enc := json.NewEncoder(jw.w)
-	err := enc.Encode(body)
+	if jw.statusCode != 204 {
+		jw.w.Header().Set("Content-Type", "application/json")
+		enc := json.NewEncoder(jw.w)
+		err := enc.Encode(body)
 
-	if err != nil {
-		log.Error("failed to write response", "error", err)
-		http.Error(jw.w, "Internal server error", http.StatusInternalServerError)
+		if err != nil {
+			log.Error("failed to write response", "error", err)
+			http.Error(jw.w, "Internal server error", http.StatusInternalServerError)
+		}
 	}
 }
 
