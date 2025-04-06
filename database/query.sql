@@ -299,3 +299,6 @@ SELECT name, display_name, category, solo FROM bosses;
 
 -- name: GetCategories :many
 SELECT "thumbnail", "order", "name" FROM categories;
+
+-- name: GetAchievements :many
+SELECT "name", "thumbnail", "discord_icon", "order" FROM achievement;
