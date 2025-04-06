@@ -99,7 +99,8 @@ SELECT
     du.guild_id,
     du.points,
     to_json(du.rsns) AS rsns,
-    COALESCE(times_json, '[]'::json) AS times
+    COALESCE(times_json, '[]'::json) AS times,
+    COALESCE(events_json, '[]'::json) AS events
 FROM detailed_users du
 LEFT JOIN LATERAL (
     SELECT json_agg(dt) AS times_json
@@ -110,6 +111,11 @@ LEFT JOIN LATERAL (
         WHERE tm.user_id = du.user_id AND tm.guild_id = du.guild_id
     )
 ) t ON true
+LEFT JOIN LATERAL (
+    SELECT json_agg(de) AS events_json
+    FROM detailed_event de
+    WHERE de.user_id = du.user_id AND de.guild_id = du.guild_id
+) e ON true
 WHERE du.user_id = ANY(@user_ids::text[])
 AND du.guild_id = @guild_id;
 
@@ -124,7 +130,8 @@ SELECT
     du.guild_id,
     du.points,
     to_json(du.rsns) AS rsns,
-    COALESCE(times_json, '[]'::json) AS times
+    COALESCE(times_json, '[]'::json) AS times,
+    COALESCE(events_json, '[]'::json) AS events
 FROM detailed_users du
 JOIN rsn_user ru ON ru.user_id = du.user_id AND ru.guild_id = du.guild_id
 LEFT JOIN LATERAL (
@@ -136,6 +143,11 @@ LEFT JOIN LATERAL (
         WHERE tm.user_id = du.user_id AND tm.guild_id = du.guild_id
     )
 ) t ON true
+LEFT JOIN LATERAL (
+    SELECT json_agg(de) AS events_json
+    FROM detailed_event de
+    WHERE de.user_id = du.user_id AND de.guild_id = du.guild_id
+) e ON true
 WHERE du.guild_id = @guild_id;
 
 -- name: GetDetailedUsersByWomID :many
@@ -149,7 +161,8 @@ SELECT
     du.guild_id,
     du.points,
     to_json(du.rsns) AS rsns,
-    COALESCE(times_json, '[]'::json) AS times
+    COALESCE(times_json, '[]'::json) AS times,
+    COALESCE(events_json, '[]'::json) AS events
 FROM detailed_users du
 JOIN wom_user wu ON wu.user_id = du.user_id AND wu.guild_id = du.guild_id
 LEFT JOIN LATERAL (
@@ -161,6 +174,11 @@ LEFT JOIN LATERAL (
         WHERE tm.user_id = du.user_id AND tm.guild_id = du.guild_id
     )
 ) t ON true
+LEFT JOIN LATERAL (
+    SELECT json_agg(de) AS events_json
+    FROM detailed_event de
+    WHERE de.user_id = du.user_id AND de.guild_id = du.guild_id
+) e ON true
 WHERE du.guild_id = @guild_id;
 
 -- name: GetLeaderboard :many

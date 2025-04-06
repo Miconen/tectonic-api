@@ -329,6 +329,7 @@ func TestMain(t *testing.T) {
 			exp.Handler(w, r)
 
 			if w.Result().StatusCode != exp.StatusCode {
+				t.Logf("%s", w.Body.String())
 				t.Fatalf("Expected status code %d, got %d", exp.StatusCode, w.Result().StatusCode)
 			}
 		})

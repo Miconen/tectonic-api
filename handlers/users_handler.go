@@ -49,7 +49,7 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 
 	users := make([]database.DetailedUserJSON, 0, len(rows))
 	for _, row := range rows {
-		user := database.DetailedUserJSON{UserID: row.UserID, GuildID: row.GuildID, Points: row.Points, RSNs: row.Rsns, Times: row.Times}
+		user := database.DetailedUserJSON{UserID: row.UserID, GuildID: row.GuildID, Points: row.Points, RSNs: row.Rsns, Times: row.Times, Events: row.Events}
 		users = append(users, user)
 	}
 
@@ -93,7 +93,7 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 
 	users := make([]database.DetailedUserJSON, 0, len(rows))
 	for _, row := range rows {
-		user := database.DetailedUserJSON{UserID: row.UserID, GuildID: row.GuildID, Points: row.Points, RSNs: row.Rsns, Times: row.Times}
+		user := database.DetailedUserJSON{UserID: row.UserID, GuildID: row.GuildID, Points: row.Points, RSNs: row.Rsns, Times: row.Times, Events: row.Events}
 		users = append(users, user)
 	}
 
@@ -137,7 +137,7 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 
 	users := make([]database.DetailedUserJSON, 0, len(rows))
 	for _, row := range rows {
-		user := database.DetailedUserJSON{UserID: row.UserID, GuildID: row.GuildID, Points: row.Points, RSNs: row.Rsns, Times: row.Times}
+		user := database.DetailedUserJSON{UserID: row.UserID, GuildID: row.GuildID, Points: row.Points, RSNs: row.Rsns, Times: row.Times, Events: row.Events}
 		users = append(users, user)
 	}
 
