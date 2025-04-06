@@ -40,13 +40,12 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 	user, err := queries.UpdatePointsByEvent(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
 		return
 	}
 
 	if len(user) == 0 {
-		// TODO: check what parameters were wrong, this shouldn't return empty
-		jw.WriteError(models.ERROR_TODO)
+		jw.WriteError(models.ERROR_DATA_DOESNT_EXISTS)
 		return
 	}
 
@@ -90,13 +89,12 @@ func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
 	rowsaf, err := queries.UpdatePointsCustom(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_TODO)
+		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
 		return
 	}
 
 	if rowsaf == 0 {
-		// TODO: check what parameters were wrong, this shouldn't return empty
-		jw.WriteError(models.ERROR_TODO)
+		jw.WriteError(models.ERROR_DATA_DOESNT_EXISTS)
 		return
 	}
 
