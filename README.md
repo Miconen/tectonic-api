@@ -17,7 +17,7 @@ As we are in the process of rewriting our current frontend, Tectonic API will be
 ```
 git clone https://github.com/yourusername/tectonic-api.git
 cd tectonic-api
-docker compose up --build
+docker compose --profile dev up --build
 ```
 
 > [!NOTE]
