@@ -62,6 +62,8 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	// WOM Events
 	womRouter := guildsRouter.PathPrefix("/{guild_id}/wom").Subrouter()
 	womRouter.HandleFunc("/competition/{competition_id}/cutoff/{cutoff}", handlers.EndCompetition).Methods("GET")
+	womRouter.HandleFunc("/winners/{competition_id}", handlers.CompetitionWinners).Methods("GET")
+	womRouter.HandleFunc("/winners/{competition_id}/team/{team}", handlers.CompetitionTeamPosition).Methods("GET")
 
 	// Users
 	usersRouter := guildsRouter.PathPrefix("/{guild_id}/users").Subrouter()
