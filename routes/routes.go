@@ -38,6 +38,10 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	// Non-guild functionality
 	r.HandleFunc("/bosses", handlers.GetBosses).Methods("GET")
 	r.HandleFunc("/categories", handlers.GetCategories).Methods("GET")
+	r.HandleFunc("/achievements", handlers.GetAchievements).Methods("GET")
+	// TODO: Add these routes
+	// r.HandleFunc("/achievements/{achievement}/guilds/{guild_id}/users/{user_id}", handlers.GiveAchievement).Methods("POST")
+	// r.HandleFunc("/achievements/{achievement}/guilds/{guild_id}/users/{user_id}", handlers.RemoveAchievement).Methods("DELETE")
 
 	// Guilds
 	guildsRouter := r.PathPrefix("/guilds").Subrouter()
