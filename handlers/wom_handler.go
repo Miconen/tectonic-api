@@ -19,21 +19,21 @@ type CompetitionResponse struct {
 	PointsGiven      int                         `json:"points_given"`
 }
 
-//	@Summary		Handle Wise Old Man competitions
-//	@Description	Handle point giving and automatic data fetching through the Wise Old Man API
-//	@Tags			WOM
-//	@Accept			json
-//	@Produce		json
-//	@Param			guild_id		path		string	true	"Guild ID"
-//	@Param			competition_id	path		string	true	"Competition ID"
-//	@Param			cutoff			path		integer	true	"Cutoff"
-//	@Success		200				{object}	CompetitionResponse
-//	@Failure		400				{object}	models.Empty
-//	@Failure		401				{object}	models.Empty
-//	@Failure		409				{object}	models.Empty
-//	@Failure		429				{object}	models.Empty
-//	@Failure		500				{object}	models.Empty
-//	@Router			/api/v1/guilds/{guild_id}/wom/competition/{competition_id}/cutoff/{cutoff} [GET]
+// @Summary		Handle Wise Old Man competitions
+// @Description	Handle point giving and automatic data fetching through the Wise Old Man API
+// @Tags			WOM
+// @Accept			json
+// @Produce		json
+// @Param			guild_id		path		string	true	"Guild ID"
+// @Param			competition_id	path		string	true	"Competition ID"
+// @Param			cutoff			path		integer	true	"Cutoff"
+// @Success		200				{object}	CompetitionResponse
+// @Failure		400				{object}	models.Empty
+// @Failure		401				{object}	models.Empty
+// @Failure		409				{object}	models.Empty
+// @Failure		429				{object}	models.Empty
+// @Failure		500				{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/wom/competition/{competition_id}/cutoff/{cutoff} [GET]
 func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
@@ -160,4 +160,40 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jw.WriteResponse(response)
+}
+
+// @Summary		Event winners endpoint
+// @Description	Handle past event winners and automatic data fetching through the Wise Old Man API
+// @Tags			WOM
+// @Accept			json
+// @Produce		json
+// @Param			guild_id		path		string	true	"Guild ID"
+// @Param			competition_id	path		string	true	"Competition ID"
+// @Param			cutoff			path		integer	true	"Cutoff"
+// @Success		200				{object}	CompetitionResponse
+// @Failure		400				{object}	models.ErrorResponse
+// @Failure		401				{object}	models.ErrorResponse
+// @Failure		409				{object}	models.ErrorResponse
+// @Failure		429				{object}	models.ErrorResponse
+// @Failure		500				{object}	models.ErrorResponse
+// @Router			/api/v1/guilds/{guild_id}/wom/winners/{competition_id} [GET]
+func CompetitionWinners(w http.ResponseWriter, r *http.Request) {
+}
+
+// @Summary		Event winners by teamname endpoint
+// @Description	Handle past event winners through teamname and automatic data fetching through the Wise Old Man API
+// @Tags			WOM
+// @Accept			json
+// @Produce		json
+// @Param			guild_id		path		string	true	"Guild ID"
+// @Param			competition_id	path		string	true	"Competition ID"
+// @Param			cutoff			path		integer	true	"Cutoff"
+// @Success		200				{object}	CompetitionResponse
+// @Failure		400				{object}	models.ErrorResponse
+// @Failure		401				{object}	models.ErrorResponse
+// @Failure		409				{object}	models.ErrorResponse
+// @Failure		429				{object}	models.ErrorResponse
+// @Failure		500				{object}	models.ErrorResponse
+// @Router			/api/v1/guilds/{guild_id}/wom/winners/{competition_id}/team/{team} [GET]
+func CompetitionTeamPosition(w http.ResponseWriter, r *http.Request) {
 }
