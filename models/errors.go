@@ -9,6 +9,7 @@ const (
 	ERROR_WRONG_PARAMS APIV1Error = iota
 	ERROR_WRONG_BODY
 	ERROR_INVALID_TOKEN
+	ERROR_DATA_DOESNT_EXISTS
 )
 
 // Model-based errors
@@ -39,9 +40,6 @@ const (
 	ERROR_API_DEAD
 	ERROR_WOM_UNAVAILABLE
 )
-
-const ERROR_TODO = 10_000
-
 
 func (e APIV1Error) Message() (message string) {
 	switch e {
@@ -79,11 +77,10 @@ func (e APIV1Error) Message() (message string) {
 		message = "Body is malformated, please check docs for example on how to send the request"
 	case ERROR_WRONG_PARAMS:
 		message = "Params are malformated, please check docs for example on how to send the request"
-	// TODO: eliminate this when doing so doesn't result in build errors
-	case ERROR_TODO:
-		message = "This is an error, but we don't have a better way to display it yet"
 	case ERROR_PARTICIPATION_NOT_FOUND:
 		message = "No participations found with specified cutoff"
+	case ERROR_DATA_DOESNT_EXISTS:
+		message = "Data sent seems correct, but couldn't find any correspondence in our end. Please, verify its veracity on their GET routes respectively"
 	}
 
 	return
@@ -125,9 +122,9 @@ func (e APIV1Error) Status() int {
 		return http.StatusBadRequest
 	case ERROR_WRONG_PARAMS:
 		return http.StatusBadRequest
-	case ERROR_TODO:
-		return http.StatusInternalServerError
 	case ERROR_PARTICIPATION_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_DATA_DOESNT_EXISTS:
 		return http.StatusNotFound
 	default:
 		return http.StatusOK
