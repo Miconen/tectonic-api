@@ -33,7 +33,7 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	})
 
 	r := b.router.PathPrefix("/api/v1").Subrouter()
-	r.Use(middleware.Authentication, utils.LoggingHandler)
+	r.Use(middleware.Authentication, utils.LoggingHandler, handlers.ValidateParameters)
 
 	// Non-guild functionality
 	r.HandleFunc("/bosses", handlers.GetBosses).Methods("GET")
@@ -52,6 +52,12 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 
 	// Leaderboard
 	guildsRouter.HandleFunc("/{guild_id}/leaderboard", handlers.GetLeaderboard).Methods("GET")
+	
+	// Events
+	eventsRouter := guildsRouter.PathPrefix("/{guild_id}/events").Subrouter()
+	eventsRouter.HandleFunc("", handlers.GetEvents).Methods("GET")
+	eventsRouter.HandleFunc("", handlers.RegisterEvent).Methods("POST")
+	eventsRouter.HandleFunc("/{event_id}", handlers.DeleteGuild).Methods("DELETE")
 
 	// Times
 	timesRouter := guildsRouter.PathPrefix("/{guild_id}/times").Subrouter()

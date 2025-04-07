@@ -26,6 +26,10 @@ func InitDB() (*pgxpool.Pool, error) {
 	return conn, nil
 }
 
+func AcquireConnection(ctx context.Context) (*pgxpool.Conn, error) {
+	return pool.Acquire(ctx)
+}
+
 func CreateTx(ctx context.Context) (pgx.Tx, error) {
 	return pool.BeginTx(ctx, pgx.TxOptions{})
 }
