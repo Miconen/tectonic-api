@@ -105,7 +105,7 @@ type RSN struct {
 
 type InputEvent struct {
 	EventId        string   `json:"event_id"`
-	TeamNames      []string `json:"team_name" optional:"true"`
+	TeamNames      []string `json:"team_names" optional:"true"`
 	PositionCutoff int      `json:"position_cutoff" optional:"true"`
 }
 
