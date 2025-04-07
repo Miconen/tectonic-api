@@ -55,7 +55,7 @@ For this we use Golangs native integration testing. We also have a basic Postman
 
 Run `go test ./routes`
 
-### Postman integration tests (Depricated)
+### Postman integration tests (Deprecated)
 #### Before running Postman you will need...
 
 - The project running, either locally or hosted.
