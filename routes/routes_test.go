@@ -27,8 +27,8 @@ type TestVariables struct {
 	ChannelId      string
 	Multiplier     int
 	WomId          string
-	EventClassicId string
-	EventTeamId    string
+	EventClassicId int
+	EventTeamId    int
 }
 
 func (tv TestVariables) RsnEscaped() string {
@@ -82,8 +82,8 @@ func TestMain(t *testing.T) {
 		ChannelId:      "2012",
 		Multiplier:     1,
 		WomId:          "39527",
-		EventClassicId: "77922",
-		EventTeamId: "66321",
+		EventClassicId: 77922,
+		EventTeamId:    66321,
 	}
 
 	createUser := TestTable{
@@ -279,7 +279,7 @@ func TestMain(t *testing.T) {
 				"guild_id": vars.GuildId,
 			},
 			Body: models.InputEvent{
-				EventId:        vars.EventTeamId,
+				EventId: vars.EventTeamId,
 				TeamNames: []string{
 					"The Jack Off Lanter",
 					"Green Fingerers",
@@ -301,10 +301,10 @@ func TestMain(t *testing.T) {
 		{
 			Name:   "Delete Classic Events",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/api/v1/guilds/%s/events/%s", vars.GuildId, vars.EventClassicId),
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/events/%d", vars.GuildId, vars.EventClassicId),
 			Vars: map[string]string{
 				"guild_id": vars.GuildId,
-				"event_id": vars.EventClassicId,
+				"event_id": fmt.Sprintf("%d", vars.EventClassicId),
 			},
 			Handler:    handlers.DeleteEvent,
 			StatusCode: 200,
@@ -312,10 +312,10 @@ func TestMain(t *testing.T) {
 		{
 			Name:   "Delete Team Events",
 			Method: "DELETE",
-			Path:   fmt.Sprintf("/api/v1/guilds/%s/events/%s", vars.GuildId, vars.EventClassicId),
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/events/%d", vars.GuildId, vars.EventTeamId),
 			Vars: map[string]string{
 				"guild_id": vars.GuildId,
-				"event_id": vars.EventTeamId,
+				"event_id": fmt.Sprintf("%d", vars.EventTeamId),
 			},
 			Handler:    handlers.DeleteEvent,
 			StatusCode: 200,
