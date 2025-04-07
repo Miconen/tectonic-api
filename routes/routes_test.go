@@ -299,6 +299,17 @@ func TestMain(t *testing.T) {
 			StatusCode: 200,
 		},
 		{
+			Name:   "Get Event",
+			Method: "GET",
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/events/%d", vars.GuildId, vars.EventClassicId),
+			Vars: map[string]string{
+				"guild_id": vars.GuildId,
+				"event_id": fmt.Sprintf("%d", vars.EventClassicId),
+			},
+			Handler:    handlers.GetDetailedEvent,
+			StatusCode: 200,
+		},
+		{
 			Name:   "Delete Classic Events",
 			Method: "DELETE",
 			Path:   fmt.Sprintf("/api/v1/guilds/%s/events/%d", vars.GuildId, vars.EventClassicId),

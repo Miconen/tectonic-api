@@ -361,3 +361,9 @@ JOIN rsn r ON r.wom_id = pd.wom_id AND r.guild_id = @guild_id;
 
 -- name: DeleteEvent :exec
 DELETE FROM event WHERE wom_id = @event_id;
+
+-- name: GetEventParticipation :many
+SELECT
+	ep.user_id,
+	ep.placement
+FROM event_participant ep WHERE ep.event_id = @event_id;
