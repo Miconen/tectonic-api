@@ -37,23 +37,33 @@ The API provides several endpoints that can be viewed through Swagger. `{baseUrl
 I've placed a priority on learning and utilizing testing for speeding up my own development. As we move closer towards desired functionality, we hope to achieve broader test coverage.
 We're helped on this by this being a rewrite of an existing application, thus making the specs clear to us.
 
-### Integration tests
+### Integration tests info
 
-> [!WARNING]
-> These integration tests have to be ran manually as of now.
+> [!TIP]
+> Our integration tests are also a part of our automatic CI/CD pipeline!
 
 The API has a lot of interplay and dependency on existing data.
-For this we have a basic Postman pipeline for running through our endpoints.
+For this we use Golangs native integration testing. We also have a basic Postman pipeline for running through our endpoints which we are phasing out currently.
 
-`Integrations.postman_collection.json`
+### Go integration tests
+#### Before running Go integration tests you will need...
 
-#### Before running you will need...
+- Include a `DATABASE_URL` variable in your environment/shell. (`DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tectonic`)
+- Make sure your database is running
+
+#### Running the Go integration tests
+
+Run `go test ./routes`
+
+### Postman integration tests (Depricated)
+#### Before running Postman you will need...
 
 - The project running, either locally or hosted.
+- Import the `Integrations.postman_collection.json` file.
 - Specify a global `baseUrl` variable in Postman. For running locally through Docker: `localhost:8080/api`.
 - Specify a global `Authorization` variable in Postman. For running locally through Docker: `123`.
 
-#### Running the tests
+##### Running the Postman tests
 
 To run this test, import it into Postman and select `Run Collection`.
 
