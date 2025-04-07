@@ -1,0 +1,134 @@
+package handlers
+
+import (
+	"fmt"
+	"net/http"
+	"strconv"
+	"tectonic-api/database"
+	"tectonic-api/models"
+	"tectonic-api/utils"
+
+	"github.com/gorilla/mux"
+)
+
+// @Summary		Get the guild's events
+// @Description	Get the events that the guild have created
+// @Tags			Event
+// @Produce		json
+// @Param			guild_id	path		string	true	"Guild ID"
+// @Success		200			{object}	database.Event
+// @Failure		400			{object}	models.ErrorResponse
+// @Failure		401			{object}	models.ErrorResponse
+// @Failure		404			{object}	models.ErrorResponse
+// @Failure		429			{object}	models.ErrorResponse
+// @Failure		500			{object}	models.ErrorResponse
+// @Router			/api/v1/guilds/{guild_id}/events [GET]
+func GetEvents(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+	p := mux.Vars(r)
+
+	events, err := database.WrapQuery(queries.GetGuildEvents, r.Context(), p["guild_id"])
+	if err != nil {
+		handleDatabaseError(*err, jw, models.ERROR_API_DEAD)
+		return
+	}
+
+	jw.WriteResponse(events)
+}
+
+// @Summary		Register a guild event
+// @Description	Register a guild event present in the WOM APi
+// @Tags			Event
+// @Produce		json
+// @Param			guild_id	path		string	true	"Guild ID"
+// @Success		201			{object}	database.Event
+// @Failure		400			{object}	models.ErrorResponse
+// @Failure		401			{object}	models.ErrorResponse
+// @Failure		404			{object}	models.ErrorResponse
+// @Failure		429			{object}	models.ErrorResponse
+// @Failure		500			{object}	models.ErrorResponse
+// @Router			/api/v1/guilds/{guild_id}/events [PUT]
+func RegisterEvent(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
+
+	p := mux.Vars(r)
+	b := models.InputEvent{
+		PositionCutoff: 3,
+	}
+
+	err := utils.ParseRequestBody(w, r, &b)
+	if err != nil {
+		jw.WriteError(models.ERROR_WRONG_BODY)
+		return
+	}
+
+	id, err := strconv.Atoi(b.EventId)
+	if err != nil {
+		jw.WriteError(models.ERROR_WRONG_BODY)
+		return
+	}
+
+	c, err := utils.GetCompetition(id)
+	if err != nil {
+		jw.WriteError(models.ERROR_WOM_UNAVAILABLE)
+		return
+	}
+
+	tx, err := database.CreateTx(r.Context())
+	if err != nil {
+		jw.WriteError(models.ERROR_API_UNAVAILABLE)
+		return
+	}
+	defer tx.Rollback(r.Context())
+
+	q := queries.WithTx(tx)
+	ei := database.WrapExec(q.CreateEvent, r.Context(), database.CreateEventParams{
+		Name:           c.Title,
+		WomID:          fmt.Sprintf("%d", c.ID),
+		GuildID:        p["guild_id"],
+		PositionCutoff: 0,
+	})
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+		return
+	}
+
+	ei = database.WrapExec(q.InsertEventParticipants, r.Context(), database.InsertEventParticipantsParams{
+		ParticipantIds: utils.MapField(c.Participations, func(p models.Participations) string {
+			return fmt.Sprintf("%d", p.PlayerID)
+		}),
+		GuildID: p["guild_id"],
+		WomID:   fmt.Sprintf("%d", c.ID),
+	})
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+		return
+	}
+
+	jw.WriteResponse(http.NoBody)
+}
+
+// @Summary		Delete a guild event
+// @Description	Delete a guild event registered in the API
+// @Tags			Event
+// @Produce		json
+// @Param			guild_id	path		string	true	"Guild ID"
+// @Success		200			{object}	database.Event
+// @Failure		400			{object}	models.ErrorResponse
+// @Failure		401			{object}	models.ErrorResponse
+// @Failure		404			{object}	models.ErrorResponse
+// @Failure		429			{object}	models.ErrorResponse
+// @Failure		500			{object}	models.ErrorResponse
+// @Router			/api/v1/guilds/{guild_id}/events/{event_id} [DELETE]
+func DeleteEvent(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+	p := mux.Vars(r)
+
+	ei := database.WrapExec(queries.DeleteEvent, r.Context(), p["event_id"])
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+		return
+	}
+
+	jw.WriteResponse(http.NoBody)
+}

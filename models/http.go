@@ -103,15 +103,24 @@ type RSN struct {
 	GuildId string `json:"guild_id"`
 }
 
+type InputEvent struct {
+	EventId        string `json:"event_id"`
+	PositionCutoff int    `json:"position_cutoff"`
+}
+
+type Events struct {
+	Events []database.Event `json:"events"`
+}
+
 type GuildTimes struct {
-	guild_id         string          `json:"guild_id"`
-	pb_channel_id    string          `json:"pb_channel_id"`
+	guild_id         string                   `json:"guild_id"`
+	pb_channel_id    string                   `json:"pb_channel_id"`
 	bosses           []database.Boss          `json:"bosses"`
 	categories       []database.Category      `json:"categories"`
 	guild_bosses     []database.GuildBoss     `json:"guild_bosses"`
 	guild_categories []database.GuildCategory `json:"guild_categories"`
-	pbs              []Time          `json:"pbs"`
-	teammates        []User          `json:"teammates"`
+	pbs              []Time                   `json:"pbs"`
+	teammates        []User                   `json:"teammates"`
 }
 
 // Body Model
@@ -123,7 +132,7 @@ type Body struct {
 // Error Response Model
 // @Description Model representing the error messages
 type ErrorResponse struct {
-	Code uint `json:"code"`
+	Code    uint   `json:"code"`
 	Message string `json:"message"`
 }
 

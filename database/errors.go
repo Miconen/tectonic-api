@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -227,4 +228,19 @@ func (e *ErrorInfo) GetErrorSeverity() Severity {
 		return SeverityError
 	}
 	return e.Severity
+}
+
+
+func WrapQuery[T any, P any](query func(ctx context.Context, param P) (T, error), ctx context.Context, param P) (T, *ErrorInfo) {
+	result, err := query(ctx, param)
+	ei := ClassifyError(err)
+
+	return result, ei
+}
+
+func WrapExec[P any](exec func(ctx context.Context, param P) (error), ctx context.Context, param P) *ErrorInfo {
+	err := exec(ctx, param)
+	ei := ClassifyError(err)
+
+	return ei
 }

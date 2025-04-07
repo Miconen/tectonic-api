@@ -302,3 +302,42 @@ SELECT "thumbnail", "order", "name" FROM categories;
 
 -- name: GetAchievements :many
 SELECT "name", "thumbnail", "discord_icon", "order" FROM achievement;
+
+-- name: GetGuildEvents :many
+SELECT "name", "wom_id", "position_cutoff" FROM event WHERE guild_id = @guild_id;
+
+-- name: CreateEvent :exec
+INSERT INTO event (
+	name,
+	wom_id,
+	guild_id,
+	position_cutoff
+) VALUES (
+	@name,
+	@wom_id,
+	@guild_id,
+	@position_cutoff
+);
+
+-- name: InsertEventParticipants :exec
+WITH participant_data AS (
+    SELECT 
+        unnest(@participant_ids::text[]) as wom_id,
+		generate_series(1, ARRAY_LENGTH(@participant_ids::text[], 1)) as placement
+)
+INSERT INTO event_participant (
+    user_id,
+    placement,
+    guild_id,
+    event_id
+) 
+SELECT 
+    r.user_id,
+    pd.placement,
+    @guild_id,
+    @wom_id
+FROM participant_data pd
+JOIN rsn r ON r.wom_id = pd.wom_id AND r.guild_id = @guild_id;
+
+-- name: DeleteEvent :exec
+DELETE FROM event WHERE wom_id = @event_id;

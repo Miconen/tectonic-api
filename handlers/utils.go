@@ -1,9 +1,14 @@
 package handlers
 
 import (
+	"context"
+	"net/http"
 	"tectonic-api/database"
 	"tectonic-api/models"
 	"tectonic-api/utils"
+
+	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type dbHandler struct {
@@ -71,5 +76,79 @@ func handleDatabaseErrorCustom(ei database.ErrorInfo, jw *utils.JsonWriter, dhc 
 	} else {
 		log.Warn("DATABASE ERROR", "err", dh.Error())
 		dhc(dh, jw)
+	}
+}
+
+// Generic function validation type
+type existsFunc func(ctx context.Context, jw *utils.JsonWriter, conn *pgxpool.Conn) bool
+
+// Middleware that validate URL parameters for the handler.
+func ValidateParameters(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		jw := utils.NewJsonWriter(w, r, 0)
+		funcs := []existsFunc{}
+
+		p := mux.Vars(r)
+		for k, v := range p {
+			switch k {
+			case "guild_id":
+				funcs = append(funcs, guildExists(v))
+			case "user_id":
+				funcs = append(funcs, userExists(v))
+			}
+		}
+
+		if !exists(r.Context(), jw, funcs...) {
+			return
+		}
+
+		h.ServeHTTP(w, r)
+	})
+}
+
+// Validation function aggregate that serves to validate request parameters.
+// Returns true if all of them are valid, otherwise false.
+func exists(ctx context.Context, jw *utils.JsonWriter, funcs ...existsFunc) bool {
+	conn, err := database.AcquireConnection(ctx)
+	if err != nil {
+		jw.WriteError(models.ERROR_API_UNAVAILABLE)
+		return false
+	}
+	defer conn.Release()
+
+	for _, f := range funcs {
+		if !f(ctx, jw, conn) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Checks if guild exists on the database.
+func guildExists(guild_id string) existsFunc {
+	return queryExists("SELECT EXISTS (SELECT guild_id FROM guilds WHERE guild_id = $1)", guild_id, models.ERROR_GUILD_NOT_FOUND)
+}
+
+// Checks if user exists on the database.
+func userExists(user_id string) existsFunc {
+	return queryExists("SELECT EXISTS (SELECT user_id FROM users WHERE user_id = $1)", user_id, models.ERROR_USER_NOT_FOUND)
+}
+
+func queryExists(sql string, param string, api_err models.APIV1Error) existsFunc {
+	return func(ctx context.Context, jw *utils.JsonWriter, conn *pgxpool.Conn) bool {
+		exists := false
+		err := conn.QueryRow(ctx, sql, param).Scan(&exists)
+		if err != nil {
+			jw.WriteError(models.ERROR_API_DEAD)
+			return false
+		}
+
+		if !exists {
+			jw.WriteError(api_err)
+			return false
+		}
+
+		return true
 	}
 }

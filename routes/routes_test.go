@@ -27,6 +27,7 @@ type TestVariables struct {
 	ChannelId  string
 	Multiplier int
 	WomId      string
+	EventId string
 }
 
 func (tv TestVariables) RsnEscaped() string {
@@ -80,6 +81,7 @@ func TestMain(t *testing.T) {
 		ChannelId:  "2012",
 		Multiplier: 1,
 		WomId:      "39527",
+		EventId: "77922",
 	}
 
 	createUser := TestTable{
@@ -251,6 +253,41 @@ func TestMain(t *testing.T) {
 				"cutoff": "30",
 			},
 			Handler:    handlers.EndCompetition,
+			StatusCode: 200,
+		},
+		{
+			Name:       "Create Event",
+			Method:     "POST",
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/events", vars.GuildId),
+			Vars:       map[string]string{
+				"guild_id": vars.GuildId,
+			},
+			Body:       models.InputEvent{
+				EventId:        vars.EventId,
+				PositionCutoff: 5,
+			},
+			Handler:    handlers.RegisterEvent,
+			StatusCode: 201,
+		},
+		{
+			Name:       "List Events",
+			Method:     "GET",
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/events", vars.GuildId),
+			Vars:       map[string]string{
+				"guild_id": vars.GuildId,
+			},
+			Handler:    handlers.GetEvents,
+			StatusCode: 200,
+		},
+		{
+			Name:       "Delete Events",
+			Method:     "DELETE",
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/events/%s", vars.GuildId, vars.EventId),
+			Vars:       map[string]string{
+				"guild_id": vars.GuildId,
+				"event_id": vars.EventId,
+			},
+			Handler:    handlers.DeleteEvent,
 			StatusCode: 200,
 		},
 		{
