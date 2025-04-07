@@ -93,15 +93,50 @@ func RegisterEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ei = database.WrapExec(q.InsertEventParticipants, r.Context(), database.InsertEventParticipantsParams{
-		ParticipantIds: utils.MapField(c.Participations, func(p models.Participations) string {
-			return fmt.Sprintf("%d", p.PlayerID)
-		}),
-		GuildID: p["guild_id"],
-		WomID:   fmt.Sprintf("%d", c.ID),
-	})
-	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+	if c.Type == "classic" {
+		ei = database.WrapExec(q.InsertEventParticipants, r.Context(), database.InsertEventParticipantsParams{
+			ParticipantIds: utils.MapField(c.Participations, func(p models.Participations) string {
+				return fmt.Sprintf("%d", p.PlayerID)
+			}),
+			GuildID: p["guild_id"],
+			WomID:   fmt.Sprintf("%d", c.ID),
+		})
+		if ei != nil {
+			handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+			return
+		}
+	} else if c.Type == "team" && len(b.TeamNames) != 0 {
+		ids := make([]string, len(c.Participations))
+		positions := make([]int32, len(c.Participations))
+
+		pos_map := make(map[string]int32)
+		for i := range b.TeamNames {
+			pos_map[b.TeamNames[i]] = int32(i)
+		}
+
+		for i := range c.Participations {
+			ids[i] = fmt.Sprintf("%d", c.Participations[i].PlayerID)
+			positions[i] = pos_map[c.Participations[i].TeamName]
+		}
+
+		ei = database.WrapExec(q.InsertEventTeams, r.Context(), database.InsertEventTeamsParams{
+			ParticipantIds: ids,
+			ParticipantPlacements: positions,
+			GuildID: p["guild_id"],
+			WomID:   fmt.Sprintf("%d", c.ID),
+		})
+		if ei != nil {
+			handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+			return
+		}
+	} else {
+		jw.WriteError(models.ERROR_WRONG_BODY)
+		return
+	}
+
+	err = tx.Commit(r.Context())
+	if err != nil {
+		jw.WriteError(models.ERROR_API_UNAVAILABLE)
 		return
 	}
 

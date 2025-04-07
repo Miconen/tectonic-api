@@ -20,14 +20,15 @@ import (
 )
 
 type TestVariables struct {
-	GuildId    string
-	UserId     string
-	Rsn        string
-	RsnExtra   string
-	ChannelId  string
-	Multiplier int
-	WomId      string
-	EventId string
+	GuildId        string
+	UserId         string
+	Rsn            string
+	RsnExtra       string
+	ChannelId      string
+	Multiplier     int
+	WomId          string
+	EventClassicId string
+	EventTeamId    string
 }
 
 func (tv TestVariables) RsnEscaped() string {
@@ -74,14 +75,15 @@ func TestMain(t *testing.T) {
 
 	handlers.InitHandlers(conn)
 	vars := TestVariables{
-		GuildId:    "420",
-		UserId:     "69",
-		Rsn:        "Comfy hug",
-		RsnExtra:   "Uncomfy hug",
-		ChannelId:  "2012",
-		Multiplier: 1,
-		WomId:      "39527",
-		EventId: "77922",
+		GuildId:        "420",
+		UserId:         "69",
+		Rsn:            "Comfy hug",
+		RsnExtra:       "Uncomfy hug",
+		ChannelId:      "2012",
+		Multiplier:     1,
+		WomId:          "39527",
+		EventClassicId: "77922",
+		EventTeamId: "66321",
 	}
 
 	createUser := TestTable{
@@ -182,7 +184,7 @@ func TestMain(t *testing.T) {
 			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/%s", vars.GuildId, vars.UserId),
 			Vars: map[string]string{
 				"guild_id": vars.GuildId,
-				"user_ids":  vars.UserId,
+				"user_ids": vars.UserId,
 			},
 			Handler:    handlers.GetUsersById,
 			StatusCode: 200,
@@ -193,7 +195,7 @@ func TestMain(t *testing.T) {
 			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/wom/%s", vars.GuildId, vars.WomId),
 			Vars: map[string]string{
 				"guild_id": vars.GuildId,
-				"wom_ids":   vars.WomId,
+				"wom_ids":  vars.WomId,
 			},
 			Handler:    handlers.GetUsersByWom,
 			StatusCode: 200,
@@ -204,7 +206,7 @@ func TestMain(t *testing.T) {
 			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/rsn/%s", vars.GuildId, vars.RsnEscaped()),
 			Vars: map[string]string{
 				"guild_id": vars.GuildId,
-				"rsns":      vars.Rsn,
+				"rsns":     vars.Rsn,
 			},
 			Handler:    handlers.GetUsersByRsn,
 			StatusCode: 200,
@@ -215,8 +217,8 @@ func TestMain(t *testing.T) {
 			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/%s/points/split_high", vars.GuildId, vars.UserId),
 			Vars: map[string]string{
 				"point_event": "split_high",
-				"guild_id": vars.GuildId,
-				"user_ids":  vars.UserId,
+				"guild_id":    vars.GuildId,
+				"user_ids":    vars.UserId,
 			},
 			Handler:    handlers.UpdatePoints,
 			StatusCode: 200,
@@ -226,9 +228,9 @@ func TestMain(t *testing.T) {
 			Method: "PUT",
 			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/%s/points/custom/30", vars.GuildId, vars.UserId),
 			Vars: map[string]string{
-				"points": "30",
+				"points":   "30",
 				"guild_id": vars.GuildId,
-				"user_ids":  vars.UserId,
+				"user_ids": vars.UserId,
 			},
 			Handler:    handlers.UpdatePointsCustom,
 			StatusCode: 200,
@@ -248,44 +250,72 @@ func TestMain(t *testing.T) {
 			Method: "GET",
 			Path:   fmt.Sprintf("/api/v1/guilds/%s/wom/competition/66321/cutoff/30", vars.GuildId),
 			Vars: map[string]string{
-				"guild_id": vars.GuildId,
+				"guild_id":       vars.GuildId,
 				"competition_id": "66321",
-				"cutoff": "30",
+				"cutoff":         "30",
 			},
 			Handler:    handlers.EndCompetition,
 			StatusCode: 200,
 		},
 		{
-			Name:       "Create Event",
-			Method:     "POST",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/events", vars.GuildId),
-			Vars:       map[string]string{
+			Name:   "Create Classic Event",
+			Method: "POST",
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/events", vars.GuildId),
+			Vars: map[string]string{
 				"guild_id": vars.GuildId,
 			},
-			Body:       models.InputEvent{
-				EventId:        vars.EventId,
+			Body: models.InputEvent{
+				EventId:        vars.EventClassicId,
 				PositionCutoff: 5,
 			},
 			Handler:    handlers.RegisterEvent,
 			StatusCode: 201,
 		},
 		{
-			Name:       "List Events",
-			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/events", vars.GuildId),
-			Vars:       map[string]string{
+			Name:   "Create Team Event",
+			Method: "POST",
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/events", vars.GuildId),
+			Vars: map[string]string{
+				"guild_id": vars.GuildId,
+			},
+			Body: models.InputEvent{
+				EventId:        vars.EventTeamId,
+				TeamNames: []string{
+					"The Jack Off Lanter",
+					"Green Fingerers",
+				},
+			},
+			Handler:    handlers.RegisterEvent,
+			StatusCode: 201,
+		},
+		{
+			Name:   "List Events",
+			Method: "GET",
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/events", vars.GuildId),
+			Vars: map[string]string{
 				"guild_id": vars.GuildId,
 			},
 			Handler:    handlers.GetEvents,
 			StatusCode: 200,
 		},
 		{
-			Name:       "Delete Events",
-			Method:     "DELETE",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/events/%s", vars.GuildId, vars.EventId),
-			Vars:       map[string]string{
+			Name:   "Delete Classic Events",
+			Method: "DELETE",
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/events/%s", vars.GuildId, vars.EventClassicId),
+			Vars: map[string]string{
 				"guild_id": vars.GuildId,
-				"event_id": vars.EventId,
+				"event_id": vars.EventClassicId,
+			},
+			Handler:    handlers.DeleteEvent,
+			StatusCode: 200,
+		},
+		{
+			Name:   "Delete Team Events",
+			Method: "DELETE",
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/events/%s", vars.GuildId, vars.EventClassicId),
+			Vars: map[string]string{
+				"guild_id": vars.GuildId,
+				"event_id": vars.EventTeamId,
 			},
 			Handler:    handlers.DeleteEvent,
 			StatusCode: 200,

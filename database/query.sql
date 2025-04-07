@@ -339,5 +339,25 @@ SELECT
 FROM participant_data pd
 JOIN rsn r ON r.wom_id = pd.wom_id AND r.guild_id = @guild_id;
 
+-- name: InsertEventTeams :exec
+WITH participant_data AS (
+    SELECT 
+        unnest(@participant_ids::text[]) as wom_id,
+        unnest(@participant_placements::int[]) as placement
+)
+INSERT INTO event_participant (
+    user_id,
+    placement,
+    guild_id,
+    event_id
+) 
+SELECT 
+    r.user_id,
+    pd.placement,
+    @guild_id,
+    @wom_id
+FROM participant_data pd
+JOIN rsn r ON r.wom_id = pd.wom_id AND r.guild_id = @guild_id;
+
 -- name: DeleteEvent :exec
 DELETE FROM event WHERE wom_id = @event_id;
