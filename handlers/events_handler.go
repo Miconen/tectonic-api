@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"tectonic-api/database"
 	"tectonic-api/models"
 	"tectonic-api/utils"
@@ -62,13 +61,7 @@ func RegisterEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := strconv.Atoi(b.EventId)
-	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_BODY)
-		return
-	}
-
-	c, err := utils.GetCompetition(id)
+	c, err := utils.GetCompetition(b.EventId)
 	if err != nil {
 		jw.WriteError(models.ERROR_WOM_UNAVAILABLE)
 		return
@@ -120,10 +113,10 @@ func RegisterEvent(w http.ResponseWriter, r *http.Request) {
 		}
 
 		ei = database.WrapExec(q.InsertEventTeams, r.Context(), database.InsertEventTeamsParams{
-			ParticipantIds: ids,
+			ParticipantIds:        ids,
 			ParticipantPlacements: positions,
-			GuildID: p["guild_id"],
-			WomID:   fmt.Sprintf("%d", c.ID),
+			GuildID:               p["guild_id"],
+			WomID:                 fmt.Sprintf("%d", c.ID),
 		})
 		if ei != nil {
 			handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
