@@ -48,7 +48,7 @@ type Levels struct {
 type Participations struct {
 	PlayerID      int       `json:"playerId"`
 	CompetitionID int       `json:"competitionId"`
-	TeamName      any       `json:"teamName"`
+	TeamName      string    `json:"teamName"`
 	CreatedAt     time.Time `json:"createdAt"`
 	UpdatedAt     time.Time `json:"updatedAt"`
 	Player        Player    `json:"player"`

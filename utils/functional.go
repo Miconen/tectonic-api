@@ -8,3 +8,14 @@ func MapField[T any, P any](slice []T, mapFunc func(obj T) (P)) []P {
 
 	return result
 }
+
+func Filter[T any](slice []T, filterFunc func(elem T) bool) []T {
+	result := make([]T, len(slice))
+	for i := range slice {
+		if filterFunc(slice[i]) {
+			result = append(result, slice[i])
+		}
+	}
+
+	return result
+}
