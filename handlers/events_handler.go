@@ -35,6 +35,40 @@ func GetEvents(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(events)
 }
 
+// @Summary		Get the guild's event
+// @Description	Get the event that the guild have created
+// @Tags			Event
+// @Produce		json
+// @Param			guild_id	path		string	true	"Guild ID"
+// @Success		200			{object}	models.DetailedEvent
+// @Failure		400			{object}	models.ErrorResponse
+// @Failure		401			{object}	models.ErrorResponse
+// @Failure		404			{object}	models.ErrorResponse
+// @Failure		429			{object}	models.ErrorResponse
+// @Failure		500			{object}	models.ErrorResponse
+// @Router			/api/v1/guilds/{guild_id}/events/{event_id} [GET]
+func GetDetailedEvent(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+	p := mux.Vars(r)
+
+	events, err := database.WrapQuery(queries.GetEventParticipation, r.Context(), p["event_id"])
+	if err != nil {
+		handleDatabaseError(*err, jw, models.ERROR_API_DEAD)
+		return
+	}
+
+	res := &models.DetailedEvent{
+		Participations: utils.MapField(events, func(p database.GetEventParticipationRow) models.EventParticipation {
+			return models.EventParticipation{
+				UserId:    p.UserID,
+				Placement: int(p.Placement),
+			}
+		}),
+	}
+
+	jw.WriteResponse(res)
+}
+
 // @Summary		Register a guild event
 // @Description	Register a guild event present in the WOM APi
 // @Tags			Event

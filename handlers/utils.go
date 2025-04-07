@@ -85,21 +85,23 @@ type existsFunc func(ctx context.Context, jw *utils.JsonWriter, conn *pgxpool.Co
 // Middleware that validate URL parameters for the handler.
 func ValidateParameters(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		jw := utils.NewJsonWriter(w, r, 0)
-		funcs := []existsFunc{}
+		if r.Method == "GET" {
+			jw := utils.NewJsonWriter(w, r, 0)
+			funcs := []existsFunc{}
 
-		p := mux.Vars(r)
-		for k, v := range p {
-			switch k {
-			case "guild_id":
-				funcs = append(funcs, guildExists(v))
-			case "user_id":
-				funcs = append(funcs, userExists(v))
+			p := mux.Vars(r)
+			for k, v := range p {
+				switch k {
+				case "guild_id":
+					funcs = append(funcs, guildExists(v))
+				case "user_id":
+					funcs = append(funcs, userExists(v))
+				}
 			}
-		}
 
-		if !exists(r.Context(), jw, funcs...) {
-			return
+			if !exists(r.Context(), jw, funcs...) {
+				return
+			}
 		}
 
 		h.ServeHTTP(w, r)

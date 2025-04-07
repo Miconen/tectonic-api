@@ -109,6 +109,15 @@ type InputEvent struct {
 	PositionCutoff int      `json:"position_cutoff" optional:"true"`
 }
 
+type DetailedEvent struct {
+	Participations []EventParticipation `json:"participations"`
+}
+
+type EventParticipation struct {
+	UserId string `json:"user_id"`
+	Placement int `json:"placement"`
+}
+
 type Events struct {
 	Events []database.Event `json:"events"`
 }
