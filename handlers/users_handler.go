@@ -87,6 +87,7 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		handleDatabaseError(*err, jw, models.ERROR_USER_NOT_FOUND)
+		return
 	}
 
 	getDetailedUsers(r.Context(), jw, database.GetDetailedUsersParams{
@@ -122,6 +123,7 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		handleDatabaseError(*err, jw, models.ERROR_USER_NOT_FOUND)
+		return
 	}
 
 	getDetailedUsers(r.Context(), jw, database.GetDetailedUsersParams{
