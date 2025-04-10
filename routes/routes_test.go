@@ -20,15 +20,16 @@ import (
 )
 
 type TestVariables struct {
-	GuildId        string
-	UserId         string
-	Rsn            string
-	RsnExtra       string
-	ChannelId      string
-	Multiplier     int
-	WomId          string
-	EventClassicId int
-	EventTeamId    int
+	GuildId         string
+	UserId          string
+	Rsn             string
+	RsnExtra        string
+	ChannelId       string
+	Multiplier      int
+	WomId           string
+	EventClassicId  int
+	EventTeamId     int
+	AchievementName string
 }
 
 func (tv TestVariables) RsnEscaped() string {
@@ -75,15 +76,16 @@ func TestMain(t *testing.T) {
 
 	handlers.InitHandlers(conn)
 	vars := TestVariables{
-		GuildId:        "420",
-		UserId:         "69",
-		Rsn:            "Comfy hug",
-		RsnExtra:       "Uncomfy hug",
-		ChannelId:      "2012",
-		Multiplier:     1,
-		WomId:          "39527",
-		EventClassicId: 77922,
-		EventTeamId:    66321,
+		GuildId:         "420",
+		UserId:          "69",
+		Rsn:             "Comfy hug",
+		RsnExtra:        "Uncomfy hug",
+		ChannelId:       "2012",
+		Multiplier:      1,
+		WomId:           "39527",
+		EventClassicId:  77922,
+		EventTeamId:     66321,
+		AchievementName: "Ironman",
 	}
 
 	createUser := TestTable{
@@ -212,6 +214,39 @@ func TestMain(t *testing.T) {
 			StatusCode: 200,
 		},
 		{
+			Name: "Get User events",
+			Method: "GET",
+			Path: fmt.Sprintf("/api/v1/guilds/%s/users/%s/events", vars.GuildId, vars.UserId),
+			Vars: map[string]string{
+				"guild_id": vars.GuildId,
+				"user_id": vars.UserId,
+			},
+			Handler: handlers.GetUserEvents,
+			StatusCode: 200,
+		},
+		{
+			Name: "Get User times",
+			Method: "GET",
+			Path: fmt.Sprintf("/api/v1/guilds/%s/users/%s/times", vars.GuildId, vars.UserId),
+			Vars: map[string]string{
+				"guild_id": vars.GuildId,
+				"user_id": vars.UserId,
+			},
+			Handler: handlers.GetUserTimes,
+			StatusCode: 200,
+		},
+		{
+			Name: "Get User achievements",
+			Method: "GET",
+			Path: fmt.Sprintf("/api/v1/guilds/%s/users/%s/achievements", vars.GuildId, vars.UserId),
+			Vars: map[string]string{
+				"guild_id": vars.GuildId,
+				"user_id": vars.UserId,
+			},
+			Handler: handlers.GetUserAchievements,
+			StatusCode: 200,
+		},
+		{
 			Name:   "Update Points (Event)",
 			Method: "PUT",
 			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/%s/points/split_high", vars.GuildId, vars.UserId),
@@ -319,6 +354,35 @@ func TestMain(t *testing.T) {
 			},
 			Handler:    handlers.DeleteEvent,
 			StatusCode: 200,
+		},
+		{
+			Name:       "Get Achievements",
+			Method:     "GET",
+			Path:       "/api/v1/achievements",
+			Handler:    handlers.GetAchievements,
+			StatusCode: 200,
+		},
+		{
+			Name:   "Give Achievements",
+			Method: "POST",
+			Path:   fmt.Sprintf("/api/v1/achievements/%s/users/%s", vars.AchievementName, vars.UserId),
+			Vars: map[string]string{
+				"user_id":     vars.UserId,
+				"achievement": vars.AchievementName,
+			},
+			Handler:    handlers.GiveAchievement,
+			StatusCode: 204,
+		},
+		{
+			Name:   "Remove Achievements",
+			Method: "DELETE",
+			Path:   fmt.Sprintf("/api/v1/achievements/%s/users/%s", vars.AchievementName, vars.UserId),
+			Vars: map[string]string{
+				"user_id":     vars.UserId,
+				"achievement": vars.AchievementName,
+			},
+			Handler:    handlers.RemoveAchievement,
+			StatusCode: 204,
 		},
 		{
 			Name:   "Delete Team Events",

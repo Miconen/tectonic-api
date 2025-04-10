@@ -188,7 +188,7 @@ func DeleteEvent(w http.ResponseWriter, r *http.Request) {
 
 	ei := database.WrapExec(queries.DeleteEvent, r.Context(), p["event_id"])
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+		handleDatabaseError(*ei, jw, models.ERROR_EVENT_NOT_FOUND)
 		return
 	}
 

@@ -82,10 +82,13 @@ func handleDatabaseErrorCustom(ei database.ErrorInfo, jw *utils.JsonWriter, dhc 
 // Generic function validation type
 type existsFunc func(ctx context.Context, jw *utils.JsonWriter, conn *pgxpool.Conn) bool
 
-// Middleware that validate URL parameters for the handler.
+// Middleware that validate URL parameters for the handler. POST requests are
+// NOT validated.
 func ValidateParameters(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
+		// POST is the route for creating new entities, so validation should be
+		// handled by its handler instead
+		if r.Method != "POST" {
 			jw := utils.NewJsonWriter(w, r, 0)
 			funcs := []existsFunc{}
 
@@ -96,6 +99,10 @@ func ValidateParameters(h http.Handler) http.Handler {
 					funcs = append(funcs, guildExists(v))
 				case "user_id":
 					funcs = append(funcs, userExists(v))
+				case "event_id":
+					funcs = append(funcs, eventExists(v))
+				case "achievement_name":
+					funcs = append(funcs, achievementExists(v))
 				}
 			}
 
@@ -135,6 +142,16 @@ func guildExists(guild_id string) existsFunc {
 // Checks if user exists on the database.
 func userExists(user_id string) existsFunc {
 	return queryExists("SELECT EXISTS (SELECT user_id FROM users WHERE user_id = $1)", user_id, models.ERROR_USER_NOT_FOUND)
+}
+
+// Checks if event exists on the database.
+func eventExists(event_id string) existsFunc {
+	return queryExists("SELECT EXISTS (SELECT wom_id FROM event WHERE wom_id = $1)", event_id, models.ERROR_EVENT_NOT_FOUND)
+}
+
+// Checks if achievent exists on the database.
+func achievementExists(name string) existsFunc {
+	return queryExists("SELECT EXISTS (SELECT name FROM achievemtn WHERE name = $1)", name, models.ERROR_EVENT_NOT_FOUND)
 }
 
 func queryExists(sql string, param string, api_err models.APIV1Error) existsFunc {

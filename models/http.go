@@ -50,6 +50,54 @@ type User struct {
 	Points  int    `json:"points"`
 }
 
+// Time teammates
+// @Description Model that represents all teammates of a specific run
+type TimeTeammates struct {
+	UserID  string `json:"user_id"`
+	GuildID string `json:"guild_id"`
+}
+
+// User Times
+// @Description Model that represents all user times
+type UserTime struct {
+	Id        int32           `json:"run_id"`
+	BossName  string          `json:"boss_name"`
+	Date      time.Time       `json:"date"`
+	Time      int32           `json:"time"`
+	Teammates []TimeTeammates `json:"team"`
+}
+
+func UserTimesFromRows(rows []database.GetUserTimesRow) []UserTime {
+	result := make([]UserTime, 0)
+	time := UserTime{
+		Id:        0,
+		Teammates: make([]TimeTeammates, 0),
+	}
+
+	for i := range rows {
+		if rows[i].RunID != time.Id {
+			if i != 0 {
+				result = append(result, time)
+			}
+
+			time = UserTime{
+				Id:        rows[i].RunID,
+				BossName:  rows[i].BossName,
+				Date:      rows[i].Date.Time,
+				Time:      rows[i].Time,
+				Teammates: make([]TimeTeammates, 0),
+			}
+		}
+
+		time.Teammates = append(time.Teammates, TimeTeammates{
+			UserID:  rows[i].UserID,
+			GuildID: rows[i].GuildID,
+		})
+	}
+
+	return result
+}
+
 // Users Model
 // @Description Model of active guild members
 type Users struct {
@@ -114,8 +162,8 @@ type DetailedEvent struct {
 }
 
 type EventParticipation struct {
-	UserId string `json:"user_id"`
-	Placement int `json:"placement"`
+	UserId    string `json:"user_id"`
+	Placement int    `json:"placement"`
 }
 
 type Events struct {
