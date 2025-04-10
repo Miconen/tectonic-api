@@ -119,68 +119,6 @@ LEFT JOIN LATERAL (
 WHERE du.user_id = ANY(@user_ids::text[])
 AND du.guild_id = @guild_id;
 
--- name: GetDetailedUsersByRSN :many
-WITH rsn_user AS (
-    SELECT r.user_id, r.guild_id 
-    FROM rsn r 
-    WHERE r.rsn = ANY(@rsns::text[])
-)
-SELECT 
-    du.user_id,
-    du.guild_id,
-    du.points,
-    to_json(du.rsns) AS rsns,
-    COALESCE(times_json, '[]'::json) AS times,
-    COALESCE(events_json, '[]'::json) AS events
-FROM detailed_users du
-JOIN rsn_user ru ON ru.user_id = du.user_id AND ru.guild_id = du.guild_id
-LEFT JOIN LATERAL (
-    SELECT json_agg(dt) AS times_json
-    FROM detailed_times dt
-    WHERE dt.run_id IN (
-        SELECT tm.run_id
-        FROM teams tm
-        WHERE tm.user_id = du.user_id AND tm.guild_id = du.guild_id
-    )
-) t ON true
-LEFT JOIN LATERAL (
-    SELECT json_agg(de) AS events_json
-    FROM detailed_event de
-    WHERE de.user_id = du.user_id AND de.guild_id = du.guild_id
-) e ON true
-WHERE du.guild_id = @guild_id;
-
--- name: GetDetailedUsersByWomID :many
-WITH wom_user AS (
-    SELECT r.user_id, r.guild_id 
-    FROM rsn r 
-    WHERE r.wom_id = ANY(@wom_ids::text[])
-)
-SELECT 
-    du.user_id,
-    du.guild_id,
-    du.points,
-    to_json(du.rsns) AS rsns,
-    COALESCE(times_json, '[]'::json) AS times,
-    COALESCE(events_json, '[]'::json) AS events
-FROM detailed_users du
-JOIN wom_user wu ON wu.user_id = du.user_id AND wu.guild_id = du.guild_id
-LEFT JOIN LATERAL (
-    SELECT json_agg(dt) AS times_json
-    FROM detailed_times dt
-    WHERE dt.run_id IN (
-        SELECT tm.run_id
-        FROM teams tm
-        WHERE tm.user_id = du.user_id AND tm.guild_id = du.guild_id
-    )
-) t ON true
-LEFT JOIN LATERAL (
-    SELECT json_agg(de) AS events_json
-    FROM detailed_event de
-    WHERE de.user_id = du.user_id AND de.guild_id = du.guild_id
-) e ON true
-WHERE du.guild_id = @guild_id;
-
 -- name: GetLeaderboard :many
 SELECT u.user_id, u.guild_id, u.points, json_agg(r) AS rsns
 FROM users u
@@ -367,3 +305,71 @@ SELECT
 	ep.user_id,
 	ep.placement
 FROM event_participant ep WHERE ep.event_id = @event_id;
+
+-- name: GetUserAchievements :many
+SELECT
+	a.name,
+	a.thumbnail,
+	a.discord_icon
+FROM user_achievement ua
+JOIN achievement a ON ua.achievement_name = a.name
+WHERE ua.user_id = @user_id
+ORDER BY a.order;
+
+-- name: GetUserTimes :many
+SELECT
+    t.run_id,
+    t.boss_name,
+    t.date,
+    t.time,
+    tm.user_id,
+    tm.guild_id
+FROM times t
+JOIN teams tm ON t.run_id = tm.run_id
+WHERE tm.user_id = @user_id AND tm.guild_id = @guild_id
+ORDER BY t.run_id;
+
+-- name: GetUserRsns :many
+SELECT
+	r.rsn,
+	r.wom_id
+FROM rsn r
+WHERE r.user_id = @user_id;
+
+-- name: GetUserByWom :many
+SELECT
+	r.user_id
+FROM rsn r
+WHERE r.wom_id = ANY(@wom_id::text[]);
+
+-- name: GetUserByRsn :many
+SELECT
+	r.user_id
+FROM rsn r
+WHERE r.rsn = ANY(@rsns::text[]);
+
+-- name: GetUserEvents :many
+SELECT
+    e.name,
+    e.wom_id AS event_id,
+    e.guild_id,
+    ep.user_id,
+    ep.guild_id,
+    ep.placement
+FROM event e
+JOIN event_participant ep ON e.wom_id = ep.event_id
+WHERE ep.user_id = @user_id AND ep.guild_id = @guild_id
+AND ep.placement <= e.position_cutoff;
+
+-- name: GiveAchievement :exec
+INSERT INTO user_achievement (
+	user_id,
+	achievement_name
+) VALUES (
+	@user_id,
+	@achievement_name
+);
+
+-- name: RemoveAchievement :exec
+DELETE FROM user_achievement ua
+WHERE ua.user_id = @user_id AND ua.achievement_name = @achievement_name;

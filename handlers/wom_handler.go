@@ -63,11 +63,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := database.GetDetailedUsersByRSNParams{
-		GuildID: p["guild_id"],
-		Rsns:    []string{},
-	}
-
+	rsns := make([]string, 0)
 	accounts := make([]string, len(competition.Participations))
 
 	// Get participants valid for points
@@ -79,10 +75,10 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		params.Rsns = append(params.Rsns, val.Player.DisplayName)
+		rsns = append(rsns, val.Player.DisplayName)
 	}
 
-	if len(params.Rsns) == 0 {
+	if len(rsns) == 0 {
 		jw.WriteError(models.ERROR_PARTICIPATION_NOT_FOUND)
 		return
 	}
@@ -96,8 +92,16 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	q := queries.WithTx(tx)
 	defer tx.Rollback(r.Context())
 
-	rows, err := q.GetDetailedUsersByRSN(r.Context(), params)
-	ei := database.ClassifyError(err)
+	user_ids, ei := database.WrapQuery(q.GetUserByRsn, r.Context(), rsns)
+	if ei != nil {
+		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		return
+	}
+
+	rows, ei := database.WrapQuery(q.GetDetailedUsers, r.Context(), database.GetDetailedUsersParams{
+		UserIds: user_ids,
+		GuildID: p["guild_id"],
+	})
 	if ei != nil {
 		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
 		return
@@ -107,11 +111,6 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	for _, row := range rows {
 		user := database.DetailedUserJSON{UserID: row.UserID, GuildID: row.GuildID, Points: row.Points, RSNs: row.Rsns, Times: row.Times}
 		users = append(users, user)
-	}
-
-	user_ids := make([]string, len(users))
-	for i, v := range users {
-		user_ids[i] = v.UserID
 	}
 
 	given_params := database.GetPointsValueParams{
@@ -139,7 +138,11 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx.Commit(r.Context())
+	err = tx.Commit(r.Context())
+	if err != nil {
+		jw.WriteError(models.ERROR_API_UNAVAILABLE)
+		return
+	}
 
 	if len(points) == 0 {
 		log.Info("no activated users found in competition")
@@ -154,7 +157,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		Title:            competition.Title,
 		ParticipantCount: competition.ParticipantCount,
 		Participants:     users,
-		Accounts:         params.Rsns,
+		Accounts:         rsns,
 		Cutoff:           cutoff,
 		PointsGiven:      int(given),
 	}

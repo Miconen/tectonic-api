@@ -39,9 +39,10 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	r.HandleFunc("/bosses", handlers.GetBosses).Methods("GET")
 	r.HandleFunc("/categories", handlers.GetCategories).Methods("GET")
 	r.HandleFunc("/achievements", handlers.GetAchievements).Methods("GET")
-	// TODO: Add these routes
-	// r.HandleFunc("/achievements/{achievement}/guilds/{guild_id}/users/{user_id}", handlers.GiveAchievement).Methods("POST")
-	// r.HandleFunc("/achievements/{achievement}/guilds/{guild_id}/users/{user_id}", handlers.RemoveAchievement).Methods("DELETE")
+
+	// Achievements
+	r.HandleFunc("/achievements/{achievement}/users/{user_id}", handlers.GiveAchievement).Methods("POST")
+	r.HandleFunc("/achievements/{achievement}/users/{user_id}", handlers.RemoveAchievement).Methods("DELETE")
 
 	// Guilds
 	guildsRouter := r.PathPrefix("/guilds").Subrouter()
@@ -74,6 +75,9 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	// Users
 	usersRouter := guildsRouter.PathPrefix("/{guild_id}/users").Subrouter()
 	usersRouter.HandleFunc("/{user_id}", handlers.CreateUser).Methods("POST")
+	usersRouter.HandleFunc("/{user_id}/times", handlers.GetUserTimes).Methods("GET")
+	usersRouter.HandleFunc("/{user_id}/events", handlers.GetUserEvents).Methods("GET")
+	usersRouter.HandleFunc("/{user_id}/achievements", handlers.GetUserAchievements).Methods("GET")
 	usersRouter.HandleFunc("/rsn/{rsns}", handlers.GetUsersByRsn).Methods("GET")
 	usersRouter.HandleFunc("/wom/{wom_ids}", handlers.GetUsersByWom).Methods("GET")
 	usersRouter.HandleFunc("/{user_ids}", handlers.GetUsersById).Methods("GET")

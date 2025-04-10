@@ -32,6 +32,12 @@ const (
 	ERROR_WOMID_EXISTS
 
 	ERROR_PARTICIPATION_NOT_FOUND
+
+	ERROR_EVENT_NOT_FOUND
+	ERROR_EVENT_EXISTS
+
+	ERROR_ACHIEVEMENT_NOT_FOUND
+	ERROR_ACHIEVEMENT_EXISTS
 )
 
 // Server errors
@@ -81,6 +87,14 @@ func (e APIV1Error) Message() (message string) {
 		message = "No participations found with specified cutoff"
 	case ERROR_DATA_DOESNT_EXISTS:
 		message = "Data sent seems correct, but couldn't find any correspondence in our end. Please, verify its veracity on their GET routes respectively"
+	case ERROR_EVENT_NOT_FOUND:
+		message = "Event have not been found"
+	case ERROR_EVENT_EXISTS:
+		message = "Event specified already exists"
+	case ERROR_ACHIEVEMENT_NOT_FOUND:
+		message = "Achievement have not been found"
+	case ERROR_ACHIEVEMENT_EXISTS:
+		message = "Achievement specified already exists"
 	}
 
 	return
@@ -97,6 +111,14 @@ func (e APIV1Error) Status() int {
 	case ERROR_GUILD_EXISTS:
 		return http.StatusConflict
 	case ERROR_GUILD_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_EVENT_EXISTS:
+		return http.StatusConflict
+	case ERROR_EVENT_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_ACHIEVEMENT_EXISTS:
+		return http.StatusConflict
+	case ERROR_ACHIEVEMENT_NOT_FOUND:
 		return http.StatusNotFound
 	case ERROR_RSN_EXISTS:
 		return http.StatusConflict
