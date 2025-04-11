@@ -7,6 +7,7 @@ WORKDIR /api
 # Install CLI tools
 RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 RUN go install github.com/air-verse/air@latest
+RUN go install golang.org/x/tools/cmd/stringer@latest
 
 # Copy the Go module files and download dependencies
 COPY go.mod go.sum ./

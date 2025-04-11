@@ -17,7 +17,7 @@ func getDetailedUsers(ctx context.Context, jw *utils.JsonWriter, params database
 	rows, err := queries.GetDetailedUsers(ctx, params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -86,7 +86,7 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		handleDatabaseError(*err, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -122,7 +122,7 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		handleDatabaseError(*err, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -153,7 +153,7 @@ func GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 
 	achievements, err := database.WrapQuery(queries.GetUserAchievements, r.Context(), p["user_id"])
 	if err != nil {
-		handleDatabaseError(*err, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -182,7 +182,7 @@ func GetUserEvents(w http.ResponseWriter, r *http.Request) {
 		GuildID: p["guild_id"],
 	})
 	if err != nil {
-		handleDatabaseError(*err, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -211,7 +211,7 @@ func GetUserTimes(w http.ResponseWriter, r *http.Request) {
 		GuildID: p["guild_id"],
 	})
 	if err != nil {
-		handleDatabaseError(*err, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -303,7 +303,7 @@ func RemoveUserById(w http.ResponseWriter, r *http.Request) {
 	rows, err := queries.DeleteUserById(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -340,7 +340,7 @@ func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
 	rows, err := queries.DeleteUserByRsn(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -377,7 +377,7 @@ func RemoveUserByWom(w http.ResponseWriter, r *http.Request) {
 	rows, err := queries.DeleteUserByWom(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 

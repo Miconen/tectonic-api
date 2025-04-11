@@ -38,7 +38,7 @@ func GetGuildTimes(w http.ResponseWriter, r *http.Request) {
 	row, err := queries.GetDetailedGuild(r.Context(), guildId)
 	ei := database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_GUILD_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -102,7 +102,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	pb, err := q.CheckPb(r.Context(), pb_params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -126,7 +126,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	run_id, err := q.CreateTime(r.Context(), time_params)
 	ei = database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -142,7 +142,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	_, err = q.UpdatePb(r.Context(), changed_pb_params)
 	ei = database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -155,14 +155,14 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	err = q.CreateTeam(r.Context(), team_params)
 	ei = database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
 	err = tx.Commit(r.Context())
 	ei = database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -205,7 +205,7 @@ func RemoveTime(w http.ResponseWriter, r *http.Request) {
 	deleted, err := queries.DeleteTime(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 

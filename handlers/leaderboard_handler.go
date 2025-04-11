@@ -35,7 +35,7 @@ func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 	rows, err := queries.GetLeaderboard(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 

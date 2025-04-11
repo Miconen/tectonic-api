@@ -26,6 +26,70 @@ func InitDB() (*pgxpool.Pool, error) {
 	return conn, nil
 }
 
+type ConstraintType uint
+
+const (
+	PrimaryKey ConstraintType = iota
+	ForeignKey
+	Unique
+)
+
+type ConstraintDetail struct {
+	Type         ConstraintType
+	Table        string
+	ForeignTable string
+}
+
+func GetConstraintsTable(ctx context.Context, conn *pgxpool.Conn) (map[string]ConstraintDetail, error) {
+	if conn == nil {
+		return nil, fmt.Errorf("conn is nil")
+	}
+
+	result := make(map[string]ConstraintDetail)
+	rows, err := pool.Query(ctx, `
+		SELECT 
+			tc.constraint_name,
+			tc.table_name,
+			ccu.table_name AS foreign_table_name
+		FROM information_schema.table_constraints tc
+		JOIN information_schema.constraint_column_usage AS ccu
+			ON ccu.constraint_name = tc.constraint_name
+		WHERE tc.table_schema = 'public'
+			AND tc.constraint_name NOT LIKE '%not_null'
+			AND tc.constraint_name NOT LIKE 'goose%'
+		`,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var key, table, foreign string
+		if err = rows.Err(); err != nil {
+			return nil, err
+		}
+
+		if err = rows.Scan(&key, &table, &foreign); err != nil {
+			return nil, err
+		}
+
+		var ct ConstraintType
+		if table == foreign {
+			ct = PrimaryKey
+		} else {
+			ct = ForeignKey
+		}
+
+		result[key] = ConstraintDetail{
+			Type:         ct,
+			Table:        table,
+			ForeignTable: foreign,
+		}
+	}
+
+	return result, nil
+}
+
 func AcquireConnection(ctx context.Context) (*pgxpool.Conn, error) {
 	return pool.Acquire(ctx)
 }

@@ -38,7 +38,7 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 	guild, err := queries.GetGuild(r.Context(), guildId)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_GUILD_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -75,7 +75,7 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 	_, err = queries.CreateGuild(r.Context(), p.GuildId)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_GUILD_EXISTS)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -109,7 +109,7 @@ func DeleteGuild(w http.ResponseWriter, r *http.Request) {
 	_, err := queries.DeleteGuild(r.Context(), guildId)
 	ei := database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_GUILD_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -181,7 +181,7 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 		_, errUpdate := q.UpdateCategoryMessageIds(r.Context(), message_params)
 		eiUpdate := database.ClassifyError(errUpdate)
 		if eiUpdate != nil {
-			handleDatabaseError(*eiUpdate, jw, models.ERROR_GUILD_NOT_FOUND)
+			handleDatabaseError(*eiUpdate, jw)
 			return
 		}
 	}
@@ -195,7 +195,7 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 	_, err = q.UpdateGuild(r.Context(), guild_params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_GUILD_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 	}
 
 	tx.Commit(r.Context())

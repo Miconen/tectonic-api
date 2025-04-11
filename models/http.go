@@ -192,6 +192,7 @@ type Body struct {
 type ErrorResponse struct {
 	Code    uint   `json:"code"`
 	Message string `json:"message"`
+	Details string `json:"details,omitempty"`
 }
 
 // Body Model
