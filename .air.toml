@@ -5,7 +5,7 @@ tmp_dir = "tmp"
 [build]
   args_bin = []
   bin = "./tmp/main"
-  cmd = "sqlc generate -f database/sqlc.yaml && go build -o ./tmp/main ."
+  cmd = "sqlc generate -f database/sqlc.yaml && go generate ./models && go build -o ./tmp/main ."
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = ["database/db.go", "database/query.sql.go", "database/models.go"]

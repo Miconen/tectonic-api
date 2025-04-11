@@ -88,7 +88,7 @@ func RemoveRSN(w http.ResponseWriter, r *http.Request) {
 	rows, err := queries.DeleteRsn(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 

@@ -40,12 +40,12 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 	user, err := queries.UpdatePointsByEvent(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
 	if len(user) == 0 {
-		jw.WriteError(models.ERROR_DATA_DOESNT_EXISTS)
+		jw.WriteError(models.ERROR_POINT_SOURCE_NOT_FOUND)
 		return
 	}
 
@@ -89,12 +89,12 @@ func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
 	rowsaf, err := queries.UpdatePointsCustom(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
 	if rowsaf == 0 {
-		jw.WriteError(models.ERROR_DATA_DOESNT_EXISTS)
+		jw.WriteError(models.ERROR_POINT_SOURCE_NOT_FOUND)
 		return
 	}
 

@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"tectonic-api/database"
-	"tectonic-api/models"
 	"tectonic-api/utils"
 )
 
@@ -21,7 +20,7 @@ func GetBosses(w http.ResponseWriter, r *http.Request) {
 	bosses, err := queries.GetBosses(r.Context())
 	ei := database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -43,7 +42,7 @@ func GetCategories(w http.ResponseWriter, r *http.Request) {
 	categories, err := queries.GetCategories(r.Context())
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 

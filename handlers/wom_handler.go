@@ -94,7 +94,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 
 	user_ids, ei := database.WrapQuery(q.GetUserByRsn, r.Context(), rsns)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -103,7 +103,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		GuildID: p["guild_id"],
 	})
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -121,7 +121,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	given, err := q.GetPointsValue(r.Context(), given_params)
 	ei = database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_UNAVAILABLE)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -134,7 +134,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	points, err := q.UpdatePointsByEvent(r.Context(), points_params)
 	ei = database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 

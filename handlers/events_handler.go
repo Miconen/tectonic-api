@@ -28,7 +28,7 @@ func GetEvents(w http.ResponseWriter, r *http.Request) {
 
 	events, err := database.WrapQuery(queries.GetGuildEvents, r.Context(), p["guild_id"])
 	if err != nil {
-		handleDatabaseError(*err, jw, models.ERROR_API_DEAD)
+		handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -53,7 +53,7 @@ func GetDetailedEvent(w http.ResponseWriter, r *http.Request) {
 
 	events, err := database.WrapQuery(queries.GetEventParticipation, r.Context(), p["event_id"])
 	if err != nil {
-		handleDatabaseError(*err, jw, models.ERROR_API_DEAD)
+		handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -116,7 +116,7 @@ func RegisterEvent(w http.ResponseWriter, r *http.Request) {
 		PositionCutoff: 0,
 	})
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -129,7 +129,7 @@ func RegisterEvent(w http.ResponseWriter, r *http.Request) {
 			WomID:   fmt.Sprintf("%d", c.ID),
 		})
 		if ei != nil {
-			handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+			handleDatabaseError(*ei, jw)
 			return
 		}
 	} else if c.Type == "team" && len(b.TeamNames) != 0 {
@@ -153,7 +153,7 @@ func RegisterEvent(w http.ResponseWriter, r *http.Request) {
 			WomID:                 fmt.Sprintf("%d", c.ID),
 		})
 		if ei != nil {
-			handleDatabaseError(*ei, jw, models.ERROR_API_DEAD)
+			handleDatabaseError(*ei, jw)
 			return
 		}
 	} else {
@@ -188,7 +188,7 @@ func DeleteEvent(w http.ResponseWriter, r *http.Request) {
 
 	ei := database.WrapExec(queries.DeleteEvent, r.Context(), p["event_id"])
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_EVENT_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 

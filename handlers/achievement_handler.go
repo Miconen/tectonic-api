@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"tectonic-api/database"
-	"tectonic-api/models"
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
@@ -26,7 +25,7 @@ func GetAchievements(w http.ResponseWriter, r *http.Request) {
 	achievements, err := queries.GetAchievements(r.Context())
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw, models.ERROR_ACHIEVEMENT_NOT_FOUND)
+		handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -54,7 +53,7 @@ func GiveAchievement(w http.ResponseWriter, r *http.Request) {
 		AchievementName: p["achievement"],
 	})
 	if err != nil {
-		handleDatabaseError(*err, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -81,7 +80,7 @@ func RemoveAchievement(w http.ResponseWriter, r *http.Request) {
 		AchievementName: p["achievement"],
 	})
 	if err != nil {
-		handleDatabaseError(*err, jw, models.ERROR_USER_NOT_FOUND)
+		handleDatabaseError(*err, jw)
 		return
 	}
 
