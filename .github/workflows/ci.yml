@@ -32,6 +32,9 @@ jobs:
         with:
           go-version: '1.24.1'
 
+      - name: "Set up stringifier"
+        run: go install golang.org/x/tools/cmd/stringer@latest
+
       - name: Set up sqlc
         uses: sqlc-dev/setup-sqlc@v4
         with:
@@ -39,6 +42,9 @@ jobs:
 
       - name: Generate go code from sqlc
         run: sqlc generate -f database/sqlc.yaml
+
+      - name: Generate error String()
+        run: go generate ./models
 
       - name: Build
         run: go build -o tectonic
