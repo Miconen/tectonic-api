@@ -203,7 +203,7 @@ func eventExists(ctx context.Context, conn *pgxpool.Conn, jw *utils.JsonWriter, 
 
 // Checks if achievent exists on the database.
 func achievementExists(ctx context.Context, conn *pgxpool.Conn, jw *utils.JsonWriter, name string) bool {
-	return queryExists(ctx, conn, jw, "SELECT EXISTS (SELECT name FROM achievemtn WHERE name = $1)", name, models.ERROR_EVENT_NOT_FOUND)
+	return queryExists(ctx, conn, jw, "SELECT EXISTS (SELECT name FROM achievement WHERE name = $1)", name, models.ERROR_ACHIEVEMENT_NOT_FOUND)
 }
 
 func queryExists(ctx context.Context, conn *pgxpool.Conn, jw *utils.JsonWriter, sql string, param string, api_err models.APIV1ErrorCode) bool {
