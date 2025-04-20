@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"io"
 	"net/http"
 	"tectonic-api/handlers"
 	"tectonic-api/middleware"
@@ -29,7 +28,8 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	b.router.PathPrefix("/swagger/v1").Handler(httpSwagger.WrapHandler)
 
 	b.router.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "pong\n")
+		jw := utils.NewJsonWriter(w, r, http.StatusOK)
+		jw.WriteResponse("pong")
 	})
 
 	r := b.router.PathPrefix("/api/v1").Subrouter()
@@ -53,7 +53,7 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 
 	// Leaderboard
 	guildsRouter.HandleFunc("/{guild_id}/leaderboard", handlers.GetLeaderboard).Methods("GET")
-	
+
 	// Events
 	eventsRouter := guildsRouter.PathPrefix("/{guild_id}/events").Subrouter()
 	eventsRouter.HandleFunc("", handlers.GetEvents).Methods("GET")
