@@ -150,9 +150,11 @@ func ValidateParameters(h http.Handler) http.Handler {
 			pat := regexp.MustCompile(`{\w*}`)
 			vars := pat.FindAllString(r.URL.String(), -1)
 
-			switch vars[len(vars)-1] {
-			case "guild_id", "user_id", "event_id":
-				delete(p, vars[len(vars)-1])
+			if len(vars) != 0 {
+				switch vars[len(vars)-1] {
+				case "guild_id", "user_id", "event_id":
+					delete(p, vars[len(vars)-1])
+				}
 			}
 		}
 
