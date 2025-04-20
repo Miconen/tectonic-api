@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
-	"regexp"
+	"strings"
 	"tectonic-api/database"
 	"tectonic-api/models"
 	"tectonic-api/utils"
@@ -147,14 +147,22 @@ func ValidateParameters(h http.Handler) http.Handler {
 		// URL parameter needs to be excluded from validation because it will
 		// get created later on the request.
 		if r.Method == "POST" {
-			pat := regexp.MustCompile(`{\w*}`)
-			vars := pat.FindAllString(r.URL.String(), -1)
+			vars := strings.Split(r.URL.String(), "/")
 
-			if len(vars) != 0 {
-				switch vars[len(vars)-1] {
-				case "guild_id", "user_id", "event_id":
-					delete(p, vars[len(vars)-1])
+		loop:
+			for i := len(vars) - 1; i >= 0; i-- {
+				switch vars[i] {
+				case "guilds":
+					delete(p, "guild_id")
+					break loop
+				case "users":
+					delete(p, "user_id")
+					break loop
+				case "events":
+					delete(p, "event_id")
+					break loop
 				}
+
 			}
 		}
 
