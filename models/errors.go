@@ -2,7 +2,6 @@ package models
 
 import (
 	"net/http"
-	"strings"
 )
 
 type APIV1Error interface {
@@ -121,20 +120,84 @@ func (e APIV1ErrorCode) Status() int {
 		return http.StatusBadRequest
 	case ERROR_WRONG_PARAMS:
 		return http.StatusBadRequest
-	default:
-		if e >= 1000 && e < 2000 {
-			if strings.Contains(e.String(), "EXISTS") {
-				return http.StatusConflict
-			} else if strings.Contains(e.String(), "NOT_FOUND") {
-				return http.StatusNotFound
-			} else {
-				return http.StatusOK
-			}
+	// Model
+	case ERROR_GUILD_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_GUILD_EXISTS:
+		return http.StatusConflict
 
-		} else {
-			return http.StatusOK
-		}
+	case ERROR_BOSS_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_BOSS_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_CATEGORY_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_CATEGORY_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_RSN_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_RSN_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_TIME_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_TIME_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_USER_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_USER_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_WOMID_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_WOMID_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_PARTICIPATION_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_PARTICIPATION_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_GUILD_BOSS_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_GUILD_BOSS_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_GUILD_CATEGORY_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_GUILD_CATEGORY_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_TEAM_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_TEAM_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_EVENT_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_EVENT_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_ACHIEVEMENT_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_ACHIEVEMENT_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_USER_ACHIEVEMENT_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_USER_ACHIEVEMENT_EXISTS:
+		return http.StatusConflict
+
+	case ERROR_POINT_SOURCE_NOT_FOUND:
+		return http.StatusNotFound
+	case ERROR_POINT_SOURCE_EXISTS:
+		return http.StatusConflict
 	}
+
+	return 666
 }
 
 func (e APIV1ErrorCode) ToErrorResponse() ErrorResponse {
