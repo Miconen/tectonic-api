@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"maps"
 	"net/http"
 	"strings"
 	"tectonic-api/database"
@@ -142,7 +143,9 @@ func handleDatabaseErrorCustom(ei database.ErrorInfo, jw *utils.JsonWriter, dhc 
 func ValidateParameters(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		jw := utils.NewJsonWriter(w, r, 0)
-		p := mux.Vars(r)
+		vars := mux.Vars(r)
+		p := make(map[string]string)
+		maps.Copy(p, vars)
 
 		// URL parameter needs to be excluded from validation because it will
 		// get created later on the request.
