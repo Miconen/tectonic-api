@@ -61,7 +61,6 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 	getDetailedUsers(r.Context(), jw, params)
 }
 
-
 // @Summary		Get one or more users by RSN(s)
 // @Description	Get user details by unique user Snowflake (ID)
 // @Tags			Users
@@ -82,7 +81,7 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 
 	users, err := database.WrapQuery(queries.GetUsersByRsn, r.Context(), database.GetUsersByRsnParams{
 		GuildID: p["guild_id"],
-		Rsns: strings.Split(p["rsns"], ","),
+		Rsns:    strings.Split(p["rsns"], ","),
 	})
 
 	if err != nil {
@@ -118,7 +117,7 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 
 	users, err := database.WrapQuery(queries.GetUsersByWom, r.Context(), database.GetUsersByWomParams{
 		GuildID: p["guild_id"],
-		WomIds: strings.Split(p["wom_ids"], ","),
+		WomIds:  strings.Split(p["wom_ids"], ","),
 	})
 
 	if err != nil {
@@ -262,14 +261,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ei := database.ClassifyError(err)
 		if ei != nil {
-			handleDatabaseErrorCustom(*ei, jw, func(dh *dbHandler, jw *utils.JsonWriter) {
-				switch dh.Err.ConstraintName {
-				case "users_ibfk_1":
-					jw.WriteError(models.ERROR_GUILD_EXISTS)
-				case "users_pkey":
-					jw.WriteError(models.ERROR_USER_EXISTS)
-				}
-			})
+			handleDatabaseError(*ei, jw)
 			return
 		}
 	}
