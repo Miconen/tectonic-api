@@ -11,12 +11,12 @@ import (
 )
 
 type CompetitionResponse struct {
-	Title            string                      `json:"title"`
-	ParticipantCount int                         `json:"participant_count"`
-	Participants     []database.DetailedUserJSON `json:"participants"`
-	Accounts         []string                    `json:"accounts"`
-	Cutoff           int                         `json:"cutoff"`
-	PointsGiven      int                         `json:"points_given"`
+	Title            string                `json:"title"`
+	ParticipantCount int                   `json:"participant_count"`
+	Participants     []models.DetailedUser `json:"participants"`
+	Accounts         []string              `json:"accounts"`
+	Cutoff           int                   `json:"cutoff"`
+	PointsGiven      int                   `json:"points_given"`
 }
 
 // @Summary		Handle Wise Old Man competitions
@@ -98,19 +98,10 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, ei := database.WrapQuery(q.GetDetailedUsers, r.Context(), database.GetDetailedUsersParams{
-		UserIds: user_ids,
-		GuildID: p["guild_id"],
-	})
+	users, ei := getDetailedUsers(r.Context(), user_ids, p["guild_id"])
 	if ei != nil {
 		handleDatabaseError(*ei, jw)
 		return
-	}
-
-	users := make([]database.DetailedUserJSON, 0, len(rows))
-	for _, row := range rows {
-		user := database.DetailedUserJSON{UserID: row.UserID, GuildID: row.GuildID, Points: row.Points, RSNs: row.Rsns, Times: row.Times}
-		users = append(users, user)
 	}
 
 	given_params := database.GetPointsValueParams{
@@ -150,7 +141,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 
 	for i := range users {
 		// Users stored points dont include given points, so we add them here
-		users[i].Points = given
+		users[i].Points = int(given)
 	}
 
 	response := CompetitionResponse{
