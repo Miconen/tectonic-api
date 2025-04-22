@@ -35,8 +35,7 @@ func NewLogger() *slog.Logger {
 					}
 					return a
 				},
-				AddSource: true,
-				Level:     level,
+				Level: level,
 			},
 		))
 	} else {
@@ -49,8 +48,7 @@ func NewLogger() *slog.Logger {
 					}
 					return a
 				},
-				AddSource: true,
-				Level:     level,
+				Level: level,
 			},
 		))
 
