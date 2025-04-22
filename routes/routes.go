@@ -74,7 +74,7 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 
 	// Users
 	usersRouter := guildsRouter.PathPrefix("/{guild_id}/users").Subrouter()
-	usersRouter.HandleFunc("/{user_id}", handlers.CreateUser).Methods("POST")
+	usersRouter.HandleFunc("", handlers.CreateUser).Methods("POST")
 	usersRouter.HandleFunc("/{user_id}/times", handlers.GetUserTimes).Methods("GET")
 	usersRouter.HandleFunc("/{user_id}/events", handlers.GetUserEvents).Methods("GET")
 	usersRouter.HandleFunc("/{user_id}/achievements", handlers.GetUserAchievements).Methods("GET")
@@ -87,7 +87,7 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 
 	// RSN
 	rsnsRouter := usersRouter.PathPrefix("/{user_id}/rsns").Subrouter()
-	rsnsRouter.HandleFunc("/{rsn}", handlers.CreateRSN).Methods("POST")
+	rsnsRouter.HandleFunc("", handlers.CreateRSN).Methods("POST")
 	rsnsRouter.HandleFunc("/{rsn}", handlers.RemoveRSN).Methods("DELETE")
 
 	// Points

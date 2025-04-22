@@ -251,7 +251,7 @@ func GetUserTimes(w http.ResponseWriter, r *http.Request) {
 // @Accept			json
 // @Produce		json
 // @Param			guild_id	path		string	true	"Guild ID"
-// @Param			user_id		path		string	true	"User ID"
+// @Param			user_id		body		string	true	"User ID"
 // @Param			rsn			body		string	true	"RSN"
 // @Success		201			{object}	models.Empty
 // @Failure		400			{object}	models.ErrorResponse
@@ -266,10 +266,9 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	params := database.CreateUserParams{
 		GuildID: v["guild_id"],
-		UserID:  v["user_id"],
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&params)
+	err := utils.ParseRequestBody(w, r, &params)
 	if err != nil {
 		jw.WriteError(models.ERROR_WRONG_BODY)
 		return

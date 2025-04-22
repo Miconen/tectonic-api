@@ -17,6 +17,7 @@ import (
 // @Produce		json
 // @Param			guild_id	path		string			true	"Guild ID"
 // @Param			user_id		path		string			true	"User ID"
+// @Param			user_id		body		string			true	"User ID"
 // @Param			rsn			path		models.InputRSN	true	"RSN"
 // @Success		204			{object}	models.Empty
 // @Failure		400			{object}	models.Empty
@@ -24,7 +25,7 @@ import (
 // @Failure		409			{object}	models.Empty
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn} [POST]
+// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/rsns [POST]
 func CreateRSN(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
@@ -32,7 +33,12 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 	params := database.CreateRsnParams{
 		GuildID: p["guild_id"],
 		UserID:  p["user_id"],
-		Rsn:     p["rsn"],
+	}
+
+	err := utils.ParseRequestBody(w, r, &params)
+	if err != nil {
+		jw.WriteError(models.ERROR_WRONG_BODY)
+		return
 	}
 
 	wom, err := utils.GetWom(params.Rsn)
