@@ -13,26 +13,55 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func getDetailedUsers(ctx context.Context, jw *utils.JsonWriter, params database.GetDetailedUsersParams) {
-	rows, err := queries.GetDetailedUsers(ctx, params)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		handleDatabaseError(*ei, jw)
-		return
+func getDetailedUsers(ctx context.Context, user_ids []string, guild_id string) ([]models.DetailedUser, *database.ErrorInfo) {
+	detailed_users := make([]models.DetailedUser, len(user_ids))
+
+	for i, user_id := range user_ids {
+		user_rows, err := database.WrapQuery(queries.GetUsersById, ctx, database.GetUsersByIdParams{
+			GuildID: guild_id,
+			UserIds: []string{user_id},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if len(user_rows) != 1 {
+			return nil, err
+		}
+		user := user_rows[0]
+
+		times_rows, err := database.WrapQuery(queries.GetUserTimes, ctx, database.GetUserTimesParams{
+			UserID:  user_id,
+			GuildID: guild_id,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		achievements_rows, err := database.WrapQuery(queries.GetUserAchievements, ctx, user_id)
+		if err != nil {
+			return nil, err
+		}
+
+		events_rows, err := database.WrapQuery(queries.GetUserEvents, ctx, database.GetUserEventsParams{
+			UserID:  user_id,
+			GuildID: guild_id,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		detailed_users[i] = models.DetailedUser{
+			UserId:       user.UserID,
+			GuildId:      user.GuildID,
+			Points:       int(user.Points),
+			Times:        models.UserTimesFromRows(times_rows),
+			Events:       models.UserEventFromRows(events_rows),
+			Achievements: models.UserAchievementsFromRows(achievements_rows),
+		}
 	}
 
-	if len(rows) == 0 {
-		jw.WriteError(models.ERROR_USER_NOT_FOUND)
-		return
-	}
-
-	users := make([]database.DetailedUserJSON, 0, len(rows))
-	for _, row := range rows {
-		user := database.DetailedUserJSON{UserID: row.UserID, GuildID: row.GuildID, Points: row.Points, RSNs: row.Rsns, Times: row.Times, Events: row.Events}
-		users = append(users, user)
-	}
-
-	jw.WriteResponse(users)
+	return detailed_users, nil
 }
 
 // @Summary		Get one or more users by ID(s)
@@ -50,15 +79,15 @@ func getDetailedUsers(ctx context.Context, jw *utils.JsonWriter, params database
 // @Router			/api/v1/guilds/{guild_id}/users/{user_ids} [GET]
 func GetUsersById(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-
 	p := mux.Vars(r)
 
-	params := database.GetDetailedUsersParams{
-		GuildID: p["guild_id"],
-		UserIds: strings.Split(p["user_ids"], ","),
+	detailed_users, err := getDetailedUsers(r.Context(), strings.Split(p["user_ids"], ","), p["guild_id"])
+	if err != nil {
+		handleDatabaseError(*err, jw)
+		return
 	}
 
-	getDetailedUsers(r.Context(), jw, params)
+	jw.WriteResponse(detailed_users)
 }
 
 // @Summary		Get one or more users by RSN(s)
@@ -89,12 +118,11 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	getDetailedUsers(r.Context(), jw, database.GetDetailedUsersParams{
-		UserIds: utils.MapField(users, func(r database.User) string {
-			return r.UserID
-		}),
-		GuildID: p["guild_id"],
-	})
+	getDetailedUsers(
+		r.Context(),
+		utils.MapField(users, func(r database.User) string { return r.UserID }),
+		p["guild_id"],
+	)
 }
 
 // @Summary		Get one or more users by WomID(s)
@@ -125,12 +153,11 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	getDetailedUsers(r.Context(), jw, database.GetDetailedUsersParams{
-		UserIds: utils.MapField(users, func(r database.User) string {
-			return r.UserID
-		}),
-		GuildID: p["guild_id"],
-	})
+	getDetailedUsers(
+		r.Context(),
+		utils.MapField(users, func(r database.User) string { return r.UserID }),
+		p["guild_id"],
+	)
 }
 
 // @Summary		Get the user's achievemnts

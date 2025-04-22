@@ -50,6 +50,71 @@ type User struct {
 	Points  int    `json:"points"`
 }
 
+// Detailed User Model
+// @Description Model of active guild member containing events, times and achievements
+type DetailedUser struct {
+	UserId       string            `json:"user_id"`
+	GuildId      string            `json:"guild_id"`
+	Points       int               `json:"points"`
+	Times        []UserTime        `json:"times"`
+	Events       []UserEvent       `json:"events"`
+	Achievements []UserAchievement `json:"achievements"`
+}
+
+// Detailed Achievement
+// @Description Model of Achievement an user can have
+type UserAchievement struct {
+	Name        string `json:"name"`
+	Thumbnail   string `json:"thumbnail"`
+	DiscordIcon string `json:"discord_icon"`
+	Order       int16  `json:"order"`
+}
+
+func UserAchievementsFromRows(rows []database.GetUserAchievementsRow) []UserAchievement {
+	result := make([]UserAchievement, len(rows))
+	for i := range rows {
+		result[i] = UserAchievement{
+			Name:        rows[i].Name,
+			Thumbnail:   rows[i].Thumbnail,
+			DiscordIcon: rows[i].DiscordIcon,
+		}
+	}
+
+	return result
+}
+
+// Detailed Event
+// @Description Model of WOM event
+type Event struct {
+	Name           string `json:"name"`
+	WomID          string `json:"wom_id"`
+	GuildID        string `json:"guild_id"`
+	PositionCutoff int16  `json:"position_cutoff"`
+}
+
+// User Event
+// @Description Model of Event that user have participated
+type UserEvent struct {
+	Name      string `json:"name"`
+	WomID     string `json:"wom_id"`
+	GuildID   string `json:"guild_id"`
+	Placement int16  `json:"position_cutoff"`
+}
+
+func UserEventFromRows(rows []database.GetUserEventsRow) []UserEvent {
+	result := make([]UserEvent, len(rows))
+	for i := range rows {
+		result[i] = UserEvent{
+			Name:      rows[i].Name,
+			WomID:     rows[i].EventID,
+			GuildID:   rows[i].GuildID,
+			Placement: rows[i].Placement,
+		}
+	}
+
+	return result
+}
+
 // Time teammates
 // @Description Model that represents all teammates of a specific run
 type TimeTeammates struct {

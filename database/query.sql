@@ -93,32 +93,6 @@ SET points = points + @points
 WHERE user_id = ANY(@user_ids::text[])
 AND guild_id = @guild_id RETURNING user_id, guild_id, points;
 
--- name: GetDetailedUsers :many
-SELECT 
-    du.user_id,
-    du.guild_id,
-    du.points,
-    to_json(du.rsns) AS rsns,
-    COALESCE(times_json, '[]'::json) AS times,
-    COALESCE(events_json, '[]'::json) AS events
-FROM detailed_users du
-LEFT JOIN LATERAL (
-    SELECT json_agg(dt) AS times_json
-    FROM detailed_times dt
-    WHERE dt.run_id IN (
-        SELECT tm.run_id
-        FROM teams tm
-        WHERE tm.user_id = du.user_id AND tm.guild_id = du.guild_id
-    )
-) t ON true
-LEFT JOIN LATERAL (
-    SELECT json_agg(de) AS events_json
-    FROM detailed_event de
-    WHERE de.user_id = du.user_id AND de.guild_id = du.guild_id
-) e ON true
-WHERE du.user_id = ANY(@user_ids::text[])
-AND du.guild_id = @guild_id;
-
 -- name: GetLeaderboard :many
 SELECT u.user_id, u.guild_id, u.points, json_agg(r) AS rsns
 FROM users u
@@ -354,7 +328,6 @@ SELECT
     e.wom_id AS event_id,
     e.guild_id,
     ep.user_id,
-    ep.guild_id,
     ep.placement
 FROM event e
 JOIN event_participant ep ON e.wom_id = ep.event_id
