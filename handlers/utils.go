@@ -178,7 +178,7 @@ func ValidateParameters(h http.Handler) http.Handler {
 		defer conn.Release()
 
 		for k, v := range p {
-			var ok bool
+			ok := true
 			switch k {
 			case "guild_id":
 				ok = guildExists(ctx, conn, jw, v)
