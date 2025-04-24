@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -271,7 +270,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	body := models.CreateUserBody{}
 	err := utils.ParseRequestBody(w, r, &body)
 	if err != nil {
-		fmt.Println(err.Error())
 		jw.WriteError(models.ERROR_WRONG_BODY)
 		return
 	}

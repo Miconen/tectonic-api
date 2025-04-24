@@ -157,11 +157,13 @@ func TestMain(t *testing.T) {
 		{
 			Name:   "Create RSN",
 			Method: "POST",
-			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/%s/rsns/%s", vars.GuildId, vars.UserId, vars.RsnExtraEscaped()),
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/%s/rsns", vars.GuildId, vars.UserId),
 			Vars: map[string]string{
 				"guild_id": vars.GuildId,
 				"user_id":  vars.UserId,
-				"rsn":      vars.RsnExtra,
+			},
+			Body: models.CreateRsnBody{
+				RSN: vars.RsnExtra,
 			},
 			Handler:    handlers.CreateRSN,
 			StatusCode: 204,
