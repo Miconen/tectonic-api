@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -258,7 +259,7 @@ func GetUserTimes(w http.ResponseWriter, r *http.Request) {
 // @Failure		409			{object}	models.Empty
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_id} [POST]
+// @Router			/api/v1/guilds/{guild_id}/users [POST]
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
 
@@ -267,13 +268,15 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		GuildID: v["guild_id"],
 	}
 
-	err := utils.ParseRequestBody(w, r, &params)
+	body := models.CreateUserBody{}
+	err := utils.ParseRequestBody(w, r, &body)
 	if err != nil {
+		fmt.Println(err.Error())
 		jw.WriteError(models.ERROR_WRONG_BODY)
 		return
 	}
 
-	wom, err := utils.GetWom(params.Rsn)
+	wom, err := utils.GetWom(body.RSN)
 	if err != nil {
 		jw.WriteError(models.ERROR_RSN_NOT_FOUND)
 		return
