@@ -29,6 +29,13 @@ type Guild struct {
 	PbChannelId NullString `json:"pb_channel_id"`
 }
 
+// CreateUserBody Model
+// @Description Model of new active guild member
+type CreateUserBody struct {
+	UserId string `json:"user_id"`
+	RSN    string `json:"rsn"`
+}
+
 // InputUser Model
 // @Description Model of new active guild member
 type InputUser struct {
