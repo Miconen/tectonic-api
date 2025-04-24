@@ -76,8 +76,8 @@ func TestMain(t *testing.T) {
 
 	handlers.InitHandlers(conn)
 	vars := TestVariables{
-		GuildId:         "420",
-		UserId:          "69",
+		GuildId:         "test_guild",
+		UserId:          "test_user",
 		Rsn:             "Comfy hug",
 		RsnExtra:        "Uncomfy hug",
 		ChannelId:       "2012",
@@ -91,15 +91,13 @@ func TestMain(t *testing.T) {
 	createUser := TestTable{
 		Name:   "Create User",
 		Method: "POST",
-		Path:   fmt.Sprintf("/api/v1/guilds/%s/users/%s", vars.GuildId, vars.UserId),
+		Path:   fmt.Sprintf("/api/v1/guilds/%s/users", vars.GuildId),
 		Vars: map[string]string{
 			"guild_id": vars.GuildId,
-			"user_id":  vars.UserId,
 		},
-		Body: models.InputUser{
-			UserId:  vars.UserId,
-			GuildId: vars.GuildId,
-			RSN:     vars.Rsn,
+		Body: models.CreateUserBody{
+			UserId: vars.UserId,
+			RSN:    vars.Rsn,
 		},
 		Handler:    handlers.CreateUser,
 		StatusCode: 201,
@@ -214,36 +212,36 @@ func TestMain(t *testing.T) {
 			StatusCode: 200,
 		},
 		{
-			Name: "Get User events",
+			Name:   "Get User events",
 			Method: "GET",
-			Path: fmt.Sprintf("/api/v1/guilds/%s/users/%s/events", vars.GuildId, vars.UserId),
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/%s/events", vars.GuildId, vars.UserId),
 			Vars: map[string]string{
 				"guild_id": vars.GuildId,
-				"user_id": vars.UserId,
+				"user_id":  vars.UserId,
 			},
-			Handler: handlers.GetUserEvents,
+			Handler:    handlers.GetUserEvents,
 			StatusCode: 200,
 		},
 		{
-			Name: "Get User times",
+			Name:   "Get User times",
 			Method: "GET",
-			Path: fmt.Sprintf("/api/v1/guilds/%s/users/%s/times", vars.GuildId, vars.UserId),
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/%s/times", vars.GuildId, vars.UserId),
 			Vars: map[string]string{
 				"guild_id": vars.GuildId,
-				"user_id": vars.UserId,
+				"user_id":  vars.UserId,
 			},
-			Handler: handlers.GetUserTimes,
+			Handler:    handlers.GetUserTimes,
 			StatusCode: 200,
 		},
 		{
-			Name: "Get User achievements",
+			Name:   "Get User achievements",
 			Method: "GET",
-			Path: fmt.Sprintf("/api/v1/guilds/%s/users/%s/achievements", vars.GuildId, vars.UserId),
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/%s/achievements", vars.GuildId, vars.UserId),
 			Vars: map[string]string{
 				"guild_id": vars.GuildId,
-				"user_id": vars.UserId,
+				"user_id":  vars.UserId,
 			},
-			Handler: handlers.GetUserAchievements,
+			Handler:    handlers.GetUserAchievements,
 			StatusCode: 200,
 		},
 		{
