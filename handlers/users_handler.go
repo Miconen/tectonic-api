@@ -282,6 +282,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	params.WomID = strconv.Itoa(wom.Id)
 	params.Rsn = wom.DisplayName
+	params.UserID = body.UserId
 
 	user, err := queries.CreateUser(r.Context(), params)
 	if err != nil {
