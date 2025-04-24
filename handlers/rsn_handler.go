@@ -35,13 +35,14 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 		UserID:  p["user_id"],
 	}
 
-	err := utils.ParseRequestBody(w, r, &params)
+	body := models.CreateRsnBody{}
+	err := utils.ParseRequestBody(w, r, &body)
 	if err != nil {
 		jw.WriteError(models.ERROR_WRONG_BODY)
 		return
 	}
 
-	wom, err := utils.GetWom(params.Rsn)
+	wom, err := utils.GetWom(body.RSN)
 	if err != nil {
 		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return

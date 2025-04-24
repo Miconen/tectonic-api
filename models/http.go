@@ -36,6 +36,12 @@ type CreateUserBody struct {
 	RSN    string `json:"rsn"`
 }
 
+// CreateRsnBody Model
+// @Description Model of new guild member RSN
+type CreateRsnBody struct {
+	RSN string `json:"rsn"`
+}
+
 // InputUser Model
 // @Description Model of new active guild member
 type InputUser struct {
