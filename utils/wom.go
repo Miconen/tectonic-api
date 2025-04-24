@@ -28,7 +28,7 @@ func GetWom(rsn string) (Wom, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		fmt.Println("Unexpected status code:", response.StatusCode)
+		log.Error("unexpected wom api status code", "status", response.StatusCode)
 		return result, errors.New("Unexpected status code:" + strconv.Itoa(response.StatusCode))
 	}
 
@@ -52,7 +52,7 @@ func GetCompetition(id int) (models.WomCompetition, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		fmt.Println("Unexpected status code:", response.StatusCode)
+		log.Error("unexpected wom api status code", "status", response.StatusCode)
 		return result, errors.New("Unexpected status code:" + strconv.Itoa(response.StatusCode))
 	}
 
