@@ -107,7 +107,7 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 
 	p := mux.Vars(r)
 
-	users, err := database.WrapQuery(queries.GetUsersByRsn, r.Context(), database.GetUsersByRsnParams{
+	user_ids, err := database.WrapQuery(queries.GetGuildUserByRsn, r.Context(), database.GetGuildUserByRsnParams{
 		GuildID: p["guild_id"],
 		Rsns:    strings.Split(p["rsns"], ","),
 	})
@@ -117,11 +117,18 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	getDetailedUsers(
+	users, ei := getDetailedUsers(
 		r.Context(),
-		utils.MapField(users, func(r database.User) string { return r.UserID }),
+		user_ids,
 		p["guild_id"],
 	)
+
+	if ei != nil {
+		handleDatabaseError(*ei, jw)
+		return
+	}
+
+	jw.WriteResponse(users)
 }
 
 // @Summary		Get one or more users by WomID(s)
@@ -142,7 +149,7 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 
 	p := mux.Vars(r)
 
-	users, err := database.WrapQuery(queries.GetUsersByWom, r.Context(), database.GetUsersByWomParams{
+	user_ids, err := database.WrapQuery(queries.GetGuildUserByWom, r.Context(), database.GetGuildUserByWomParams{
 		GuildID: p["guild_id"],
 		WomIds:  strings.Split(p["wom_ids"], ","),
 	})
@@ -152,11 +159,18 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	getDetailedUsers(
+	users, ei := getDetailedUsers(
 		r.Context(),
-		utils.MapField(users, func(r database.User) string { return r.UserID }),
+		user_ids,
 		p["guild_id"],
 	)
+
+	if ei != nil {
+		handleDatabaseError(*ei, jw)
+		return
+	}
+
+	jw.WriteResponse(users)
 }
 
 // @Summary		Get the user's achievemnts
