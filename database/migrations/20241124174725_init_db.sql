@@ -227,8 +227,8 @@ EXECUTE FUNCTION insert_default_point_sources();
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TRIGGER insert_default_point_sources_trigger ON guilds
-DROP FUNCTION insert_default_point_sources()
+DROP TRIGGER insert_default_point_sources_trigger ON guilds;
+DROP FUNCTION insert_default_point_sources();
 DROP TABLE IF EXISTS "point_sources";
 DROP TABLE IF EXISTS "users";
 DROP SEQUENCE IF EXISTS times_run_id_seq;
