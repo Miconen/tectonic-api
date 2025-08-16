@@ -197,7 +197,7 @@ func (e APIV1ErrorCode) Status() int {
 		return http.StatusConflict
 	}
 
-	return 666
+	return http.StatusInternalServerError
 }
 
 func (e APIV1ErrorCode) ToErrorResponse() ErrorResponse {
