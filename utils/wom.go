@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,42 +15,53 @@ type Wom struct {
 	DisplayName string `json:"displayName"`
 }
 
-var endpoint = "https://api.wiseoldman.net/v2"
-var players = endpoint + "/players/"
-var competitions = endpoint + "/competitions/"
-
-func GetWom(rsn string) (Wom, error) {
-	var result Wom
-
-	response, err := http.Get(players + rsn)
-	if err != nil {
-		return result, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		log.Error("unexpected wom api status code", "status", response.StatusCode)
-		return result, errors.New("Unexpected status code:" + strconv.Itoa(response.StatusCode))
-	}
-
-	err = json.NewDecoder(response.Body).Decode(&result)
-	if err != nil {
-		fmt.Println("Error decoding JSON:", err)
-		return result, err
-	}
-
-	return result, nil
+type WomClient struct {
+	baseURL    string
+	httpClient *http.Client
 }
 
-func GetCompetition(id int) (models.WomCompetition, error) {
-	var result models.WomCompetition
+func NewWomClient(cfg *Config) *WomClient {
+	return &WomClient{
+		baseURL: cfg.WOM.BaseURL,
+		httpClient: &http.Client{
+			Timeout: cfg.WOM.Timeout,
+		},
+	}
+}
 
-	response, err := http.Get(competitions + strconv.Itoa(id))
+func (c *WomClient) GetWom(rsn string) (Wom, error) {
+	url := c.baseURL + "/players/" + rsn
+	return handleResponse[Wom](url, c)
+}
+
+func (c *WomClient) GetCompetition(id int) (models.WomCompetition, error) {
+	url := c.baseURL + "/competitions/" + strconv.Itoa(id)
+	return handleResponse[models.WomCompetition](url, c)
+}
+
+func handleResponse[T any](url string, c *WomClient) (T, error) {
+	var result T
+
+	ctx, cancel := context.WithTimeout(context.Background(), c.httpClient.Timeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
+		log.Error("failed to create wom api request", "url", url, "error", err)
 		return result, err
 	}
 
-	defer response.Body.Close()
+	// Send request and handle timeout errors
+	response, err := c.httpClient.Do(req)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			log.Error("wom request timed out", "url", url, "timeout", c.httpClient.Timeout, "error", err)
+		} else {
+			log.Error("wom request failed", "url", url, "error", err)
+		}
+		return result, err
+	}
+	defer req.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
 		log.Error("unexpected wom api status code", "status", response.StatusCode)
@@ -58,6 +70,7 @@ func GetCompetition(id int) (models.WomCompetition, error) {
 
 	err = json.NewDecoder(response.Body).Decode(&result)
 	if err != nil {
+		log.Error("failed to decode wom response", "error", err)
 		fmt.Println("Error decoding JSON:", err)
 		return result, err
 	}

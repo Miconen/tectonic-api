@@ -42,7 +42,7 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wom, err := utils.GetWom(body.RSN)
+	wom, err := womClient.GetWom(body.RSN)
 	if err != nil {
 		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return

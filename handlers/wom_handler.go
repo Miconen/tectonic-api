@@ -51,7 +51,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	competition, err := utils.GetCompetition(id)
+	competition, err := womClient.GetCompetition(id)
 	if err != nil {
 		// TODO: differentiate response errors from request errors
 		jw.WriteError(models.ERROR_WRONG_PARAMS)

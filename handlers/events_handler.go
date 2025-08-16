@@ -95,7 +95,7 @@ func RegisterEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, err := utils.GetCompetition(b.EventId)
+	c, err := womClient.GetCompetition(b.EventId)
 	if err != nil {
 		jw.WriteError(models.ERROR_WOM_UNAVAILABLE)
 		return
