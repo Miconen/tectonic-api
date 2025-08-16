@@ -22,7 +22,7 @@ func Authentication(next http.Handler) http.Handler {
 		rlog.Debug("Validating API key")
 		validApiKey := os.Getenv("API_KEY")
 		if apiKey != validApiKey {
-			rlog.Warn("Authentication key is invalid", "key", apiKey)
+			rlog.Warn("Authentication key is invalid")
 			jw := utils.NewJsonWriter(w, r, http.StatusUnauthorized)
 			jw.WriteError(models.ERROR_INVALID_TOKEN)
 			return
