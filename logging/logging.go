@@ -1,20 +1,45 @@
-package utils
+package logging
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"strings"
+	"tectonic-api/config"
 	"time"
 )
 
-var log = NewLogger()
+var logger *slog.Logger
+var settings *LoggerConfig
 
-func NewLogger() *slog.Logger {
-	level_env := strings.ToLower(os.Getenv("LOG_LEVEL"))
+func Get() *slog.Logger {
+	if logger == nil {
+		fmt.Fprintf(os.Stderr, "Error loading logger")
+		os.Exit(1)
+	}
+
+	return logger
+}
+
+type LoggerConfig struct {
+	level      string
+	jsonOutput bool
+}
+
+func Init(cfg *config.Config) {
+	settings = &LoggerConfig{
+		level:      strings.ToLower(cfg.LogLevel),
+		jsonOutput: false,
+	}
+
+	if cfg.RailwayProjectID != "" {
+		settings.jsonOutput = true
+	}
+
 	level := slog.LevelInfo
 
-	switch level_env {
+	switch settings.level {
 	case "debug":
 		level = slog.LevelDebug
 	case "info":
@@ -25,35 +50,23 @@ func NewLogger() *slog.Logger {
 		level = slog.LevelError
 	}
 
-	if os.Getenv("RAILWAY_PROJECT_ID") != "" {
-		return slog.New(slog.NewJSONHandler(os.Stderr,
-			&slog.HandlerOptions{
-				ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-					if a.Key == slog.TimeKey {
-						t := a.Value.Time()
-						a.Value = slog.StringValue(t.Format("15:04:05"))
-					}
-					return a
-				},
-				Level: level,
-			},
-		))
-	} else {
-		return slog.New(slog.NewTextHandler(os.Stderr,
-			&slog.HandlerOptions{
-				ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-					if a.Key == slog.TimeKey {
-						t := a.Value.Time()
-						a.Value = slog.StringValue(t.Format("15:04:05"))
-					}
-					return a
-				},
-				Level: level,
-			},
-		))
-
+	opts := &slog.HandlerOptions{
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == slog.TimeKey {
+				t := a.Value.Time()
+				a.Value = slog.StringValue(t.Format("15:04:05"))
+			}
+			return a
+		},
+		Level: level,
 	}
 
+	if settings.jsonOutput {
+		logger = slog.New(slog.NewJSONHandler(os.Stderr, opts))
+		return
+	}
+
+	logger = slog.New(slog.NewTextHandler(os.Stderr, opts))
 }
 
 // statusRecorder wraps the ResponseWriter to capture the status code
@@ -79,8 +92,8 @@ func LoggingHandler(h http.Handler) http.Handler {
 		h.ServeHTTP(recorder, r)
 		duration := time.Since(start)
 
-		if os.Getenv("RAILWAY_PROJECT_ID") != "" {
-			log.Info(r.URL.Path,
+		if settings.jsonOutput {
+			Get().Info(r.URL.Path,
 				"header", r.Header,
 				"method", r.Method,
 				"status", recorder.statusCode,
@@ -90,7 +103,7 @@ func LoggingHandler(h http.Handler) http.Handler {
 				"duration", duration.String(),
 			)
 		} else {
-			log.Info(r.URL.Path,
+			Get().Info(r.URL.Path,
 				"method", r.Method,
 				"status", recorder.statusCode,
 				"time", start,

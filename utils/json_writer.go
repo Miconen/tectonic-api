@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"net/http"
+	"tectonic-api/logging"
 	"tectonic-api/models"
 )
 
@@ -25,7 +26,7 @@ func (jw *JsonWriter) SetStatus(statusCode int) {
 }
 
 func (jw *JsonWriter) WriteResponse(body any) {
-	log.Debug("writing http response", "body", body, "status", jw.statusCode)
+	logging.Get().Debug("writing http response", "body", body, "status", jw.statusCode)
 
 	if body == nil || body == http.NoBody {
 		body = struct{}{}
@@ -38,7 +39,7 @@ func (jw *JsonWriter) WriteResponse(body any) {
 		err := enc.Encode(body)
 
 		if err != nil {
-			log.Error("failed to write response", "error", err)
+			logging.Get().Error("failed to write response", "error", err)
 			http.Error(jw.w, "Internal server error", http.StatusInternalServerError)
 		}
 	} else {

@@ -3,16 +3,15 @@ package middleware
 import (
 	"net/http"
 	"os"
+	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
 )
 
-var log = utils.NewLogger()
-
 func Authentication(next http.Handler) http.Handler {
-	log.Debug("Adding authentication handler")
+	logging.Get().Debug("Adding authentication handler")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rlog := log.With(
+		rlog := logging.Get().With(
 			"method", r.Method,
 			"url", r.URL,
 		)

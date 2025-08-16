@@ -3,24 +3,25 @@ package handlers
 import (
 	"net/http"
 	"tectonic-api/database"
+	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
 )
 
-//	@Summary		Get a guilds leaderboard by ID
-//	@Description	Get guilds leaderboard details by unique guild Snowflake (ID)
-//	@Tags			Leaderboard
-//	@Produce		json
-//	@Param			guild_id	path		string	true	"Guild ID"
-//	@Success		200			{object}	models.Users
-//	@Failure		400			{object}	models.Empty
-//	@Failure		401			{object}	models.Empty
-//	@Failure		404			{object}	models.Empty
-//	@Failure		429			{object}	models.Empty
-//	@Failure		500			{object}	models.Empty
-//	@Router			/api/v1/guilds/{guild_id}/leaderboard [GET]
+// @Summary		Get a guilds leaderboard by ID
+// @Description	Get guilds leaderboard details by unique guild Snowflake (ID)
+// @Tags			Leaderboard
+// @Produce		json
+// @Param			guild_id	path		string	true	"Guild ID"
+// @Success		200			{object}	models.Users
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		404			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/leaderboard [GET]
 func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
@@ -31,7 +32,7 @@ func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 		UserLimit: 50,
 	}
 
-	log.DebugContext(r.Context(), "querying leaderboard from database", "guild_id", params.GuildID, "user_limit", params.UserLimit)
+	logging.Get().DebugContext(r.Context(), "querying leaderboard from database", "guild_id", params.GuildID, "user_limit", params.UserLimit)
 	rows, err := queries.GetLeaderboard(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"tectonic-api/database"
+	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
 
@@ -11,18 +12,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-//	@Summary		Get a guild by ID
-//	@Description	Get guild details by unique guild Snowflake (ID)
-//	@Tags			Guild
-//	@Produce		json
-//	@Param			guild_id	path		string	true	"Guild ID"
-//	@Success		200			{object}	models.Guild
-//	@Failure		400			{object}	models.Empty
-//	@Failure		401			{object}	models.Empty
-//	@Failure		404			{object}	models.Empty
-//	@Failure		429			{object}	models.Empty
-//	@Failure		500			{object}	models.Empty
-//	@Router			/api/v1/guilds/{guild_id} [GET]
+// @Summary		Get a guild by ID
+// @Description	Get guild details by unique guild Snowflake (ID)
+// @Tags			Guild
+// @Produce		json
+// @Param			guild_id	path		string	true	"Guild ID"
+// @Success		200			{object}	models.Guild
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		404			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id} [GET]
 func GetGuild(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
@@ -30,7 +31,7 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 
 	guildId, ok := v["guild_id"]
 	if !ok {
-		log.Error("no guild id found in params")
+		logging.Get().Error("no guild id found in params")
 		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return
 	}
@@ -46,19 +47,19 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(guild)
 }
 
-//	@Summary		Create / Initialize a guild
-//	@Description	Initialize a guild in our backend by unique guild Snowflake (ID)
-//	@Tags			Guild
-//	@Accept			json
-//	@Produce		json
-//	@Param			guild	body		models.InputGuild	true	"Guild"
-//	@Success		201		{object}	models.Empty
-//	@Failure		400		{object}	models.Empty
-//	@Failure		401		{object}	models.Empty
-//	@Failure		409		{object}	models.Empty
-//	@Failure		429		{object}	models.Empty
-//	@Failure		500		{object}	models.Empty
-//	@Router			/api/v1/guilds [POST]
+// @Summary		Create / Initialize a guild
+// @Description	Initialize a guild in our backend by unique guild Snowflake (ID)
+// @Tags			Guild
+// @Accept			json
+// @Produce		json
+// @Param			guild	body		models.InputGuild	true	"Guild"
+// @Success		201		{object}	models.Empty
+// @Failure		400		{object}	models.Empty
+// @Failure		401		{object}	models.Empty
+// @Failure		409		{object}	models.Empty
+// @Failure		429		{object}	models.Empty
+// @Failure		500		{object}	models.Empty
+// @Router			/api/v1/guilds [POST]
 func CreateGuild(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
 
@@ -82,18 +83,18 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(http.NoBody)
 }
 
-//	@Summary		Delete a guild
-//	@Description	Delete a guild in our backend by unique guild Snowflake (ID)
-//	@Tags			Guild
-//	@Produce		json
-//	@Param			guild_id	path		string	true	"Guild ID"
-//	@Success		204			{object}	models.Empty
-//	@Failure		400			{object}	models.Empty
-//	@Failure		401			{object}	models.Empty
-//	@Failure		404			{object}	models.Empty
-//	@Failure		429			{object}	models.Empty
-//	@Failure		500			{object}	models.Empty
-//	@Router			/api/v1/guilds/{guild_id} [DELETE]
+// @Summary		Delete a guild
+// @Description	Delete a guild in our backend by unique guild Snowflake (ID)
+// @Tags			Guild
+// @Produce		json
+// @Param			guild_id	path		string	true	"Guild ID"
+// @Success		204			{object}	models.Empty
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		404			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id} [DELETE]
 func DeleteGuild(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
@@ -101,7 +102,7 @@ func DeleteGuild(w http.ResponseWriter, r *http.Request) {
 
 	guildId, ok := v["guild_id"]
 	if !ok {
-		log.Error("no guild id found")
+		logging.Get().Error("no guild id found")
 		jw.WriteError(models.ERROR_WRONG_PARAMS)
 		return
 	}
@@ -127,20 +128,20 @@ type GuildParams struct {
 	CategoryMessages []CategoryMessage `json:"category_messages"`
 }
 
-//	@Summary		Updates a guild
-//	@Description	Update multiplier and/or time channel for a guild
-//	@Tags			Guild
-//	@Accept			json
-//	@Produce		json
-//	@Param			guild_id	path		string				true	"Guild ID"
-//	@Param			guild		body		models.UpdateGuild	true	"Guild"
-//	@Success		204			{object}	models.Empty
-//	@Failure		400			{object}	models.Empty
-//	@Failure		401			{object}	models.Empty
-//	@Failure		404			{object}	models.Empty
-//	@Failure		429			{object}	models.Empty
-//	@Failure		500			{object}	models.Empty
-//	@Router			/api/v1/guilds/{guild_id} [PUT]
+// @Summary		Updates a guild
+// @Description	Update multiplier and/or time channel for a guild
+// @Tags			Guild
+// @Accept			json
+// @Produce		json
+// @Param			guild_id	path		string				true	"Guild ID"
+// @Param			guild		body		models.UpdateGuild	true	"Guild"
+// @Success		204			{object}	models.Empty
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		404			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id} [PUT]
 func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
@@ -148,7 +149,7 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 
 	tx, err := database.CreateTx(r.Context())
 	if err != nil {
-		log.Error("Error creating transaction", "error", err)
+		logging.Get().Error("Error creating transaction", "error", err)
 		jw.WriteError(models.ERROR_API_UNAVAILABLE)
 		return
 	}
@@ -159,7 +160,7 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 	var params GuildParams
 	err = json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		log.Error("Failed to parse request body")
+		logging.Get().Error("Failed to parse request body")
 		jw.WriteError(models.ERROR_WRONG_BODY)
 		return
 	}

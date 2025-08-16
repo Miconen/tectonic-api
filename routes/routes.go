@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 	"tectonic-api/handlers"
+	"tectonic-api/logging"
 	"tectonic-api/middleware"
 	"tectonic-api/utils"
 
@@ -33,7 +34,7 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	})
 
 	r := b.router.PathPrefix("/api/v1").Subrouter()
-	r.Use(utils.LoggingHandler, middleware.Authentication, handlers.ValidateParameters)
+	r.Use(logging.LoggingHandler, middleware.CORS, middleware.RateLimit, middleware.Authentication, handlers.ValidateParameters)
 
 	// Non-guild functionality
 	r.HandleFunc("/bosses", handlers.GetBosses).Methods("GET")
