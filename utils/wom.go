@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"tectonic-api/config"
+	"tectonic-api/logging"
 	"tectonic-api/models"
 )
 
@@ -20,7 +22,7 @@ type WomClient struct {
 	httpClient *http.Client
 }
 
-func NewWomClient(cfg *Config) *WomClient {
+func NewWomClient(cfg *config.Config) *WomClient {
 	return &WomClient{
 		baseURL: cfg.WOM.BaseURL,
 		httpClient: &http.Client{
@@ -47,7 +49,7 @@ func handleResponse[T any](url string, c *WomClient) (T, error) {
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
-		log.Error("failed to create wom api request", "url", url, "error", err)
+		logging.Get().Error("failed to create wom api request", "url", url, "error", err)
 		return result, err
 	}
 
@@ -55,22 +57,22 @@ func handleResponse[T any](url string, c *WomClient) (T, error) {
 	response, err := c.httpClient.Do(req)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
-			log.Error("wom request timed out", "url", url, "timeout", c.httpClient.Timeout, "error", err)
+			logging.Get().Error("wom request timed out", "url", url, "timeout", c.httpClient.Timeout, "error", err)
 		} else {
-			log.Error("wom request failed", "url", url, "error", err)
+			logging.Get().Error("wom request failed", "url", url, "error", err)
 		}
 		return result, err
 	}
-	defer req.Body.Close()
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		log.Error("unexpected wom api status code", "status", response.StatusCode)
+		logging.Get().Error("unexpected wom api status code", "status", response.StatusCode)
 		return result, errors.New("Unexpected status code:" + strconv.Itoa(response.StatusCode))
 	}
 
 	err = json.NewDecoder(response.Body).Decode(&result)
 	if err != nil {
-		log.Error("failed to decode wom response", "error", err)
+		logging.Get().Error("failed to decode wom response", "error", err)
 		fmt.Println("Error decoding JSON:", err)
 		return result, err
 	}
