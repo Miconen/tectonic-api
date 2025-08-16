@@ -2,10 +2,11 @@ package middleware
 
 import (
 	"net/http"
+	"tectonic-api/logging"
 )
 
 func CORS(next http.Handler) http.Handler {
-	log.Debug("Adding CORS handler")
+	logging.Get().Debug("Adding CORS handler")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")

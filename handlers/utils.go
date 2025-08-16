@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"tectonic-api/database"
+	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
 	"time"
@@ -99,7 +100,7 @@ func getConstraintError(ei database.ErrorInfo) models.APIV1Error {
 		}
 	}
 
-	log.Error("Database untreated error", "error_info", ei)
+	logging.Get().Error("Database untreated error", "error_info", ei)
 	return models.ERROR_TODO(400, time.Now().String())
 }
 
@@ -110,13 +111,13 @@ func handleDatabaseError(ei database.ErrorInfo, jw *utils.JsonWriter) {
 	dh := &dbHandler{ErrorInfo: ei}
 
 	if dh.Severity == database.SeverityFatal || dh.Severity == database.SeverityPanic {
-		log.Error("DATABASE FAILURE", "err", dh.Error())
+		logging.Get().Error("DATABASE FAILURE", "err", dh.Error())
 		jw.WriteError(models.ERROR_API_DEAD)
 	} else if !dh.Recoverable {
-		log.Error("DATABASE NON-RECOVERABLE ERROR", "err", dh.Error())
+		logging.Get().Error("DATABASE NON-RECOVERABLE ERROR", "err", dh.Error())
 		jw.WriteError(models.ERROR_API_UNAVAILABLE)
 	} else {
-		log.Warn("QUERY ERROR", "err", dh.Error())
+		logging.Get().Warn("QUERY ERROR", "err", dh.Error())
 		jw.WriteError(getConstraintError(ei))
 	}
 }
@@ -127,13 +128,13 @@ func handleDatabaseErrorCustom(ei database.ErrorInfo, jw *utils.JsonWriter, dhc 
 	dh := &dbHandler{ErrorInfo: ei}
 
 	if dh.Severity == database.SeverityFatal || dh.Severity == database.SeverityPanic {
-		log.Error("DATABASE FAILURE", "err", dh.Error())
+		logging.Get().Error("DATABASE FAILURE", "err", dh.Error())
 		jw.WriteError(models.ERROR_API_DEAD)
 	} else if !dh.Recoverable {
-		log.Error("DATABASE NON-RECOVERABLE ERROR", "err", dh.Error())
+		logging.Get().Error("DATABASE NON-RECOVERABLE ERROR", "err", dh.Error())
 		jw.WriteError(models.ERROR_API_UNAVAILABLE)
 	} else {
-		log.Warn("QUERY ERROR", "err", dh.Error())
+		logging.Get().Warn("QUERY ERROR", "err", dh.Error())
 		dhc(dh, jw)
 	}
 }

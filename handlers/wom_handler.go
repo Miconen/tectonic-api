@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"tectonic-api/database"
+	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
 
@@ -136,7 +137,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(points) == 0 {
-		log.Info("no activated users found in competition")
+		logging.Get().Info("no activated users found in competition")
 	}
 
 	for i := range users {
