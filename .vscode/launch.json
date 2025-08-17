@@ -1,14 +1,21 @@
-{
-  "version": "0.2.0",
-  "configurations": [
-        {
-            "name": "Launch Web Application",
-            "type": "go",
-            "request": "launch",
-            "mode": "debug",
-            "program": "${workspaceFolder}",
-            "args": [],
-            "env": {}
-        }
-  ]
-}
+  {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Attach",
+        "type": "go",
+        "request": "attach",
+        "mode": "remote",
+        "remotePath": "",
+        "port": 2345,
+        "host": "127.0.0.1",
+        "showLog": true,
+        "trace": "log",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/tectonic",
+          "API_KEY": "123",
+        },
+        "logOutput": "rpc"
+      }
+    ]
+  }

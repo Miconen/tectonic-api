@@ -5,54 +5,122 @@ import (
 	"time"
 )
 
-// InputGuild Model
+// InputGuild Model - for creating guilds
 // @Description Model of new guild data
 type InputGuild struct {
-	GuildId     string `json:"guild_id"`
-	Multiplier  int    `json:"multiplier" optional:"true"`
-	PbChannelId string `json:"pb_channel_id" optional:"true"`
+	GuildId     string `json:"guild_id" validate:"required,discord_snowflake"`
+	Multiplier  int    `json:"multiplier" validate:"omitempty,min=1,max=10"`
+	PbChannelId string `json:"pb_channel_id" validate:"omitempty,discord_snowflake"`
 }
 
-// UpdateGuild Model
-// @Description Model of updated guild data (Exists so PbChannelId can be properly parsed)
+// UpdateGuild Model - for updating guilds
+// @Description Model of updated guild data
 type UpdateGuild struct {
-	GuildId     string `json:"guild_id"`
-	Multiplier  int    `json:"multiplier"`
-	PbChannelId string `json:"pb_channel_id"`
+	GuildId     string `json:"guild_id" validate:"required,discord_snowflake"`
+	Multiplier  int    `json:"multiplier" validate:"omitempty,min=1,max=10"`
+	PbChannelId string `json:"pb_channel_id" validate:"omitempty,discord_snowflake"`
 }
 
-// Guild Model
-// @Description Model of guild data
-type Guild struct {
-	GuildId     string     `json:"guild_id"`
-	Multiplier  int        `json:"multiplier"`
-	PbChannelId NullString `json:"pb_channel_id"`
-}
-
-// CreateUserBody Model
+// CreateUserBody Model - for creating users
 // @Description Model of new active guild member
 type CreateUserBody struct {
-	UserId string `json:"user_id"`
-	RSN    string `json:"rsn"`
+	UserId string `json:"user_id" validate:"required,discord_snowflake"`
+	RSN    string `json:"rsn" validate:"required,rsn,min=1,max=12"`
 }
 
-// CreateRsnBody Model
+// CreateRsnBody Model - for adding RSNs to existing users
 // @Description Model of new guild member RSN
 type CreateRsnBody struct {
-	RSN string `json:"rsn"`
+	RSN string `json:"rsn" validate:"required,rsn,min=1,max=12"`
 }
 
-// InputUser Model
+// InputUser Model - legacy model (if still used)
 // @Description Model of new active guild member
 type InputUser struct {
-	UserId  string `json:"user_id"`
-	GuildId string `json:"guild_id"`
-	RSN     string `json:"rsn"`
+	UserId  string `json:"user_id" validate:"required,discord_snowflake"`
+	GuildId string `json:"guild_id" validate:"required,discord_snowflake"`
+	RSN     string `json:"rsn" validate:"required,rsn,min=1,max=12"`
 }
 
-type GuildUsers interface {
-	GetUserIDs() []string
-	GetGuildID() string
+// InputTime Model - for creating time records
+// @Description Model of a new time submission
+type InputTime struct {
+	Time     int      `json:"time" validate:"required,positive_time"`
+	BossName string   `json:"boss_name" validate:"required,min=1,max=50"`
+	UserIds  []string `json:"user_ids" validate:"required,min=1,max=8,dive,discord_snowflake"`
+}
+
+// InputRSN Model - legacy RSN input (if still used)
+// @Description Model of RSN association
+type InputRSN struct {
+	RSN     string `json:"rsn" validate:"required,rsn,min=1,max=12"`
+	UserId  string `json:"user_id" validate:"required,discord_snowflake"`
+	GuildId string `json:"guild_id" validate:"required,discord_snowflake"`
+}
+
+// InputEvent Model - for creating/registering events
+// @Description Model of event registration data
+type InputEvent struct {
+	EventId        int      `json:"event_id" validate:"required,min=1"`
+	TeamNames      []string `json:"team_names" validate:"omitempty,dive,min=1,max=20"`
+	PositionCutoff int      `json:"position_cutoff" validate:"omitempty,min=1,max=100"`
+}
+
+// CategoryMessage Model - for guild category message updates
+// @Description Model for category message ID updates
+type CategoryMessage struct {
+	MessageID string `json:"message_id" validate:"required,discord_snowflake"`
+	Category  string `json:"category" validate:"required,min=1,max=30"`
+}
+
+// GuildParams Model - for complex guild updates (from guild_handler.go)
+// @Description Model for guild parameter updates
+type GuildParams struct {
+	Multiplier       *float64          `json:"multiplier" validate:"omitempty,min=0.1,max=10"`
+	PbChannelID      string            `json:"pb_channel_id" validate:"omitempty,discord_snowflake"`
+	CategoryMessages []CategoryMessage `json:"category_messages" validate:"omitempty,dive"`
+}
+
+// Additional models that might need validation:
+
+// PointUpdate Model - for manual point updates
+// @Description Model for manual point adjustments
+type PointUpdate struct {
+	Points  int32    `json:"points" validate:"required"`
+	UserIds []string `json:"user_ids" validate:"required,min=1,dive,discord_snowflake"`
+	Reason  string   `json:"reason" validate:"omitempty,max=100"`
+}
+
+// CompetitionRequest Model - for WOM competition handling
+// @Description Model for competition processing requests
+type CompetitionRequest struct {
+	CompetitionId int `json:"competition_id" validate:"required,min=1"`
+	Cutoff        int `json:"cutoff" validate:"required,min=0"`
+}
+
+// AchievementInput Model - for achievement management
+// @Description Model for achievement creation/updates
+type AchievementInput struct {
+	Name        string `json:"name" validate:"required,min=1,max=50"`
+	Thumbnail   string `json:"thumbnail" validate:"required,url"`
+	DiscordIcon string `json:"discord_icon" validate:"required,min=1,max=100"`
+	Order       int16  `json:"order" validate:"min=0"`
+}
+
+// BulkUserOperation Model - for operations on multiple users
+// @Description Model for bulk user operations
+type BulkUserOperation struct {
+	UserIds   []string               `json:"user_ids" validate:"required,min=1,max=50,dive,discord_snowflake"`
+	Operation string                 `json:"operation" validate:"required,oneof=add remove update"`
+	Data      map[string]interface{} `json:"data,omitempty"`
+}
+
+// TimeUpdate Model - for updating existing times
+// @Description Model for time record updates
+type TimeUpdate struct {
+	Time     *int     `json:"time" validate:"omitempty,positive_time"`
+	BossName *string  `json:"boss_name" validate:"omitempty,min=1,max=50"`
+	UserIds  []string `json:"user_ids" validate:"omitempty,min=1,max=8,dive,discord_snowflake"`
 }
 
 // User Model
@@ -94,15 +162,6 @@ func UserAchievementsFromRows(rows []database.GetUserAchievementsRow) []UserAchi
 	}
 
 	return result
-}
-
-// Detailed Event
-// @Description Model of WOM event
-type Event struct {
-	Name           string `json:"name"`
-	WomID          string `json:"wom_id"`
-	GuildID        string `json:"guild_id"`
-	PositionCutoff int16  `json:"position_cutoff"`
 }
 
 // User Event
@@ -182,15 +241,6 @@ type Users struct {
 	Users []User `json:"users,omitempty"`
 }
 
-// InputTime Model
-// @Description Model of a new time
-type InputTime struct {
-	GuildId  string   `json:"guild_id"`
-	Time     int      `json:"time"`
-	BossName string   `json:"boss_name"`
-	UserIds  []string `json:"user_ids"`
-}
-
 // TimeResponse Model
 // @Description Return type of times endpoint retaining information to new and old time
 type TimeResponse struct {
@@ -216,23 +266,11 @@ type Teammate struct {
 	UserId  string `json:"user_id"`
 }
 
-type InputRSN struct {
-	RSN     string `json:"rsn"`
-	UserId  string `json:"user_id"`
-	GuildId string `json:"guild_id"`
-}
-
 type RSN struct {
 	RSN     string `json:"rsn"`
 	WomId   string `json:"wom_id"`
 	UserId  string `json:"user_id"`
 	GuildId string `json:"guild_id"`
-}
-
-type InputEvent struct {
-	EventId        int      `json:"event_id"`
-	TeamNames      []string `json:"team_names" optional:"true"`
-	PositionCutoff int      `json:"position_cutoff" optional:"true"`
 }
 
 type DetailedEvent struct {
@@ -262,7 +300,7 @@ type GuildTimes struct {
 // Body Model
 // @Description HTTP Body model for all responses
 type Body struct {
-	Content interface{} `json:"content,omitempty"`
+	Content any `json:"content,omitempty"`
 }
 
 // Error Response Model
@@ -270,7 +308,7 @@ type Body struct {
 type ErrorResponse struct {
 	Code    uint   `json:"code"`
 	Message string `json:"message"`
-	Details string `json:"details,omitempty"`
+	Details any    `json:"details,omitempty"`
 }
 
 // Body Model

@@ -275,16 +275,11 @@ func GetUserTimes(w http.ResponseWriter, r *http.Request) {
 // @Router			/api/v1/guilds/{guild_id}/users [POST]
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
-
 	v := mux.Vars(r)
-	params := database.CreateUserParams{
-		GuildID: v["guild_id"],
-	}
 
-	body := models.CreateUserBody{}
-	err := utils.ParseRequestBody(w, r, &body)
-	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_BODY)
+	var body models.CreateUserBody
+
+	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
 		return
 	}
 
@@ -294,14 +289,16 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params.WomID = strconv.Itoa(wom.Id)
-	params.Rsn = wom.DisplayName
-	params.UserID = body.UserId
+	params := database.CreateUserParams{
+		GuildID: v["guild_id"],
+		WomID:   strconv.Itoa(wom.Id),
+		Rsn:     wom.DisplayName,
+		UserID:  body.UserId,
+	}
 
 	user, err := queries.CreateUser(r.Context(), params)
 	if err != nil {
-		ei := database.ClassifyError(err)
-		if ei != nil {
+		if ei := database.ClassifyError(err); ei != nil {
 			handleDatabaseError(*ei, jw)
 			return
 		}
