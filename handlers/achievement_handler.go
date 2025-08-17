@@ -43,14 +43,43 @@ func GetAchievements(w http.ResponseWriter, r *http.Request) {
 // @Failure		404			{object}	models.ErrorResponse
 // @Failure		429			{object}	models.ErrorResponse
 // @Failure		500			{object}	models.ErrorResponse
-// @Router			/achievements/{achievement}/users/{user_id} [POST]
-func GiveAchievement(w http.ResponseWriter, r *http.Request) {
+// @Router			/guilds/{guild_id}/users/{user_id}/achievements/{achievement} [POST]
+func GiveAchievementById(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 	p := mux.Vars(r)
 
-	err := database.WrapExec(queries.GiveAchievement, r.Context(), database.GiveAchievementParams{
+	err := database.WrapExec(queries.GiveAchievementById, r.Context(), database.GiveAchievementByIdParams{
 		UserID:          p["user_id"],
 		AchievementName: p["achievement"],
+		GuildID:         p["guild_id"],
+	})
+	if err != nil {
+		handleDatabaseError(*err, jw)
+		return
+	}
+
+	jw.WriteResponse(http.NoBody)
+}
+
+// @Summary		Give an achievement to the user
+// @Description	Give an achievement to the user.
+// @Tags			Achievement
+// @Produce		json
+// @Success		204			{object}	models.Empty
+// @Failure		400			{object}	models.ErrorResponse
+// @Failure		401			{object}	models.ErrorResponse
+// @Failure		404			{object}	models.ErrorResponse
+// @Failure		429			{object}	models.ErrorResponse
+// @Failure		500			{object}	models.ErrorResponse
+// @Router			/guilds/{guild_id}/users/rsn/{rsn}/achievements/{achievement} [POST]
+func GiveAchievementByRsn(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
+	p := mux.Vars(r)
+
+	err := database.WrapExec(queries.GiveAchievementByRsn, r.Context(), database.GiveAchievementByRsnParams{
+		Rsn:             p["rsn"],
+		AchievementName: p["achievement"],
+		GuildID:         p["guild_id"],
 	})
 	if err != nil {
 		handleDatabaseError(*err, jw)
@@ -70,14 +99,43 @@ func GiveAchievement(w http.ResponseWriter, r *http.Request) {
 // @Failure		404			{object}	models.ErrorResponse
 // @Failure		429			{object}	models.ErrorResponse
 // @Failure		500			{object}	models.ErrorResponse
-// @Router			/achievements/{achievement}/users/{user_id} [DELETE]
-func RemoveAchievement(w http.ResponseWriter, r *http.Request) {
+// @Router			/guilds/{guild_id}/users/{user_id}/achievements/{achievement} [DELETE]
+func RemoveAchievementById(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 	p := mux.Vars(r)
 
-	err := database.WrapExec(queries.RemoveAchievement, r.Context(), database.RemoveAchievementParams{
+	err := database.WrapExec(queries.RemoveAchievementById, r.Context(), database.RemoveAchievementByIdParams{
 		UserID:          p["user_id"],
 		AchievementName: p["achievement"],
+		GuildID:         p["guild_id"],
+	})
+	if err != nil {
+		handleDatabaseError(*err, jw)
+		return
+	}
+
+	jw.WriteResponse(http.NoBody)
+}
+
+// @Summary		Remove an achievement from the user
+// @Description	Remove an achievement from the user.
+// @Tags			Achievement
+// @Produce		json
+// @Success		204			{object}	models.Empty
+// @Failure		400			{object}	models.ErrorResponse
+// @Failure		401			{object}	models.ErrorResponse
+// @Failure		404			{object}	models.ErrorResponse
+// @Failure		429			{object}	models.ErrorResponse
+// @Failure		500			{object}	models.ErrorResponse
+// @Router			/guilds/{guild_id}/users/rsn/{rsn}/achievements/{achievement} [DELETE]
+func RemoveAchievementByRsn(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
+	p := mux.Vars(r)
+
+	err := database.WrapExec(queries.RemoveAchievementByRsn, r.Context(), database.RemoveAchievementByRsnParams{
+		Rsn:             p["rsn"],
+		AchievementName: p["achievement"],
+		GuildID:         p["guild_id"],
 	})
 	if err != nil {
 		handleDatabaseError(*err, jw)

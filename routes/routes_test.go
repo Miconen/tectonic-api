@@ -370,7 +370,7 @@ func TestMain(t *testing.T) {
 				"user_id":     vars.UserId,
 				"achievement": vars.AchievementName,
 			},
-			Handler:    handlers.GiveAchievement,
+			Handler:    handlers.GiveAchievementById,
 			StatusCode: 204,
 		},
 		{
@@ -381,7 +381,7 @@ func TestMain(t *testing.T) {
 				"user_id":     vars.UserId,
 				"achievement": vars.AchievementName,
 			},
-			Handler:    handlers.RemoveAchievement,
+			Handler:    handlers.RemoveAchievementById,
 			StatusCode: 204,
 		},
 		{

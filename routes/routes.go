@@ -41,10 +41,6 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	r.HandleFunc("/categories", handlers.GetCategories).Methods("GET")
 	r.HandleFunc("/achievements", handlers.GetAchievements).Methods("GET")
 
-	// Achievements
-	r.HandleFunc("/achievements/{achievement}/users/{user_id}", handlers.GiveAchievement).Methods("POST")
-	r.HandleFunc("/achievements/{achievement}/users/{user_id}", handlers.RemoveAchievement).Methods("DELETE")
-
 	// Guilds
 	guildsRouter := r.PathPrefix("/guilds").Subrouter()
 	guildsRouter.HandleFunc("", handlers.CreateGuild).Methods("POST")
@@ -59,7 +55,7 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	eventsRouter := guildsRouter.PathPrefix("/{guild_id}/events").Subrouter()
 	eventsRouter.HandleFunc("", handlers.GetEvents).Methods("GET")
 	eventsRouter.HandleFunc("", handlers.RegisterEvent).Methods("POST")
-	eventsRouter.HandleFunc("/{event_id}", handlers.DeleteGuild).Methods("DELETE")
+	eventsRouter.HandleFunc("/{event_id}", handlers.DeleteEvent).Methods("DELETE")
 
 	// Times
 	timesRouter := guildsRouter.PathPrefix("/{guild_id}/times").Subrouter()
@@ -85,6 +81,12 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	usersRouter.HandleFunc("/rsn/{rsn}", handlers.RemoveUserByRsn).Methods("DELETE")
 	usersRouter.HandleFunc("/wom/{wom_id}", handlers.RemoveUserByWom).Methods("DELETE")
 	usersRouter.HandleFunc("/{user_id}", handlers.RemoveUserById).Methods("DELETE")
+
+	// Achievements
+	usersRouter.HandleFunc("/rsn/{rsn}/achievements/{achievement}", handlers.GiveAchievementByRsn).Methods("POST")
+	usersRouter.HandleFunc("/rsn/{rsn}/achievements/{achievement}", handlers.RemoveAchievementByRsn).Methods("DELETE")
+	usersRouter.HandleFunc("/{user_id}/achievements/{achievement}", handlers.GiveAchievementById).Methods("POST")
+	usersRouter.HandleFunc("/{user_id}/achievements/{achievement}", handlers.RemoveAchievementById).Methods("DELETE")
 
 	// RSN
 	rsnsRouter := usersRouter.PathPrefix("/{user_id}/rsns").Subrouter()
