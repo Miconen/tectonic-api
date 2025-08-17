@@ -27,7 +27,7 @@ import (
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/{user_ids}/points/{point_event} [PUT]
-func UpdatePoints(w http.ResponseWriter, r *http.Request) {
+func (s *Server) UpdatePoints(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
@@ -37,10 +37,10 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 		UserIds: strings.Split(p["user_ids"], ","),
 	}
 
-	user, err := queries.UpdatePointsByEvent(r.Context(), params)
+	user, err := s.queries.UpdatePointsByEvent(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -68,7 +68,7 @@ func UpdatePoints(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/{user_ids}/points/custom/{points} [PUT]
-func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
+func (s *Server) UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
@@ -86,10 +86,10 @@ func UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
 
 	params.Points = int32(points)
 
-	rowsaf, err := queries.UpdatePointsCustom(r.Context(), params)
+	rowsaf, err := s.queries.UpdatePointsCustom(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 

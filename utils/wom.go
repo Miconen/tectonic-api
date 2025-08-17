@@ -22,6 +22,15 @@ type WomClient struct {
 	httpClient *http.Client
 }
 
+type WomAPIError struct {
+	StatusCode int
+	Message    string
+}
+
+func (e *WomAPIError) Error() string {
+	return fmt.Sprintf("wom api error: %d - %s", e.StatusCode, e.Message)
+}
+
 func NewWomClient(cfg *config.Config) *WomClient {
 	return &WomClient{
 		baseURL: cfg.WOM.BaseURL,
@@ -58,22 +67,25 @@ func handleResponse[T any](url string, c *WomClient) (T, error) {
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			logging.Get().Error("wom request timed out", "url", url, "timeout", c.httpClient.Timeout, "error", err)
-		} else {
-			logging.Get().Error("wom request failed", "url", url, "error", err)
+			return result, &WomAPIError{StatusCode: http.StatusGatewayTimeout, Message: "request timed out"}
 		}
+		logging.Get().Error("wom request failed", "url", url, "error", err)
 		return result, err
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		logging.Get().Error("unexpected wom api status code", "status", response.StatusCode)
-		return result, errors.New("Unexpected status code:" + strconv.Itoa(response.StatusCode))
+		msg := fmt.Sprintf("unexpected status code %d", response.StatusCode)
+		if response.StatusCode == http.StatusNotFound {
+			msg = "resource not found"
+		}
+		logging.Get().Error("wom api error", "status", response.StatusCode, "message", msg)
+		return result, &WomAPIError{StatusCode: response.StatusCode, Message: msg}
 	}
 
 	err = json.NewDecoder(response.Body).Decode(&result)
 	if err != nil {
 		logging.Get().Error("failed to decode wom response", "error", err)
-		fmt.Println("Error decoding JSON:", err)
 		return result, err
 	}
 

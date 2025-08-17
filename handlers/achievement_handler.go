@@ -19,13 +19,13 @@ import (
 // @Failure		429			{object}	models.ErrorResponse
 // @Failure		500			{object}	models.ErrorResponse
 // @Router			/api/v1/achievements [GET]
-func GetAchievements(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetAchievements(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
-	achievements, err := queries.GetAchievements(r.Context())
+	achievements, err := s.queries.GetAchievements(r.Context())
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -44,17 +44,17 @@ func GetAchievements(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.ErrorResponse
 // @Failure		500			{object}	models.ErrorResponse
 // @Router			/guilds/{guild_id}/users/{user_id}/achievements/{achievement} [POST]
-func GiveAchievementById(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GiveAchievementById(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 	p := mux.Vars(r)
 
-	err := database.WrapExec(queries.GiveAchievementById, r.Context(), database.GiveAchievementByIdParams{
+	err := database.WrapExec(s.queries.GiveAchievementById, r.Context(), database.GiveAchievementByIdParams{
 		UserID:          p["user_id"],
 		AchievementName: p["achievement"],
 		GuildID:         p["guild_id"],
 	})
 	if err != nil {
-		handleDatabaseError(*err, jw)
+		s.handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -72,17 +72,17 @@ func GiveAchievementById(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.ErrorResponse
 // @Failure		500			{object}	models.ErrorResponse
 // @Router			/guilds/{guild_id}/users/rsn/{rsn}/achievements/{achievement} [POST]
-func GiveAchievementByRsn(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GiveAchievementByRsn(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 	p := mux.Vars(r)
 
-	err := database.WrapExec(queries.GiveAchievementByRsn, r.Context(), database.GiveAchievementByRsnParams{
+	err := database.WrapExec(s.queries.GiveAchievementByRsn, r.Context(), database.GiveAchievementByRsnParams{
 		Rsn:             p["rsn"],
 		AchievementName: p["achievement"],
 		GuildID:         p["guild_id"],
 	})
 	if err != nil {
-		handleDatabaseError(*err, jw)
+		s.handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -100,17 +100,17 @@ func GiveAchievementByRsn(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.ErrorResponse
 // @Failure		500			{object}	models.ErrorResponse
 // @Router			/guilds/{guild_id}/users/{user_id}/achievements/{achievement} [DELETE]
-func RemoveAchievementById(w http.ResponseWriter, r *http.Request) {
+func (s *Server) RemoveAchievementById(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 	p := mux.Vars(r)
 
-	err := database.WrapExec(queries.RemoveAchievementById, r.Context(), database.RemoveAchievementByIdParams{
+	err := database.WrapExec(s.queries.RemoveAchievementById, r.Context(), database.RemoveAchievementByIdParams{
 		UserID:          p["user_id"],
 		AchievementName: p["achievement"],
 		GuildID:         p["guild_id"],
 	})
 	if err != nil {
-		handleDatabaseError(*err, jw)
+		s.handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -128,17 +128,17 @@ func RemoveAchievementById(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.ErrorResponse
 // @Failure		500			{object}	models.ErrorResponse
 // @Router			/guilds/{guild_id}/users/rsn/{rsn}/achievements/{achievement} [DELETE]
-func RemoveAchievementByRsn(w http.ResponseWriter, r *http.Request) {
+func (s *Server) RemoveAchievementByRsn(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 	p := mux.Vars(r)
 
-	err := database.WrapExec(queries.RemoveAchievementByRsn, r.Context(), database.RemoveAchievementByRsnParams{
+	err := database.WrapExec(s.queries.RemoveAchievementByRsn, r.Context(), database.RemoveAchievementByRsnParams{
 		Rsn:             p["rsn"],
 		AchievementName: p["achievement"],
 		GuildID:         p["guild_id"],
 	})
 	if err != nil {
-		handleDatabaseError(*err, jw)
+		s.handleDatabaseError(*err, jw)
 		return
 	}
 

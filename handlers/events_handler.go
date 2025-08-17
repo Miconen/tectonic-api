@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"tectonic-api/database"
@@ -22,13 +23,13 @@ import (
 // @Failure		429			{object}	models.ErrorResponse
 // @Failure		500			{object}	models.ErrorResponse
 // @Router			/api/v1/guilds/{guild_id}/events [GET]
-func GetEvents(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetEvents(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 	p := mux.Vars(r)
 
-	events, err := database.WrapQuery(queries.GetGuildEvents, r.Context(), p["guild_id"])
+	events, err := database.WrapQuery(s.queries.GetGuildEvents, r.Context(), p["guild_id"])
 	if err != nil {
-		handleDatabaseError(*err, jw)
+		s.handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -47,13 +48,13 @@ func GetEvents(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.ErrorResponse
 // @Failure		500			{object}	models.ErrorResponse
 // @Router			/api/v1/guilds/{guild_id}/events/{event_id} [GET]
-func GetDetailedEvent(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetDetailedEvent(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 	p := mux.Vars(r)
 
-	events, err := database.WrapQuery(queries.GetEventParticipation, r.Context(), p["event_id"])
+	events, err := database.WrapQuery(s.queries.GetEventParticipation, r.Context(), p["event_id"])
 	if err != nil {
-		handleDatabaseError(*err, jw)
+		s.handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -80,24 +81,35 @@ func GetDetailedEvent(w http.ResponseWriter, r *http.Request) {
 // @Failure		404			{object}	models.ErrorResponse
 // @Failure		429			{object}	models.ErrorResponse
 // @Failure		500			{object}	models.ErrorResponse
-// @Router			/api/v1/guilds/{guild_id}/events [PUT]
-func RegisterEvent(w http.ResponseWriter, r *http.Request) {
+// @Router			/api/v1/guilds/{guild_id}/events [POST]
+func (s *Server) RegisterEvent(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
 
 	p := mux.Vars(r)
-	b := models.InputEvent{
+	body := models.InputEvent{
 		PositionCutoff: 3,
 	}
 
-	err := utils.ParseRequestBody(w, r, &b)
-	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_BODY)
+	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
 		return
 	}
 
-	c, err := womClient.GetCompetition(b.EventId)
+	c, err := s.womClient.GetCompetition(body.EventId)
 	if err != nil {
-		jw.WriteError(models.ERROR_WOM_UNAVAILABLE)
+		var apiErr *utils.WomAPIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.StatusCode {
+			case http.StatusNotFound:
+				jw.WriteError(models.ERROR_WOMID_NOT_FOUND)
+			case http.StatusGatewayTimeout:
+				jw.WriteError(models.ERROR_WOM_UNAVAILABLE)
+			default:
+				jw.WriteError(models.ERROR_API_UNAVAILABLE)
+			}
+		} else {
+			// network or JSON decoding error
+			jw.WriteError(models.ERROR_API_UNAVAILABLE)
+		}
 		return
 	}
 
@@ -108,7 +120,7 @@ func RegisterEvent(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 
-	q := queries.WithTx(tx)
+	q := s.queries.WithTx(tx)
 	ei := database.WrapExec(q.CreateEvent, r.Context(), database.CreateEventParams{
 		Name:           c.Title,
 		WomID:          fmt.Sprintf("%d", c.ID),
@@ -116,7 +128,7 @@ func RegisterEvent(w http.ResponseWriter, r *http.Request) {
 		PositionCutoff: 0,
 	})
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -129,16 +141,16 @@ func RegisterEvent(w http.ResponseWriter, r *http.Request) {
 			WomID:   fmt.Sprintf("%d", c.ID),
 		})
 		if ei != nil {
-			handleDatabaseError(*ei, jw)
+			s.handleDatabaseError(*ei, jw)
 			return
 		}
-	} else if c.Type == "team" && len(b.TeamNames) != 0 {
+	} else if c.Type == "team" && len(body.TeamNames) != 0 {
 		ids := make([]string, len(c.Participations))
 		positions := make([]int32, len(c.Participations))
 
 		pos_map := make(map[string]int32)
-		for i := range b.TeamNames {
-			pos_map[b.TeamNames[i]] = int32(i)
+		for i := range body.TeamNames {
+			pos_map[body.TeamNames[i]] = int32(i)
 		}
 
 		for i := range c.Participations {
@@ -153,7 +165,7 @@ func RegisterEvent(w http.ResponseWriter, r *http.Request) {
 			WomID:                 fmt.Sprintf("%d", c.ID),
 		})
 		if ei != nil {
-			handleDatabaseError(*ei, jw)
+			s.handleDatabaseError(*ei, jw)
 			return
 		}
 	} else {
@@ -182,13 +194,13 @@ func RegisterEvent(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.ErrorResponse
 // @Failure		500			{object}	models.ErrorResponse
 // @Router			/api/v1/guilds/{guild_id}/events/{event_id} [DELETE]
-func DeleteEvent(w http.ResponseWriter, r *http.Request) {
+func (s *Server) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 	p := mux.Vars(r)
 
-	ei := database.WrapExec(queries.DeleteEvent, r.Context(), p["event_id"])
+	ei := database.WrapExec(s.queries.DeleteEvent, r.Context(), p["event_id"])
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 

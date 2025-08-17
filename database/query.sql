@@ -110,9 +110,9 @@ INSERT INTO guilds (
 )
 RETURNING guild_id, multiplier, pb_channel_id;
 
--- name: DeleteGuild :one
+-- name: DeleteGuild :execrows
 DELETE FROM guilds
-WHERE guild_id = $1 RETURNING guild_id, multiplier, pb_channel_id;
+WHERE guild_id = $1;
 
 -- name: GetGuild :one
 SELECT guild_id, multiplier, pb_channel_id FROM guilds
@@ -360,15 +360,15 @@ INSERT INTO user_achievement (
 );
 
 -- name: GiveAchievementByRsn :exec
+WITH user_lookup AS (
+    SELECT user_id FROM rsn WHERE rsn = @rsn AND guild_id = @guild_id
+)
 INSERT INTO user_achievement (
 	user_id,
 	achievement_name,
 	guild_id
-) VALUES (
-	(SELECT r.user_id FROM rsn r WHERE r.rsn = @rsn),
-	@achievement_name,
-	@guild_id
-);
+) SELECT user_id, @achievement_name, @guild_id
+FROM user_lookup;
 
 -- name: RemoveAchievementById :exec
 DELETE FROM user_achievement ua
@@ -378,6 +378,6 @@ AND ua.guild_id = @guild_id;
 
 -- name: RemoveAchievementByRsn :exec
 DELETE FROM user_achievement ua
-WHERE ua.user_id = (SELECT r.user_id FROM rsn r WHERE r.rsn = @rsn)
+WHERE ua.user_id IN (SELECT r.user_id FROM rsn r WHERE r.rsn = @rsn)
 AND ua.achievement_name = @achievement_name
 AND ua.guild_id = @guild_id;

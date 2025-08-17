@@ -25,7 +25,7 @@ import (
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/times [GET]
-func GetGuildTimes(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetGuildTimes(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	v := mux.Vars(r)
@@ -36,10 +36,10 @@ func GetGuildTimes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	row, err := queries.GetDetailedGuild(r.Context(), guildId)
+	row, err := s.queries.GetDetailedGuild(r.Context(), guildId)
 	ei := database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -62,27 +62,19 @@ func GetGuildTimes(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/times [POST]
-func CreateTime(w http.ResponseWriter, r *http.Request) {
+func (s *Server) CreateTime(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
+	var body models.InputTime
 
-	params := models.InputTime{}
-	err := utils.ParseRequestBody(w, r, &params)
-	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_BODY)
-		return
-	}
-
-	if len(params.UserIds) == 0 {
-		logging.Get().Error("Empty User IDs array not permitted")
-		jw.WriteError(models.ERROR_WRONG_BODY)
+	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
 		return
 	}
 
 	res := models.TimeResponse{
-		BossName: params.BossName,
-		Time:     params.Time,
+		BossName: body.BossName,
+		Time:     body.Time,
 	}
 
 	tx, err := database.CreateTx(r.Context())
@@ -92,18 +84,18 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := queries.WithTx(tx)
+	q := s.queries.WithTx(tx)
 	defer tx.Rollback(r.Context())
 
 	pb_params := database.CheckPbParams{
-		Boss:    params.BossName,
+		Boss:    body.BossName,
 		GuildID: p["guild_id"],
 	}
 
 	pb, err := q.CheckPb(r.Context(), pb_params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -111,15 +103,15 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	if pb.Time.Valid {
 		old_time := int(pb.Time.Int32)
 		// Check if our time is faster, if not don't continue
-		if old_time <= params.Time {
+		if old_time <= body.Time {
 			jw.WriteResponse(res)
 			return
 		}
 	}
 
 	time_params := database.CreateTimeParams{
-		Time:     int32(params.Time),
-		BossName: params.BossName,
+		Time:     int32(body.Time),
+		BossName: body.BossName,
 		Date:     pgtype.Timestamp{Time: time.Now(), Valid: true},
 		GuildID:  p["guild_id"],
 	}
@@ -127,7 +119,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 	run_id, err := q.CreateTime(r.Context(), time_params)
 	ei = database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -137,33 +129,33 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 			Valid: true,
 		},
 		GuildID: p["guild_id"],
-		Boss:    params.BossName,
+		Boss:    body.BossName,
 	}
 
 	_, err = q.UpdatePb(r.Context(), changed_pb_params)
 	ei = database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
 	team_params := database.CreateTeamParams{
 		RunID:   run_id,
-		UserIds: params.UserIds,
+		UserIds: body.UserIds,
 		GuildID: p["guild_id"],
 	}
 
 	err = q.CreateTeam(r.Context(), team_params)
 	ei = database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
 	err = tx.Commit(r.Context())
 	ei = database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -186,7 +178,7 @@ func CreateTime(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/times/{time_id} [DELETE]
-func RemoveTime(w http.ResponseWriter, r *http.Request) {
+func (s *Server) RemoveTime(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
@@ -203,10 +195,10 @@ func RemoveTime(w http.ResponseWriter, r *http.Request) {
 
 	params.RunID = int32(id)
 
-	deleted, err := queries.DeleteTime(r.Context(), params)
+	deleted, err := s.queries.DeleteTime(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 

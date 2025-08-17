@@ -26,35 +26,34 @@ import (
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/{user_id}/rsns [POST]
-func CreateRSN(w http.ResponseWriter, r *http.Request) {
+func (s *Server) CreateRSN(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
+	var body models.CreateRsnBody
+
+	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
+		return
+	}
+
 	params := database.CreateRsnParams{
 		GuildID: p["guild_id"],
 		UserID:  p["user_id"],
 	}
 
-	body := models.CreateRsnBody{}
-	err := utils.ParseRequestBody(w, r, &body)
+	wom, err := s.womClient.GetWom(body.RSN)
 	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_BODY)
-		return
-	}
-
-	wom, err := womClient.GetWom(body.RSN)
-	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
+		jw.WriteError(models.ERROR_RSN_NOT_FOUND)
 		return
 	}
 
 	params.WomID = strconv.Itoa(wom.Id)
 	params.Rsn = wom.DisplayName
 
-	err = queries.CreateRsn(r.Context(), params)
+	err = s.queries.CreateRsn(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseErrorCustom(*ei, jw, func(dh *dbHandler, jw *utils.JsonWriter) {
+		s.handleDatabaseErrorCustom(*ei, jw, func(dh *dbHandler, jw *utils.JsonWriter) {
 			switch dh.Code {
 			case "23503":
 				jw.WriteResponse(models.ERROR_USER_NOT_FOUND)
@@ -82,7 +81,7 @@ func CreateRSN(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn} [DELETE]
-func RemoveRSN(w http.ResponseWriter, r *http.Request) {
+func (s *Server) RemoveRSN(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
@@ -92,10 +91,10 @@ func RemoveRSN(w http.ResponseWriter, r *http.Request) {
 		Rsn:     p["rsn"],
 	}
 
-	rows, err := queries.DeleteRsn(r.Context(), params)
+	rows, err := s.queries.DeleteRsn(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 

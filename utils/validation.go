@@ -66,7 +66,9 @@ func convertValidationErrors(err error) []ValidationErrorDetail {
 }
 
 // Automatically handle validation errors and return detailed responses
-// for malformed requests and invalid parameters
+// for malformed requests and invalid parameters.
+//
+// Validation is based on struct tags of the 3rd parameter.
 func ParseAndValidateRequestBody(w http.ResponseWriter, r *http.Request, v any) error {
 	if err := ParseRequestBody(w, r, v); err != nil {
 		logging.Get().Info("error parsing request body", "error", err)
@@ -222,7 +224,7 @@ func getValidationMessage(fe validator.FieldError) string {
 		}
 		return fmt.Sprintf("%s must be at most %s", fe.Field(), fe.Param())
 	case "discord_snowflake":
-		return fmt.Sprintf("%s must be a valid Discord ID (17-19 digits)", fe.Field())
+		return fmt.Sprintf("%s must be a valid Discord ID (17-19 digits only and can't start with a zero)", fe.Field())
 	case "rsn":
 		return fmt.Sprintf("%s must be a valid RuneScape name (1-12 chars, letters/numbers/spaces/hyphens/underscores only)", fe.Field())
 	case "positive_time":

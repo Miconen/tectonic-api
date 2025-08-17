@@ -24,7 +24,7 @@ import (
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id} [GET]
-func GetGuild(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetGuild(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	v := mux.Vars(r)
@@ -36,10 +36,10 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guild, err := queries.GetGuild(r.Context(), guildId)
+	guild, err := s.queries.GetGuild(r.Context(), guildId)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -60,23 +60,21 @@ func GetGuild(w http.ResponseWriter, r *http.Request) {
 // @Failure		429		{object}	models.Empty
 // @Failure		500		{object}	models.Empty
 // @Router			/api/v1/guilds [POST]
-func CreateGuild(w http.ResponseWriter, r *http.Request) {
+func (s *Server) CreateGuild(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
 
-	p := models.InputGuild{
+	body := models.InputGuild{
 		Multiplier: 1,
 	}
 
-	err := utils.ParseRequestBody(w, r, &p)
-	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_BODY)
+	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
 		return
 	}
 
-	_, err = queries.CreateGuild(r.Context(), p.GuildId)
+	_, err := s.queries.CreateGuild(r.Context(), body.GuildId)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -95,7 +93,7 @@ func CreateGuild(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id} [DELETE]
-func DeleteGuild(w http.ResponseWriter, r *http.Request) {
+func (s *Server) DeleteGuild(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	v := mux.Vars(r)
@@ -107,10 +105,15 @@ func DeleteGuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := queries.DeleteGuild(r.Context(), guildId)
+	rows, err := s.queries.DeleteGuild(r.Context(), guildId)
 	ei := database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
+		return
+	}
+
+	if rows == 0 {
+		jw.WriteError(models.ERROR_GUILD_NOT_FOUND)
 		return
 	}
 
@@ -142,7 +145,7 @@ type GuildParams struct {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id} [PUT]
-func UpdateGuild(w http.ResponseWriter, r *http.Request) {
+func (s *Server) UpdateGuild(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
@@ -154,7 +157,7 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := queries.WithTx(tx)
+	q := s.queries.WithTx(tx)
 	defer tx.Rollback(r.Context())
 
 	var params GuildParams
@@ -182,7 +185,7 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 		_, errUpdate := q.UpdateCategoryMessageIds(r.Context(), message_params)
 		eiUpdate := database.ClassifyError(errUpdate)
 		if eiUpdate != nil {
-			handleDatabaseError(*eiUpdate, jw)
+			s.handleDatabaseError(*eiUpdate, jw)
 			return
 		}
 	}
@@ -196,7 +199,7 @@ func UpdateGuild(w http.ResponseWriter, r *http.Request) {
 	_, err = q.UpdateGuild(r.Context(), guild_params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 	}
 
 	tx.Commit(r.Context())
