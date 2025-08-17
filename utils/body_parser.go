@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 	"strings"
 )
 
@@ -24,7 +23,7 @@ func (mr *malformedRequest) Error() string {
 //
 // Note that error implements Unwrap() if it's not nill, meaning you can get
 // all errors that ocurred inside the function and send back to the client.
-func ParseRequestBody(w http.ResponseWriter, r *http.Request, dst interface{}) error {
+func ParseRequestBody(w http.ResponseWriter, r *http.Request, dst any) error {
 	ct := r.Header.Get("Content-Type")
 	if ct != "" {
 		mediaType := strings.ToLower(strings.TrimSpace(strings.Split(ct, ";")[0]))
@@ -81,15 +80,5 @@ func ParseRequestBody(w http.ResponseWriter, r *http.Request, dst interface{}) e
 		return &malformedRequest{status: http.StatusBadRequest, msg: msg}
 	}
 
-	e := reflect.TypeOf(dst).Elem()
-	errs := make([]error, 0, e.NumField())
-
-	for i := 0; i < e.NumField(); i++ {
-		f := e.Field(i)
-		if f.Tag.Get("optional") != "true" && reflect.ValueOf(dst).Elem().FieldByName(f.Name).IsZero() {
-			errs = append(errs, fmt.Errorf("`%s` not set", f.Tag.Get("json")))
-		}
-	}
-
-	return errors.Join(errs...)
+	return nil
 }

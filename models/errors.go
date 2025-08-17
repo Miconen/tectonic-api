@@ -10,9 +10,49 @@ type APIV1Error interface {
 	ToErrorResponse() ErrorResponse
 }
 
+type APIV1ErrorWithDetails interface {
+	APIV1Error
+	WithDetails(details any) APIV1ErrorWithDetails
+}
+
 type APIV1ErrorTodo struct {
 	detail string
 	status int
+}
+
+type ValidationError struct {
+	Code    APIV1ErrorCode
+	details any
+}
+
+func NewValidationError(details any) APIV1ErrorWithDetails {
+	return &ValidationError{
+		Code:    ERROR_VALIDATION_FAILED,
+		details: details,
+	}
+}
+
+func (e *ValidationError) Message() string {
+	return ERROR_VALIDATION_FAILED.String()
+}
+
+func (e *ValidationError) Status() int {
+	return http.StatusBadRequest
+}
+
+func (e *ValidationError) ToErrorResponse() ErrorResponse {
+	return ErrorResponse{
+		Code:    uint(e.Code),
+		Message: e.Message(),
+		Details: e.details,
+	}
+}
+
+func (e *ValidationError) WithDetails(details interface{}) APIV1ErrorWithDetails {
+	return &ValidationError{
+		Code:    e.Code,
+		details: details,
+	}
 }
 
 func ERROR_TODO(status int, detail string) APIV1Error {
@@ -40,9 +80,10 @@ type APIV1ErrorCode uint
 
 // Request-based errors
 const (
-	ERROR_WRONG_PARAMS  APIV1ErrorCode = iota // Params are malformated, please check docs for example on how to send the request
-	ERROR_WRONG_BODY                          // Body is malformated, please check docs for example on how to send the request
-	ERROR_INVALID_TOKEN                       // Your token is invalid
+	ERROR_WRONG_PARAMS      APIV1ErrorCode = iota // Params are malformated, please check docs for example on how to send the request
+	ERROR_WRONG_BODY                              // Body is malformated, please check docs for example on how to send the request
+	ERROR_VALIDATION_FAILED                       // Request validation failed
+	ERROR_INVALID_TOKEN                           // Your token is invalid
 )
 
 // Model-based errors
@@ -119,6 +160,8 @@ func (e APIV1ErrorCode) Status() int {
 	case ERROR_WRONG_BODY:
 		return http.StatusBadRequest
 	case ERROR_WRONG_PARAMS:
+		return http.StatusBadRequest
+	case ERROR_VALIDATION_FAILED:
 		return http.StatusBadRequest
 	// Model
 	case ERROR_GUILD_NOT_FOUND:
@@ -206,4 +249,8 @@ func (e APIV1ErrorCode) ToErrorResponse() ErrorResponse {
 		Code:    uint(e),
 		Message: msg,
 	}
+}
+
+func ValidationFailed(details any) APIV1Error {
+	return NewValidationError(details)
 }

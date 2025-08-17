@@ -139,67 +139,6 @@ func handleDatabaseErrorCustom(ei database.ErrorInfo, jw *utils.JsonWriter, dhc 
 	}
 }
 
-// Middleware that validate URL parameters for the handler. POST requests are
-// NOT validated.
-func ValidateParameters(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		jw := utils.NewJsonWriter(w, r, 0)
-		vars := mux.Vars(r)
-		p := make(map[string]string)
-		maps.Copy(p, vars)
-
-		// URL parameter needs to be excluded from validation because it will
-		// get created later on the request.
-		if r.Method == "POST" {
-			vars := strings.Split(r.URL.String(), "/")
-
-		loop:
-			for i := len(vars) - 1; i >= 0; i-- {
-				switch vars[i] {
-				case "guilds":
-					delete(p, "guild_id")
-					break loop
-				case "users":
-					delete(p, "user_id")
-					break loop
-				case "events":
-					delete(p, "event_id")
-					break loop
-				}
-
-			}
-		}
-
-		ctx := r.Context()
-		conn, err := database.AcquireConnection(ctx)
-		if err != nil {
-			jw.WriteError(models.ERROR_API_UNAVAILABLE)
-			return
-		}
-		defer conn.Release()
-
-		for k, v := range p {
-			ok := true
-			switch k {
-			case "guild_id":
-				ok = guildExists(ctx, conn, jw, v)
-			case "user_id":
-				ok = userExists(ctx, conn, jw, v)
-			case "event_id":
-				ok = eventExists(ctx, conn, jw, v)
-			case "achievement_name":
-				ok = achievementExists(ctx, conn, jw, v)
-			}
-
-			if !ok {
-				return
-			}
-		}
-
-		h.ServeHTTP(w, r)
-	})
-}
-
 // Checks if guild exists on the database.
 func guildExists(ctx context.Context, conn *pgxpool.Conn, jw *utils.JsonWriter, guild_id string) bool {
 	return queryExists(ctx, conn, jw, "SELECT EXISTS (SELECT guild_id FROM guilds WHERE guild_id = $1)", guild_id, models.ERROR_GUILD_NOT_FOUND)
