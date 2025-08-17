@@ -48,7 +48,7 @@ func (e *ValidationError) ToErrorResponse() ErrorResponse {
 	}
 }
 
-func (e *ValidationError) WithDetails(details interface{}) APIV1ErrorWithDetails {
+func (e *ValidationError) WithDetails(details any) APIV1ErrorWithDetails {
 	return &ValidationError{
 		Code:    e.Code,
 		details: details,

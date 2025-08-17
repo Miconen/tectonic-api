@@ -3,7 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
-	"os"
+	"tectonic-api/config"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
@@ -15,8 +15,8 @@ const ERROR_UNACTIVATED_GUILD string = "insert or update on table \"users\" viol
 var psql = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 var pool *pgxpool.Pool
 
-func InitDB() (*pgxpool.Pool, error) {
-	conn, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+func InitDB(cfg *config.Config) (*pgxpool.Pool, error) {
+	conn, err := pgxpool.New(context.Background(), cfg.DatabaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("unable to connect to database: %v", err)
 	}

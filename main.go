@@ -24,30 +24,35 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(cfg.DatabaseURL)
 	logging.Init(cfg)
 
-	conn, err := database.InitDB()
+	conn, err := database.InitDB(cfg)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error initializing database: %v\n", err)
+		logging.Get().Error("error initializing database", "error", err)
 		os.Exit(1)
 	}
 	defer conn.Close()
 
 	err = database.RunMigrations(conn)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error running migrations: %v\n", err)
+		logging.Get().Error("error running migrations", "error", err)
 		os.Exit(1)
 	}
+
 	logging.Get().Info("migrations ran")
 
 	wom := utils.NewWomClient(cfg)
-	handlers.InitHandlers(conn, wom)
-	router := routes.NewAPIBuilder().AttachV1Routes()
+
+	srv, err := handlers.NewServer(conn, wom, cfg)
+	if err != nil {
+		logging.Get().Error("error creating server", "error", err)
+		os.Exit(1)
+	}
+
+	router := routes.NewAPIBuilder(srv).AttachV1Routes()
 	logging.Get().Info("routes registered")
 
 	logging.Get().Info("server listening to requests", "port", cfg.Port)
-
 	err = http.ListenAndServe(":"+cfg.Port, router)
 	if err != nil {
 		logging.Get().Error("Server failed to start", "error", err)

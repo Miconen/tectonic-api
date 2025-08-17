@@ -22,7 +22,7 @@ import (
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/leaderboard [GET]
-func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
@@ -33,10 +33,10 @@ func GetLeaderboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logging.Get().DebugContext(r.Context(), "querying leaderboard from database", "guild_id", params.GuildID, "user_limit", params.UserLimit)
-	rows, err := queries.GetLeaderboard(r.Context(), params)
+	rows, err := s.queries.GetLeaderboard(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 

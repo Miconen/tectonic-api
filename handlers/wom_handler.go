@@ -35,7 +35,7 @@ type CompetitionResponse struct {
 // @Failure		429				{object}	models.Empty
 // @Failure		500				{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/wom/competition/{competition_id}/cutoff/{cutoff} [GET]
-func EndCompetition(w http.ResponseWriter, r *http.Request) {
+func (s *Server) EndCompetition(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
@@ -52,7 +52,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	competition, err := womClient.GetCompetition(id)
+	competition, err := s.womClient.GetCompetition(id)
 	if err != nil {
 		// TODO: differentiate response errors from request errors
 		jw.WriteError(models.ERROR_WRONG_PARAMS)
@@ -90,18 +90,18 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	q := queries.WithTx(tx)
+	q := s.queries.WithTx(tx)
 	defer tx.Rollback(r.Context())
 
 	user_ids, ei := database.WrapQuery(q.GetUserByRsn, r.Context(), rsns)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
-	users, ei := getDetailedUsers(r.Context(), user_ids, p["guild_id"])
+	users, ei := s.getDetailedUsers(r.Context(), user_ids, p["guild_id"])
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -113,7 +113,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	given, err := q.GetPointsValue(r.Context(), given_params)
 	ei = database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -126,7 +126,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 	points, err := q.UpdatePointsByEvent(r.Context(), points_params)
 	ei = database.ClassifyError(err)
 	if err != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -172,7 +172,7 @@ func EndCompetition(w http.ResponseWriter, r *http.Request) {
 // @Failure		429				{object}	models.ErrorResponse
 // @Failure		500				{object}	models.ErrorResponse
 // @Router			/api/v1/guilds/{guild_id}/wom/winners/{competition_id} [GET]
-func CompetitionWinners(w http.ResponseWriter, r *http.Request) {
+func (s *Server) CompetitionWinners(w http.ResponseWriter, r *http.Request) {
 }
 
 // @Summary		Event winners by teamname endpoint
@@ -190,5 +190,5 @@ func CompetitionWinners(w http.ResponseWriter, r *http.Request) {
 // @Failure		429				{object}	models.ErrorResponse
 // @Failure		500				{object}	models.ErrorResponse
 // @Router			/api/v1/guilds/{guild_id}/wom/winners/{competition_id}/team/{team} [GET]
-func CompetitionTeamPosition(w http.ResponseWriter, r *http.Request) {
+func (s *Server) CompetitionTeamPosition(w http.ResponseWriter, r *http.Request) {
 }

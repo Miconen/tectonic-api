@@ -2,16 +2,12 @@ package handlers
 
 import (
 	"context"
-	"maps"
-	"net/http"
-	"strings"
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -19,20 +15,11 @@ type dbHandler struct {
 	database.ErrorInfo
 }
 
-// You can get this by running the following SQL query:
-// SELECT constraint_name, table_name FROM information_schema.table_constraints WHERE table_schema = 'public'
-var constraintsMap map[string]database.ConstraintDetail
-
-func InitDatabaseHandler(ctx context.Context, conn *pgxpool.Conn) error {
-	var err error
-	constraintsMap, err = database.GetConstraintsTable(ctx, conn)
-	return err
-}
-
-func getConstraintError(ei database.ErrorInfo) models.APIV1Error {
+func (s *Server) getConstraintError(ei database.ErrorInfo) models.APIV1Error {
 	switch ei.Code {
-	case "23505":
-		c := constraintsMap[ei.Err.ConstraintName]
+	case "23505": // Unique constraint violation
+
+		c := s.constraintsMap[ei.Err.ConstraintName]
 
 		switch c.Type {
 		case database.PrimaryKey:
@@ -107,7 +94,7 @@ func getConstraintError(ei database.ErrorInfo) models.APIV1Error {
 // Handlers should delegate database errors to this function always.
 // This handler will alwas write the response, so the caller should
 // always short circuit the handler.
-func handleDatabaseError(ei database.ErrorInfo, jw *utils.JsonWriter) {
+func (s *Server) handleDatabaseError(ei database.ErrorInfo, jw *utils.JsonWriter) {
 	dh := &dbHandler{ErrorInfo: ei}
 
 	if dh.Severity == database.SeverityFatal || dh.Severity == database.SeverityPanic {
@@ -118,13 +105,13 @@ func handleDatabaseError(ei database.ErrorInfo, jw *utils.JsonWriter) {
 		jw.WriteError(models.ERROR_API_UNAVAILABLE)
 	} else {
 		logging.Get().Warn("QUERY ERROR", "err", dh.Error())
-		jw.WriteError(getConstraintError(ei))
+		jw.WriteError(s.getConstraintError(ei))
 	}
 }
 
 type dbHandlerFunc func(dh *dbHandler, jw *utils.JsonWriter)
 
-func handleDatabaseErrorCustom(ei database.ErrorInfo, jw *utils.JsonWriter, dhc dbHandlerFunc) {
+func (s *Server) handleDatabaseErrorCustom(ei database.ErrorInfo, jw *utils.JsonWriter, dhc dbHandlerFunc) {
 	dh := &dbHandler{ErrorInfo: ei}
 
 	if dh.Severity == database.SeverityFatal || dh.Severity == database.SeverityPanic {

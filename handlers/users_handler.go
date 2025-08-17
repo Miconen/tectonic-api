@@ -12,11 +12,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func getDetailedUsers(ctx context.Context, user_ids []string, guild_id string) ([]models.DetailedUser, *database.ErrorInfo) {
+func (s *Server) getDetailedUsers(ctx context.Context, user_ids []string, guild_id string) ([]models.DetailedUser, *database.ErrorInfo) {
 	detailed_users := make([]models.DetailedUser, len(user_ids))
 
 	for i, user_id := range user_ids {
-		user_rows, err := database.WrapQuery(queries.GetUsersById, ctx, database.GetUsersByIdParams{
+		user_rows, err := database.WrapQuery(s.queries.GetUsersById, ctx, database.GetUsersByIdParams{
 			GuildID: guild_id,
 			UserIds: []string{user_id},
 		})
@@ -29,7 +29,7 @@ func getDetailedUsers(ctx context.Context, user_ids []string, guild_id string) (
 		}
 		user := user_rows[0]
 
-		times_rows, err := database.WrapQuery(queries.GetUserTimes, ctx, database.GetUserTimesParams{
+		times_rows, err := database.WrapQuery(s.queries.GetUserTimes, ctx, database.GetUserTimesParams{
 			UserID:  user_id,
 			GuildID: guild_id,
 		})
@@ -37,12 +37,12 @@ func getDetailedUsers(ctx context.Context, user_ids []string, guild_id string) (
 			return nil, err
 		}
 
-		achievements_rows, err := database.WrapQuery(queries.GetUserAchievements, ctx, user_id)
+		achievements_rows, err := database.WrapQuery(s.queries.GetUserAchievements, ctx, user_id)
 		if err != nil {
 			return nil, err
 		}
 
-		events_rows, err := database.WrapQuery(queries.GetUserEvents, ctx, database.GetUserEventsParams{
+		events_rows, err := database.WrapQuery(s.queries.GetUserEvents, ctx, database.GetUserEventsParams{
 			UserID:  user_id,
 			GuildID: guild_id,
 		})
@@ -76,13 +76,13 @@ func getDetailedUsers(ctx context.Context, user_ids []string, guild_id string) (
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/{user_ids} [GET]
-func GetUsersById(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetUsersById(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 	p := mux.Vars(r)
 
-	detailed_users, err := getDetailedUsers(r.Context(), strings.Split(p["user_ids"], ","), p["guild_id"])
+	detailed_users, err := s.getDetailedUsers(r.Context(), strings.Split(p["user_ids"], ","), p["guild_id"])
 	if err != nil {
-		handleDatabaseError(*err, jw)
+		s.handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -102,29 +102,29 @@ func GetUsersById(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/rsn/{rsns} [GET]
-func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
 
-	user_ids, err := database.WrapQuery(queries.GetGuildUserByRsn, r.Context(), database.GetGuildUserByRsnParams{
+	user_ids, err := database.WrapQuery(s.queries.GetGuildUserByRsn, r.Context(), database.GetGuildUserByRsnParams{
 		GuildID: p["guild_id"],
 		Rsns:    strings.Split(p["rsns"], ","),
 	})
 
 	if err != nil {
-		handleDatabaseError(*err, jw)
+		s.handleDatabaseError(*err, jw)
 		return
 	}
 
-	users, ei := getDetailedUsers(
+	users, ei := s.getDetailedUsers(
 		r.Context(),
 		user_ids,
 		p["guild_id"],
 	)
 
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -144,29 +144,29 @@ func GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/wom/{wom_ids} [GET]
-func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 
 	p := mux.Vars(r)
 
-	user_ids, err := database.WrapQuery(queries.GetGuildUserByWom, r.Context(), database.GetGuildUserByWomParams{
+	user_ids, err := database.WrapQuery(s.queries.GetGuildUserByWom, r.Context(), database.GetGuildUserByWomParams{
 		GuildID: p["guild_id"],
 		WomIds:  strings.Split(p["wom_ids"], ","),
 	})
 
 	if err != nil {
-		handleDatabaseError(*err, jw)
+		s.handleDatabaseError(*err, jw)
 		return
 	}
 
-	users, ei := getDetailedUsers(
+	users, ei := s.getDetailedUsers(
 		r.Context(),
 		user_ids,
 		p["guild_id"],
 	)
 
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
@@ -186,13 +186,13 @@ func GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/{user_id}/achievements [GET]
-func GetUserAchievements(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 	p := mux.Vars(r)
 
-	achievements, err := database.WrapQuery(queries.GetUserAchievements, r.Context(), p["user_id"])
+	achievements, err := database.WrapQuery(s.queries.GetUserAchievements, r.Context(), p["user_id"])
 	if err != nil {
-		handleDatabaseError(*err, jw)
+		s.handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -212,16 +212,16 @@ func GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/{user_id}/events [GET]
-func GetUserEvents(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetUserEvents(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 	p := mux.Vars(r)
 
-	events, err := database.WrapQuery(queries.GetUserEvents, r.Context(), database.GetUserEventsParams{
+	events, err := database.WrapQuery(s.queries.GetUserEvents, r.Context(), database.GetUserEventsParams{
 		UserID:  p["user_id"],
 		GuildID: p["guild_id"],
 	})
 	if err != nil {
-		handleDatabaseError(*err, jw)
+		s.handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -241,16 +241,16 @@ func GetUserEvents(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/{user_id}/times [GET]
-func GetUserTimes(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetUserTimes(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusOK)
 	p := mux.Vars(r)
 
-	rows, err := database.WrapQuery(queries.GetUserTimes, r.Context(), database.GetUserTimesParams{
+	rows, err := database.WrapQuery(s.queries.GetUserTimes, r.Context(), database.GetUserTimesParams{
 		UserID:  p["user_id"],
 		GuildID: p["guild_id"],
 	})
 	if err != nil {
-		handleDatabaseError(*err, jw)
+		s.handleDatabaseError(*err, jw)
 		return
 	}
 
@@ -273,7 +273,7 @@ func GetUserTimes(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users [POST]
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
 	v := mux.Vars(r)
 
@@ -283,7 +283,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wom, err := womClient.GetWom(body.RSN)
+	wom, err := s.womClient.GetWom(body.RSN)
 	if err != nil {
 		jw.WriteError(models.ERROR_RSN_NOT_FOUND)
 		return
@@ -296,10 +296,10 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		UserID:  body.UserId,
 	}
 
-	user, err := queries.CreateUser(r.Context(), params)
+	user, err := s.queries.CreateUser(r.Context(), params)
 	if err != nil {
 		if ei := database.ClassifyError(err); ei != nil {
-			handleDatabaseError(*ei, jw)
+			s.handleDatabaseError(*ei, jw)
 			return
 		}
 	}
@@ -320,7 +320,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/{user_id} [DELETE]
-func RemoveUserById(w http.ResponseWriter, r *http.Request) {
+func (s *Server) RemoveUserById(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
@@ -330,15 +330,18 @@ func RemoveUserById(w http.ResponseWriter, r *http.Request) {
 		UserID:  p["user_id"],
 	}
 
-	rows, err := queries.DeleteUserById(r.Context(), params)
+	rows, err := s.queries.DeleteUserById(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
+	// TODO: Move this to the above database error handler.
+	// https://github.com/Miconen/tectonic-api/issues/58
 	if rows == 0 {
 		jw.WriteError(models.ERROR_USER_NOT_FOUND)
+		return
 	}
 
 	jw.WriteResponse(http.NoBody)
@@ -357,7 +360,7 @@ func RemoveUserById(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/rsn/{rsn} [DELETE]
-func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
+func (s *Server) RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
@@ -367,15 +370,16 @@ func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
 		Rsn:     p["rsn"],
 	}
 
-	rows, err := queries.DeleteUserByRsn(r.Context(), params)
+	rows, err := s.queries.DeleteUserByRsn(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
 	if rows == 0 {
 		jw.WriteError(models.ERROR_USER_NOT_FOUND)
+		return
 	}
 
 	jw.WriteResponse(http.NoBody)
@@ -394,7 +398,7 @@ func RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
 // @Router			/api/v1/guilds/{guild_id}/users/wom/{wom_id} [DELETE]
-func RemoveUserByWom(w http.ResponseWriter, r *http.Request) {
+func (s *Server) RemoveUserByWom(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
 	p := mux.Vars(r)
@@ -404,15 +408,16 @@ func RemoveUserByWom(w http.ResponseWriter, r *http.Request) {
 		WomID:   p["wom_id"],
 	}
 
-	rows, err := queries.DeleteUserByWom(r.Context(), params)
+	rows, err := s.queries.DeleteUserByWom(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		handleDatabaseError(*ei, jw)
+		s.handleDatabaseError(*ei, jw)
 		return
 	}
 
 	if rows == 0 {
 		jw.WriteError(models.ERROR_USER_NOT_FOUND)
+		return
 	}
 
 	jw.WriteResponse(http.NoBody)
