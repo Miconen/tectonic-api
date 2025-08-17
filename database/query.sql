@@ -348,15 +348,36 @@ JOIN event_participant ep ON e.wom_id = ep.event_id
 WHERE ep.user_id = @user_id AND ep.guild_id = @guild_id
 AND ep.placement <= e.position_cutoff;
 
--- name: GiveAchievement :exec
+-- name: GiveAchievementById :exec
 INSERT INTO user_achievement (
 	user_id,
-	achievement_name
+	achievement_name,
+	guild_id
 ) VALUES (
 	@user_id,
-	@achievement_name
+	@achievement_name,
+	@guild_id
 );
 
--- name: RemoveAchievement :exec
+-- name: GiveAchievementByRsn :exec
+INSERT INTO user_achievement (
+	user_id,
+	achievement_name,
+	guild_id
+) VALUES (
+	(SELECT r.user_id FROM rsn r WHERE r.rsn = @rsn),
+	@achievement_name,
+	@guild_id
+);
+
+-- name: RemoveAchievementById :exec
 DELETE FROM user_achievement ua
-WHERE ua.user_id = @user_id AND ua.achievement_name = @achievement_name;
+WHERE ua.user_id = @user_id
+AND ua.achievement_name = @achievement_name
+AND ua.guild_id = @guild_id;
+
+-- name: RemoveAchievementByRsn :exec
+DELETE FROM user_achievement ua
+WHERE ua.user_id = (SELECT r.user_id FROM rsn r WHERE r.rsn = @rsn)
+AND ua.achievement_name = @achievement_name
+AND ua.guild_id = @guild_id;
