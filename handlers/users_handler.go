@@ -29,6 +29,14 @@ func (s *Server) getDetailedUsers(ctx context.Context, user_ids []string, guild_
 		}
 		user := user_rows[0]
 
+		rsns_rows, err := database.WrapQuery(s.queries.GetUserRsns, ctx, database.GetUserRsnsParams{
+			UserID:  user_id,
+			GuildID: guild_id,
+		})
+		if err != nil {
+			return nil, err
+		}
+
 		times_rows, err := database.WrapQuery(s.queries.GetUserTimes, ctx, database.GetUserTimesParams{
 			UserID:  user_id,
 			GuildID: guild_id,
@@ -54,6 +62,7 @@ func (s *Server) getDetailedUsers(ctx context.Context, user_ids []string, guild_
 			UserId:       user.UserID,
 			GuildId:      user.GuildID,
 			Points:       int(user.Points),
+			RSNs:         models.UserRsnsFromRows(rsns_rows),
 			Times:        models.UserTimesFromRows(times_rows),
 			Events:       models.UserEventFromRows(events_rows),
 			Achievements: models.UserAchievementsFromRows(achievements_rows),
