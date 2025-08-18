@@ -128,7 +128,7 @@ const (
 	ERROR_ACHIEVEMENT_EXISTS    // Achievement already exists
 
 	ERROR_USER_ACHIEVEMENT_NOT_FOUND // User doesn't have this achievement
-	ERROR_USER_ACHIEVEMENT_EXISTS    // User already have this achievement
+	ERROR_USER_ACHIEVEMENT_EXISTS    // User already has this achievement
 
 	ERROR_POINT_SOURCE_NOT_FOUND // Point source not found
 	ERROR_POINT_SOURCE_EXISTS    // Point source already exists
