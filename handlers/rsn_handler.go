@@ -56,9 +56,9 @@ func (s *Server) CreateRSN(w http.ResponseWriter, r *http.Request) {
 		s.handleDatabaseErrorCustom(*ei, jw, func(dh *dbHandler, jw *utils.JsonWriter) {
 			switch dh.Code {
 			case "23503":
-				jw.WriteResponse(models.ERROR_USER_NOT_FOUND)
+				jw.WriteError(models.ERROR_USER_NOT_FOUND)
 			case "23505":
-				jw.WriteResponse(models.ERROR_GUILD_EXISTS)
+				jw.WriteError(models.ERROR_RSN_EXISTS)
 			}
 		})
 		return
