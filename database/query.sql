@@ -87,11 +87,12 @@ WHERE user_id = ANY(@user_ids::text[])
 AND users.guild_id = @guild_id 
 RETURNING user_id, guild_id, points, (SELECT points FROM point_value) AS given_points;
 
--- name: UpdatePointsCustom :execrows
+-- name: UpdatePointsCustom :many
 UPDATE users
 SET points = points + @points
 WHERE user_id = ANY(@user_ids::text[])
-AND guild_id = @guild_id RETURNING user_id, guild_id, points;
+AND guild_id = @guild_id
+RETURNING user_id, guild_id, points, @points::int AS given_points;
 
 -- name: GetLeaderboard :many
 SELECT u.user_id, u.guild_id, u.points, json_agg(r) AS rsns
@@ -217,6 +218,15 @@ SELECT "name", "thumbnail", "discord_icon", "order" FROM achievement;
 
 -- name: GetGuildEvents :many
 SELECT "name", "wom_id", "position_cutoff" FROM event WHERE guild_id = @guild_id;
+
+-- name: GetGuildPointSources :many
+SELECT "source", "points" FROM point_sources WHERE guild_id = @guild_id;
+
+-- name: UpdateGuildPointSource :execrows
+UPDATE point_sources ps
+SET points = @points
+WHERE ps.guild_id = @guild_id
+AND ps.source = @point_source;
 
 -- name: CreateEvent :exec
 INSERT INTO event (

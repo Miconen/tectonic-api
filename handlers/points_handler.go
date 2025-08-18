@@ -86,7 +86,81 @@ func (s *Server) UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
 
 	params.Points = int32(points)
 
-	rowsaf, err := s.queries.UpdatePointsCustom(r.Context(), params)
+	user, err := s.queries.UpdatePointsCustom(r.Context(), params)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		s.handleDatabaseError(*ei, jw)
+		return
+	}
+
+	if len(user) == 0 {
+		jw.WriteError(models.ERROR_POINT_SOURCE_NOT_FOUND)
+		return
+	}
+
+	jw.WriteResponse(user)
+}
+
+// @Summary		Get the guild's point sources
+// @Description	Get the point sources that the guild has created
+// @Tags			Points
+// @Produce		json
+// @Param			guild_id	path		string	true	"Guild ID"
+// @Success		200			{object}	database.Event
+// @Failure		400			{object}	models.ErrorResponse
+// @Failure		401			{object}	models.ErrorResponse
+// @Failure		404			{object}	models.ErrorResponse
+// @Failure		500			{object}	models.ErrorResponse
+// @Router			/api/v1/guilds/{guild_id}/points [GET]
+func (s *Server) GetPointSources(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+	p := mux.Vars(r)
+
+	events, err := database.WrapQuery(s.queries.GetGuildPointSources, r.Context(), p["guild_id"])
+	if err != nil {
+		s.handleDatabaseError(*err, jw)
+		return
+	}
+
+	jw.WriteResponse(events)
+}
+
+// @Summary		Update a guild point source
+// @Description	Update a guilds points source
+// @Tags			Points
+// @Accept			json
+// @Produce		json
+// @Param			guild_id	path		string		true	"Guild ID"
+// @Param			user_ids	path		[]string	true	"User ID"
+// @Param			points		path		string		true	"Points"
+// @Param			guild		body		models.User	true	"User"
+// @Success		200			{object}	models.Empty
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		409			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/points/{point_source}/{points} [PUT]
+func (s *Server) UpdateGuildPointSource(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+
+	p := mux.Vars(r)
+
+	params := database.UpdateGuildPointSourceParams{
+		Points:      0,
+		GuildID:     p["guild_id"],
+		PointSource: p["point_source"],
+	}
+
+	points, err := strconv.Atoi(p["points"])
+	if err != nil {
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
+		return
+	}
+
+	params.Points = int32(points)
+
+	rowsaf, err := s.queries.UpdateGuildPointSource(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
 		s.handleDatabaseError(*ei, jw)

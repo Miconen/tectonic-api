@@ -104,6 +104,8 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	pointsRouter := usersRouter.PathPrefix("/{user_ids}/points").Subrouter()
 	pointsRouter.HandleFunc("/custom/{points}", b.server.UpdatePointsCustom).Methods("PUT")
 	pointsRouter.HandleFunc("/{point_event}", b.server.UpdatePoints).Methods("PUT")
+	guildsRouter.HandleFunc("/{guild_id}/points", b.server.GetPointSources).Methods("GET")
+	guildsRouter.HandleFunc("/{guild_id}/points/{point_source}/{points}", b.server.GetPointSources).Methods("PUT")
 
 	return b.router
 }
