@@ -20,7 +20,6 @@ import (
 // @Failure		400			{object}	models.ErrorResponse
 // @Failure		401			{object}	models.ErrorResponse
 // @Failure		404			{object}	models.ErrorResponse
-// @Failure		429			{object}	models.ErrorResponse
 // @Failure		500			{object}	models.ErrorResponse
 // @Router			/api/v1/guilds/{guild_id}/events [GET]
 func (s *Server) GetEvents(w http.ResponseWriter, r *http.Request) {
