@@ -98,7 +98,7 @@ const (
 	ERROR_CATEGORY_EXISTS    // Category already exists
 
 	ERROR_RSN_NOT_FOUND // RSN not found
-	ERROR_RSN_EXISTS    // RSN is already associated to an user
+	ERROR_RSN_EXISTS    // RSN is already associated to a user
 
 	ERROR_TIME_NOT_FOUND // Time not found
 	ERROR_TIME_EXISTS    // Time already exists
