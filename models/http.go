@@ -137,6 +137,7 @@ type DetailedUser struct {
 	UserId       string            `json:"user_id"`
 	GuildId      string            `json:"guild_id"`
 	Points       int               `json:"points"`
+	RSNs         []UserRsn         `json:"rsns"`
 	Times        []UserTime        `json:"times"`
 	Events       []UserEvent       `json:"events"`
 	Achievements []UserAchievement `json:"achievements"`
@@ -158,6 +159,23 @@ func UserAchievementsFromRows(rows []database.GetUserAchievementsRow) []UserAchi
 			Name:        rows[i].Name,
 			Thumbnail:   rows[i].Thumbnail,
 			DiscordIcon: rows[i].DiscordIcon,
+		}
+	}
+
+	return result
+}
+
+type UserRsn struct {
+	RSN   string `json:"rsn"`
+	WomId string `json:"wom_id"`
+}
+
+func UserRsnsFromRows(rows []database.GetUserRsnsRow) []UserRsn {
+	result := make([]UserRsn, len(rows))
+	for i := range rows {
+		result[i] = UserRsn{
+			RSN:   rows[i].Rsn,
+			WomId: rows[i].WomID,
 		}
 	}
 
