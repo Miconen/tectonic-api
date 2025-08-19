@@ -13,9 +13,13 @@ import (
 )
 
 func (s *Server) getDetailedUsers(ctx context.Context, user_ids []string, guild_id string) ([]models.DetailedUser, *database.ErrorInfo) {
-	detailed_users := make([]models.DetailedUser, len(user_ids))
+	if len(user_ids) == 0 {
+		return []models.DetailedUser{}, nil
+	}
 
-	for i, user_id := range user_ids {
+	detailed_users := make([]models.DetailedUser, 0, len(user_ids))
+
+	for _, user_id := range user_ids {
 		user_rows, err := database.WrapQuery(s.queries.GetUsersById, ctx, database.GetUsersByIdParams{
 			GuildID: guild_id,
 			UserIds: []string{user_id},
@@ -24,9 +28,14 @@ func (s *Server) getDetailedUsers(ctx context.Context, user_ids []string, guild_
 			return nil, err
 		}
 
-		if len(user_rows) != 1 {
-			return nil, err
+		if len(user_rows) == 0 {
+			continue
 		}
+
+		if len(user_rows) != 1 {
+			continue
+		}
+
 		user := user_rows[0]
 
 		rsns_rows, err := database.WrapQuery(s.queries.GetUserRsns, ctx, database.GetUserRsnsParams{
@@ -58,7 +67,7 @@ func (s *Server) getDetailedUsers(ctx context.Context, user_ids []string, guild_
 			return nil, err
 		}
 
-		detailed_users[i] = models.DetailedUser{
+		detailed_users = append(detailed_users, models.DetailedUser{
 			UserId:       user.UserID,
 			GuildId:      user.GuildID,
 			Points:       int(user.Points),
@@ -66,7 +75,7 @@ func (s *Server) getDetailedUsers(ctx context.Context, user_ids []string, guild_
 			Times:        models.UserTimesFromRows(times_rows),
 			Events:       models.UserEventFromRows(events_rows),
 			Achievements: models.UserAchievementsFromRows(achievements_rows),
-		}
+		})
 	}
 
 	return detailed_users, nil
