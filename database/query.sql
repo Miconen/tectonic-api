@@ -220,7 +220,7 @@ SELECT "name", "thumbnail", "discord_icon", "order" FROM achievement;
 SELECT "name", "wom_id", "position_cutoff" FROM event WHERE guild_id = @guild_id;
 
 -- name: GetGuildPointSources :many
-SELECT "source", "points" FROM point_sources WHERE guild_id = @guild_id;
+SELECT "source", "points", "name" FROM point_sources WHERE guild_id = @guild_id;
 
 -- name: UpdateGuildPointSource :execrows
 UPDATE point_sources ps
