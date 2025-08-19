@@ -337,7 +337,7 @@ AND r.guild_id = @guild_id;
 SELECT
 	r.user_id
 FROM rsn r
-WHERE r.rsn = ANY(@rsns::text[])
+WHERE r.rsn ILIKE ANY(@rsns::text[])
 AND r.guild_id = @guild_id;
 
 -- name: GetUserByRsn :many
