@@ -269,14 +269,14 @@ WITH participant_data AS (
 )
 INSERT INTO event_participant (
     user_id,
-    placement,
     guild_id,
+    placement,
     event_id
 ) 
 SELECT 
     r.user_id,
-    pd.placement,
     @guild_id,
+    pd.placement,
     @wom_id
 FROM participant_data pd
 JOIN rsn r ON r.wom_id = pd.wom_id AND r.guild_id = @guild_id;
@@ -352,7 +352,8 @@ SELECT
     e.wom_id AS event_id,
     e.guild_id,
     ep.user_id,
-    ep.placement
+    ep.placement,
+    e.position_cutoff
 FROM event e
 JOIN event_participant ep ON e.wom_id = ep.event_id
 WHERE ep.user_id = @user_id AND ep.guild_id = @guild_id

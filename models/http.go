@@ -62,8 +62,8 @@ type InputRSN struct {
 // @Description Model of event registration data
 type InputEvent struct {
 	EventId        int      `json:"event_id" validate:"required,min=1"`
-	TeamNames      []string `json:"team_names" validate:"omitempty,dive,min=1,max=20"`
-	PositionCutoff int      `json:"position_cutoff" validate:"omitempty,min=1,max=100"`
+	TeamNames      []string `json:"team_names" validate:"omitempty,dive,min=1,max=64"`
+	PositionCutoff int      `json:"position_cutoff" validate:"omitempty,min=1,max=3"`
 }
 
 // CategoryMessage Model - for guild category message updates
@@ -185,20 +185,22 @@ func UserRsnsFromRows(rows []database.GetUserRsnsRow) []UserRsn {
 // User Event
 // @Description Model of Event that user have participated
 type UserEvent struct {
-	Name      string `json:"name"`
-	WomID     string `json:"wom_id"`
-	GuildID   string `json:"guild_id"`
-	Placement int16  `json:"position_cutoff"`
+	Name           string `json:"name"`
+	WomID          string `json:"wom_id"`
+	GuildID        string `json:"guild_id"`
+	Placement      int16  `json:"placement"`
+	PositionCutoff int16  `json:"position_cutoff"`
 }
 
 func UserEventFromRows(rows []database.GetUserEventsRow) []UserEvent {
 	result := make([]UserEvent, len(rows))
 	for i := range rows {
 		result[i] = UserEvent{
-			Name:      rows[i].Name,
-			WomID:     rows[i].EventID,
-			GuildID:   rows[i].GuildID,
-			Placement: rows[i].Placement,
+			Name:           rows[i].Name,
+			WomID:          rows[i].EventID,
+			GuildID:        rows[i].GuildID,
+			Placement:      rows[i].Placement,
+			PositionCutoff: rows[i].PositionCutoff,
 		}
 	}
 
