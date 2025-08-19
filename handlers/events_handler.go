@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"tectonic-api/database"
-	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
 
