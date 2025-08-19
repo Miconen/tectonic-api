@@ -40,7 +40,14 @@ func (s *Server) UpdatePoints(w http.ResponseWriter, r *http.Request) {
 	user, err := s.queries.UpdatePointsByEvent(r.Context(), params)
 	ei := database.ClassifyError(err)
 	if err != nil {
-		s.handleDatabaseError(*ei, jw)
+		s.handleDatabaseErrorCustom(*ei, jw, func(dh *dbHandler, jw *utils.JsonWriter) {
+			switch dh.Code {
+			case "23502":
+				jw.WriteError(models.ERROR_POINT_SOURCE_NOT_FOUND)
+			default:
+				jw.WriteError(s.getConstraintError(*ei))
+			}
+		})
 		return
 	}
 
