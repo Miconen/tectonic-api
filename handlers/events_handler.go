@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"tectonic-api/database"
+	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
 
@@ -124,7 +125,7 @@ func (s *Server) RegisterEvent(w http.ResponseWriter, r *http.Request) {
 		Name:           c.Title,
 		WomID:          fmt.Sprintf("%d", c.ID),
 		GuildID:        p["guild_id"],
-		PositionCutoff: 0,
+		PositionCutoff: int16(body.PositionCutoff),
 	})
 	if ei != nil {
 		s.handleDatabaseError(*ei, jw)
@@ -132,40 +133,50 @@ func (s *Server) RegisterEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Type == "classic" {
-		ei = database.WrapExec(q.InsertEventParticipants, r.Context(), database.InsertEventParticipantsParams{
-			ParticipantIds: utils.MapField(c.Participations, func(p models.Participations) string {
-				return fmt.Sprintf("%d", p.PlayerID)
-			}),
-			GuildID: p["guild_id"],
-			WomID:   fmt.Sprintf("%d", c.ID),
-		})
+		winners := utils.MapField(c.Participations, func(p models.Participations) string {
+			return fmt.Sprintf("%d", p.PlayerID)
+		})[0:3]
+
+		params := database.InsertEventParticipantsParams{
+			ParticipantIds: winners,
+			GuildID:        p["guild_id"],
+			WomID:          fmt.Sprintf("%d", c.ID),
+		}
+
+		ei = database.WrapExec(q.InsertEventParticipants, r.Context(), params)
 		if ei != nil {
 			s.handleDatabaseError(*ei, jw)
 			return
 		}
 	} else if c.Type == "team" && len(body.TeamNames) != 0 {
-		ids := make([]string, len(c.Participations))
-		positions := make([]int32, len(c.Participations))
-
 		pos_map := make(map[string]int32)
 		for i := range body.TeamNames {
-			pos_map[body.TeamNames[i]] = int32(i)
+			pos_map[body.TeamNames[i]] = int32(i + 1)
 		}
 
-		for i := range c.Participations {
-			ids[i] = fmt.Sprintf("%d", c.Participations[i].PlayerID)
-			positions[i] = pos_map[c.Participations[i].TeamName]
+		var ids []string
+		var positions []int32
+
+		for _, participation := range c.Participations {
+			if position, isWinningTeam := pos_map[participation.TeamName]; isWinningTeam {
+				ids = append(ids, fmt.Sprintf("%d", participation.PlayerID))
+				positions = append(positions, position)
+			}
 		}
 
-		ei = database.WrapExec(q.InsertEventTeams, r.Context(), database.InsertEventTeamsParams{
-			ParticipantIds:        ids,
-			ParticipantPlacements: positions,
-			GuildID:               p["guild_id"],
-			WomID:                 fmt.Sprintf("%d", c.ID),
-		})
-		if ei != nil {
-			s.handleDatabaseError(*ei, jw)
-			return
+		if len(ids) > 0 {
+			params := database.InsertEventTeamsParams{
+				ParticipantIds:        ids,
+				ParticipantPlacements: positions,
+				GuildID:               p["guild_id"],
+				WomID:                 fmt.Sprintf("%d", c.ID),
+			}
+
+			ei = database.WrapExec(q.InsertEventTeams, r.Context(), params)
+			if ei != nil {
+				s.handleDatabaseError(*ei, jw)
+				return
+			}
 		}
 	} else {
 		jw.WriteError(models.ERROR_WRONG_BODY)
