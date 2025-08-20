@@ -228,6 +228,10 @@ type UserTime struct {
 }
 
 func UserTimesFromRows(rows []database.GetUserTimesRow) []UserTime {
+	if len(rows) == 0 {
+		return []UserTime{}
+	}
+
 	result := make([]UserTime, 0)
 	time := UserTime{
 		Id:        0,
@@ -239,7 +243,6 @@ func UserTimesFromRows(rows []database.GetUserTimesRow) []UserTime {
 			if i != 0 {
 				result = append(result, time)
 			}
-
 			time = UserTime{
 				Id:          rows[i].RunID,
 				BossName:    rows[i].BossName,
@@ -251,12 +254,14 @@ func UserTimesFromRows(rows []database.GetUserTimesRow) []UserTime {
 				Teammates:   make([]TimeTeammates, 0),
 			}
 		}
-
 		time.Teammates = append(time.Teammates, TimeTeammates{
 			UserID:  rows[i].UserID,
 			GuildID: rows[i].GuildID,
 		})
 	}
+
+	// Add the final time object
+	result = append(result, time)
 
 	return result
 }
