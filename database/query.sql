@@ -304,13 +304,18 @@ ORDER BY a.order;
 SELECT
     t.run_id,
     t.boss_name,
+    b.display_name,
+    b.category,
+    b.solo,
     t.date,
     t.time,
     tm.user_id,
     tm.guild_id
 FROM times t
 JOIN teams tm ON t.run_id = tm.run_id
-WHERE tm.user_id = @user_id AND tm.guild_id = @guild_id
+JOIN guild_bosses gb ON t.run_id = gb.pb_id AND tm.guild_id = gb.guild_id
+JOIN bosses b ON b.name = gb.boss
+WHERE tm.user_id = @user_id AND tm.guild_id = @guild_id AND gb.pb_id = t.run_id
 ORDER BY t.run_id;
 
 -- name: GetUserRsns :many

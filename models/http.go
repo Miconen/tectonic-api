@@ -217,14 +217,21 @@ type TimeTeammates struct {
 // User Times
 // @Description Model that represents all user times
 type UserTime struct {
-	Id        int32           `json:"run_id"`
-	BossName  string          `json:"boss_name"`
-	Date      time.Time       `json:"date"`
-	Time      int32           `json:"time"`
-	Teammates []TimeTeammates `json:"team"`
+	Id          int32           `json:"run_id"`
+	BossName    string          `json:"boss_name"`
+	DisplayName string          `json:"display_name"`
+	Category    string          `json:"category"`
+	Solo        bool            `json:"solo"`
+	Date        time.Time       `json:"date"`
+	Time        int32           `json:"time"`
+	Teammates   []TimeTeammates `json:"team"`
 }
 
 func UserTimesFromRows(rows []database.GetUserTimesRow) []UserTime {
+	if len(rows) == 0 {
+		return []UserTime{}
+	}
+
 	result := make([]UserTime, 0)
 	time := UserTime{
 		Id:        0,
@@ -236,21 +243,25 @@ func UserTimesFromRows(rows []database.GetUserTimesRow) []UserTime {
 			if i != 0 {
 				result = append(result, time)
 			}
-
 			time = UserTime{
-				Id:        rows[i].RunID,
-				BossName:  rows[i].BossName,
-				Date:      rows[i].Date.Time,
-				Time:      rows[i].Time,
-				Teammates: make([]TimeTeammates, 0),
+				Id:          rows[i].RunID,
+				BossName:    rows[i].BossName,
+				DisplayName: rows[i].DisplayName,
+				Category:    rows[i].Category,
+				Solo:        rows[i].Solo,
+				Date:        rows[i].Date.Time,
+				Time:        rows[i].Time,
+				Teammates:   make([]TimeTeammates, 0),
 			}
 		}
-
 		time.Teammates = append(time.Teammates, TimeTeammates{
 			UserID:  rows[i].UserID,
 			GuildID: rows[i].GuildID,
 		})
 	}
+
+	// Add the final time object
+	result = append(result, time)
 
 	return result
 }
