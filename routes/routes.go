@@ -61,6 +61,7 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	// Events
 	eventsRouter := guildsRouter.PathPrefix("/{guild_id}/events").Subrouter()
 	eventsRouter.HandleFunc("", b.server.GetEvents).Methods("GET")
+	eventsRouter.HandleFunc("/{event_id}", b.server.GetDetailedEvent).Methods("GET")
 	eventsRouter.HandleFunc("", b.server.RegisterEvent).Methods("POST")
 	eventsRouter.HandleFunc("/{event_id}", b.server.DeleteEvent).Methods("DELETE")
 
