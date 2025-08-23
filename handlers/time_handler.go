@@ -95,7 +95,12 @@ func (s *Server) CreateTime(w http.ResponseWriter, r *http.Request) {
 	pb, err := q.CheckPb(r.Context(), pb_params)
 	ei := database.ClassifyError(err)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
+		s.handleDatabaseErrorCustom(*ei, jw, func(dh *dbHandler, jw *utils.JsonWriter) {
+			switch dh.Code {
+			case "P0002":
+				jw.WriteError(models.ERROR_GUILD_BOSS_NOT_FOUND)
+			}
+		})
 		return
 	}
 
