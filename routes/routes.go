@@ -69,7 +69,8 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	timesRouter := guildsRouter.PathPrefix("/{guild_id}/times").Subrouter()
 	timesRouter.HandleFunc("", b.server.GetGuildTimes).Methods("GET")
 	timesRouter.HandleFunc("", b.server.CreateTime).Methods("POST")
-	timesRouter.HandleFunc("/{time_id}", b.server.RemoveTime).Methods("DELETE")
+	timesRouter.HandleFunc("/{boss}", b.server.RevertClanPb).Methods("DELETE")
+	timesRouter.HandleFunc("/id/{time_id}", b.server.RemoveTime).Methods("DELETE")
 
 	// WOM Events
 	womRouter := guildsRouter.PathPrefix("/{guild_id}/wom").Subrouter()

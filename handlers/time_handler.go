@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"tectonic-api/database"
@@ -182,7 +183,7 @@ func (s *Server) CreateTime(w http.ResponseWriter, r *http.Request) {
 // @Failure		404			{object}	models.Empty
 // @Failure		429			{object}	models.Empty
 // @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/times/{time_id} [DELETE]
+// @Router			/api/v1/guilds/{guild_id}/times/id/{time_id} [DELETE]
 func (s *Server) RemoveTime(w http.ResponseWriter, r *http.Request) {
 	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
 
@@ -209,6 +210,74 @@ func (s *Server) RemoveTime(w http.ResponseWriter, r *http.Request) {
 
 	if deleted == 0 {
 		jw.WriteError(models.ERROR_TIME_NOT_FOUND)
+		return
+	}
+
+	jw.WriteResponse(http.NoBody)
+}
+
+// @Summary		Revert best pb time to second last one
+// @Description	Delete a time in our backend and replace it with the second best
+// @Tags			Time
+// @Produce		json
+// @Param			guild_id	path		string	true	"Guild ID"
+// @Param			time_id		path		string	true	"Time ID"
+// @Success		204			{object}	models.Empty
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		404			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/times/{boss} [DELETE]
+func (s *Server) RevertClanPb(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
+
+	p := mux.Vars(r)
+
+	tx, err := database.CreateTx(r.Context())
+	if err != nil {
+		jw.WriteError(models.ERROR_API_UNAVAILABLE)
+		return
+	}
+
+	q := s.queries.WithTx(tx)
+	defer tx.Rollback(r.Context())
+
+	delete_params := database.DeletePbParams{
+		GuildID:  p["guild_id"],
+		BossName: p["boss"],
+	}
+
+	fmt.Println(delete_params)
+	removed, err := q.DeletePb(r.Context(), delete_params)
+	if err != nil {
+		ei := database.ClassifyError(err)
+		if ei != nil {
+			s.handleDatabaseError(*ei, jw)
+			return
+		}
+	}
+
+	if removed == 0 {
+		jw.WriteError(models.ERROR_TIME_NOT_FOUND)
+		return
+	}
+
+	update_params := database.RevertGuildBossPbParams{
+		GuildID:  p["guild_id"],
+		BossName: p["boss"],
+	}
+
+	fmt.Println(update_params)
+	ei := database.WrapExec(q.RevertGuildBossPb, r.Context(), update_params)
+	if ei != nil {
+		s.handleDatabaseError(*ei, jw)
+		return
+	}
+
+	err = tx.Commit(r.Context())
+	if err != nil {
+		jw.WriteError(models.ERROR_API_UNAVAILABLE)
 		return
 	}
 
