@@ -146,6 +146,30 @@ WHERE r.guild_id = @guild_id AND r.user_id = @user_id AND r.rsn = @rsn;
 DELETE FROM times t
 WHERE t.guild_id = @guild_id AND t.run_id = @run_id;
 
+-- name: DeletePb :execrows
+DELETE FROM times t
+WHERE t.guild_id = @guild_id
+AND t.boss_name = @boss_name
+AND t.run_id = (
+    SELECT pb_id
+    FROM guild_bosses
+    WHERE guild_id = @guild_id
+    AND boss = @boss_name
+);
+
+-- name: RevertGuildBossPb :exec
+UPDATE guild_bosses 
+SET pb_id = (
+    SELECT run_id 
+    FROM times 
+    WHERE times.guild_id = @guild_id
+      AND times.boss_name = @boss_name
+    ORDER BY time ASC 
+    LIMIT 1
+)
+WHERE guild_bosses.guild_id = @guild_id
+AND guild_bosses.boss = @boss_name;
+
 -- name: CreateTime :one
 INSERT INTO times (
     time,
@@ -183,19 +207,30 @@ SELECT
     g.pb_channel_id,
     (SELECT json_agg(tm) FROM teams tm 
      JOIN times t ON tm.run_id = t.run_id 
-     WHERE t.guild_id = g.guild_id) AS teammates,
+     JOIN guild_bosses gb ON t.run_id = gb.pb_id
+     WHERE t.guild_id = g.guild_id
+     	AND gb.guild_id = g.guild_id) AS teammates,
+
     (SELECT json_agg(t) FROM times t 
-     WHERE t.guild_id = g.guild_id) AS pbs,
+     JOIN guild_bosses gb ON t.run_id = gb.pb_id 
+     WHERE t.guild_id = g.guild_id
+     	AND gb.guild_id = g.guild_id
+     	AND gb.pb_id IS NOT NULL) AS pbs,
+
     (SELECT json_agg(b) FROM bosses b 
      JOIN guild_bosses gb ON b.name = gb.boss 
      WHERE gb.guild_id = g.guild_id) AS bosses,
+
     (SELECT json_agg(c) FROM categories c 
      JOIN guild_categories gc ON c.name = gc.category 
      WHERE gc.guild_id = g.guild_id) AS categories,
+
     (SELECT json_agg(gb) FROM guild_bosses gb 
      WHERE gb.guild_id = g.guild_id) AS guild_bosses,
+
     (SELECT json_agg(gc) FROM guild_categories gc 
      WHERE gc.guild_id = g.guild_id) AS guild_categories
+
 FROM guilds g
 WHERE g.guild_id = @guild_id; 
 
