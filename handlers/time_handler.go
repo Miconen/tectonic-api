@@ -48,6 +48,92 @@ func (s *Server) GetGuildTimes(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(guild)
 }
 
+// @Summary		Add a new teammate to time
+// @Description	Add a new teammate to a time
+// @Tags			Time
+// @Accept			json
+// @Produce		json
+// @Param			guild_id	path		string				true	"Guild ID"
+// @Param			time		body		models.InputTime	true	"Time"
+// @Success		200			{object}	models.Empty
+// @Success		201			{object}	models.Empty
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		409			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/teams/boss/{boss} [POST]
+func (s *Server) AddTeammateByBoss(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
+
+	p := mux.Vars(r)
+	var body models.InputTeammate
+
+	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
+		return
+	}
+
+	params := database.AddToTeamByBossParams{
+		GuildID:  body.GuildId,
+		BossName: p["boss"],
+		UserID:   body.UserId,
+	}
+
+	ei := database.WrapExec(s.queries.AddToTeamByBoss, r.Context(), params)
+	if ei != nil {
+		s.handleDatabaseError(*ei, jw)
+		return
+	}
+
+	jw.WriteResponse(http.NoBody)
+}
+
+// @Summary		Add a new teammate to time
+// @Description	Add a new teammate to a time
+// @Tags			Time
+// @Accept			json
+// @Produce		json
+// @Param			guild_id	path		string				true	"Guild ID"
+// @Param			time		body		models.InputTime	true	"Time"
+// @Success		200			{object}	models.Empty
+// @Success		201			{object}	models.Empty
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		409			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/teams/id/{run_id} [POST]
+func (s *Server) AddTeammateByRunId(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
+
+	p := mux.Vars(r)
+	var body models.InputTeammate
+
+	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
+		return
+	}
+
+	id, err := strconv.Atoi(p["run_id"])
+	if err != nil {
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
+		return
+	}
+
+	params := database.AddToTeamByIdParams{
+		GuildID: body.GuildId,
+		UserID:  body.UserId,
+		RunID:   int32(id),
+	}
+
+	ei := database.WrapExec(s.queries.AddToTeamById, r.Context(), params)
+	if ei != nil {
+		s.handleDatabaseError(*ei, jw)
+		return
+	}
+
+	jw.WriteResponse(http.NoBody)
+}
+
 // @Summary		Add a new best time to guild
 // @Description	Add a new time to a guild in our backend by unique guild Snowflake (ID)
 // @Tags			Time

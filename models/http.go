@@ -50,6 +50,13 @@ type InputTime struct {
 	UserIds  []string `json:"user_ids" validate:"required,min=1,max=8,dive,discord_snowflake"`
 }
 
+// InputUser Model - for creating user team records
+// @Description Model of a simple user team record
+type InputTeammate struct {
+	UserId  string `json:"user_id" validate:"required,discord_snowflake"`
+	GuildId string `json:"guild_id" validate:"required,discord_snowflake"`
+}
+
 // InputRSN Model - legacy RSN input (if still used)
 // @Description Model of RSN association
 type InputRSN struct {

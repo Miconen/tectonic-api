@@ -138,6 +138,25 @@ INSERT INTO rsn (
     @wom_id
 );
 
+-- name: AddToTeamByBoss :exec
+INSERT INTO teams (run_id, user_id, guild_id) 
+VALUES (
+    (SELECT pb_id 
+     FROM guild_bosses 
+     WHERE guild_id = @guild_id 
+       AND boss = @boss_name),
+    @user_id,
+    @guild_id
+);
+
+-- name: AddToTeamById :exec
+INSERT INTO teams (run_id, user_id, guild_id) 
+VALUES (
+    @run_id,
+    @user_id,
+    @guild_id
+);
+
 -- name: DeleteRsn :execrows
 DELETE FROM rsn r
 WHERE r.guild_id = @guild_id AND r.user_id = @user_id AND r.rsn = @rsn;
