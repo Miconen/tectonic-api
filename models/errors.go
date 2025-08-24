@@ -118,7 +118,7 @@ const (
 	ERROR_GUILD_CATEGORY_NOT_FOUND // Guild doesn't have this category registered
 	ERROR_GUILD_CATEGORY_EXISTS    // Guild already have this category registered
 
-	ERROR_TEAM_NOT_FOUND // User haven't participated in the run
+	ERROR_TEAM_NOT_FOUND // User has not participated in the run
 	ERROR_TEAM_EXISTS    // User already associated to this run
 
 	ERROR_EVENT_NOT_FOUND // Event not found
