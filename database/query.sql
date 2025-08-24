@@ -157,6 +157,23 @@ VALUES (
     @guild_id
 );
 
+-- name: RemoveFromTeamByBoss :execrows
+DELETE FROM teams 
+WHERE run_id = (
+    SELECT pb_id 
+    FROM guild_bosses 
+     WHERE guild_bosses.guild_id = @guild_id
+       AND boss = @boss_name
+)
+AND user_id = @user_id
+AND guild_id = @guild_id;
+
+-- name: RemoveFromTeamById :execrows
+DELETE FROM teams 
+WHERE run_id = @run_id
+AND user_id = @user_id
+AND guild_id = @guild_id;
+
 -- name: DeleteRsn :execrows
 DELETE FROM rsn r
 WHERE r.guild_id = @guild_id AND r.user_id = @user_id AND r.rsn = @rsn;

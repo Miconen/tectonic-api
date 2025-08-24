@@ -134,6 +134,102 @@ func (s *Server) AddTeammateByRunId(w http.ResponseWriter, r *http.Request) {
 	jw.WriteResponse(http.NoBody)
 }
 
+// @Summary		Remove a teammate from a time
+// @Description	Remove a teammate from a time
+// @Tags			Time
+// @Accept			json
+// @Produce		json
+// @Param			guild_id	path		string				true	"Guild ID"
+// @Param			time		body		models.InputTime	true	"Time"
+// @Success		200			{object}	models.Empty
+// @Success		201			{object}	models.Empty
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		409			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/teams/boss/{boss} [DELETE]
+func (s *Server) RemoveTeammateByBoss(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+
+	p := mux.Vars(r)
+	var body models.InputTeammate
+
+	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
+		return
+	}
+
+	params := database.RemoveFromTeamByBossParams{
+		GuildID:  body.GuildId,
+		UserID:   body.UserId,
+		BossName: p["boss"],
+	}
+
+	rows, ei := database.WrapQuery(s.queries.RemoveFromTeamByBoss, r.Context(), params)
+	if ei != nil {
+		s.handleDatabaseError(*ei, jw)
+		return
+	}
+
+	if rows == 0 {
+		jw.WriteError(models.ERROR_TEAM_NOT_FOUND)
+		return
+	}
+
+	jw.WriteResponse(http.NoBody)
+}
+
+// @Summary		Remove a teammate from a time
+// @Description	Remove a teammate from a time
+// @Tags			Time
+// @Accept			json
+// @Produce		json
+// @Param			guild_id	path		string				true	"Guild ID"
+// @Param			time		body		models.InputTime	true	"Time"
+// @Success		200			{object}	models.Empty
+// @Success		201			{object}	models.Empty
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		409			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/teams/id/{run_id} [DELETE]
+func (s *Server) RemoveTeammateByRunId(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+
+	p := mux.Vars(r)
+	var body models.InputTeammate
+
+	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
+		return
+	}
+
+	id, err := strconv.Atoi(p["run_id"])
+	if err != nil {
+		jw.WriteError(models.ERROR_WRONG_PARAMS)
+		return
+	}
+
+	params := database.RemoveFromTeamByIdParams{
+		GuildID: body.GuildId,
+		UserID:  body.UserId,
+		RunID:   int32(id),
+	}
+
+	rows, ei := database.WrapQuery(s.queries.RemoveFromTeamById, r.Context(), params)
+	if ei != nil {
+		s.handleDatabaseError(*ei, jw)
+		return
+	}
+
+	if rows == 0 {
+		jw.WriteError(models.ERROR_TEAM_NOT_FOUND)
+		return
+	}
+
+	jw.WriteResponse(http.NoBody)
+}
+
 // @Summary		Add a new best time to guild
 // @Description	Add a new time to a guild in our backend by unique guild Snowflake (ID)
 // @Tags			Time
