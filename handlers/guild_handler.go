@@ -137,7 +137,7 @@ type GuildParams struct {
 // @Accept			json
 // @Produce		json
 // @Param			guild_id	path		string				true	"Guild ID"
-// @Param			guild		body		models.UpdateGuild	true	"Guild"
+// @Param			guild		body		GuildParams	true	"Guild"
 // @Success		204			{object}	models.Empty
 // @Failure		400			{object}	models.Empty
 // @Failure		401			{object}	models.Empty

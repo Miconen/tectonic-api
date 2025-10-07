@@ -125,6 +125,14 @@ UPDATE guilds SET
     pb_channel_id = CASE WHEN @pb_channel_id::text IS NOT NULL AND @pb_channel_id::text != '' THEN @pb_channel_id::text ELSE pb_channel_id END
 WHERE guild_id = @guild_id RETURNING guild_id, multiplier, pb_channel_id;
 
+-- name: UpdateEvent :one
+UPDATE event SET
+    name = CASE WHEN @name::text IS NOT NULL AND @name::text != '' THEN @name::text ELSE name END,
+    position_cutoff = CASE WHEN @position_cutoff::numeric IS NOT NULL AND @position_cutoff::numeric != 0 THEN @position_cutoff::numeric ELSE position_cutoff END
+WHERE guild_id = @guild_id
+AND wom_id = @wom_id
+RETURNING name, guild_id, wom_id, position_cutoff;
+
 -- name: CreateRsn :exec
 INSERT INTO rsn (
     guild_id,
