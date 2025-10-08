@@ -265,7 +265,7 @@ func (s *Server) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		Name:           params.Name,
 		PositionCutoff: params.PositionCutoff,
 		GuildID:        p["guild_id"],
-		WomID:          p["wom_id"],
+		WomID:          p["event_id"],
 	}
 
 	_, err = q.UpdateEvent(r.Context(), event_params)
