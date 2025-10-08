@@ -1,14 +1,17 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"tectonic-api/database"
+	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // @Summary		Get the guild's events
@@ -212,6 +215,66 @@ func (s *Server) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 		s.handleDatabaseError(*ei, jw)
 		return
 	}
+
+	jw.WriteResponse(http.NoBody)
+}
+
+type EventParams struct {
+	Name           string         `json:"name"`
+	PositionCutoff pgtype.Numeric `json:"position_cutoff"`
+}
+
+// @Summary		Updates a guild event
+// @Description	Update name and/or cutoff for a guild event
+// @Tags			Event
+// @Accept			json
+// @Produce		json
+// @Param			guild_id	path		string				true	"Guild ID"
+// @Param			guild		body		models.UpdateGuild	true	"Guild"
+// @Success		204			{object}	models.Empty
+// @Failure		400			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		404			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/events/{event_id} [PUT]
+func (s *Server) UpdateEvent(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
+
+	p := mux.Vars(r)
+
+	tx, err := database.CreateTx(r.Context())
+	if err != nil {
+		logging.Get().Error("Error creating transaction", "error", err)
+		jw.WriteError(models.ERROR_API_UNAVAILABLE)
+		return
+	}
+
+	q := s.queries.WithTx(tx)
+	defer tx.Rollback(r.Context())
+
+	var params EventParams
+	err = json.NewDecoder(r.Body).Decode(&params)
+	if err != nil {
+		logging.Get().Error("Failed to parse request body")
+		jw.WriteError(models.ERROR_WRONG_BODY)
+		return
+	}
+
+	event_params := database.UpdateEventParams{
+		Name:           params.Name,
+		PositionCutoff: params.PositionCutoff,
+		GuildID:        p["guild_id"],
+		WomID:          p["event_id"],
+	}
+
+	_, err = q.UpdateEvent(r.Context(), event_params)
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		s.handleDatabaseError(*ei, jw)
+	}
+
+	tx.Commit(r.Context())
 
 	jw.WriteResponse(http.NoBody)
 }
