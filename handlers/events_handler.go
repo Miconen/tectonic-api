@@ -122,12 +122,22 @@ func (s *Server) RegisterEvent(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 
+	solo := true
+	if c.Type == "team" {
+		solo = false
+	}
+
+	if len(body.TeamNames) > 0 {
+		body.PositionCutoff = len(body.TeamNames)
+	}
+
 	q := s.queries.WithTx(tx)
 	ei := database.WrapExec(q.CreateEvent, r.Context(), database.CreateEventParams{
 		Name:           c.Title,
 		WomID:          fmt.Sprintf("%d", c.ID),
 		GuildID:        p["guild_id"],
 		PositionCutoff: int16(body.PositionCutoff),
+		Solo:           solo,
 	})
 	if ei != nil {
 		s.handleDatabaseError(*ei, jw)

@@ -312,12 +312,14 @@ INSERT INTO event (
 	name,
 	wom_id,
 	guild_id,
-	position_cutoff
+	position_cutoff,
+	solo
 ) VALUES (
 	@name,
 	@wom_id,
 	@guild_id,
-	@position_cutoff
+	@position_cutoff,
+	@solo
 );
 
 -- name: InsertEventParticipants :exec
