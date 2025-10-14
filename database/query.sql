@@ -437,7 +437,8 @@ SELECT
     e.guild_id,
     ep.user_id,
     ep.placement,
-    e.position_cutoff
+    e.position_cutoff,
+    e.solo
 FROM event e
 JOIN event_participant ep ON e.wom_id = ep.event_id
 WHERE ep.user_id = @user_id AND ep.guild_id = @guild_id
