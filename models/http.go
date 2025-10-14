@@ -197,6 +197,7 @@ type UserEvent struct {
 	GuildID        string `json:"guild_id"`
 	Placement      int16  `json:"placement"`
 	PositionCutoff int16  `json:"position_cutoff"`
+	Solo           bool   `json:"solo"`
 }
 
 func UserEventFromRows(rows []database.GetUserEventsRow) []UserEvent {
@@ -208,6 +209,7 @@ func UserEventFromRows(rows []database.GetUserEventsRow) []UserEvent {
 			GuildID:        rows[i].GuildID,
 			Placement:      rows[i].Placement,
 			PositionCutoff: rows[i].PositionCutoff,
+			Solo:           rows[i].Solo,
 		}
 	}
 

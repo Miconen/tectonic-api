@@ -128,7 +128,8 @@ WHERE guild_id = @guild_id RETURNING guild_id, multiplier, pb_channel_id;
 -- name: UpdateEvent :one
 UPDATE event SET
     name = CASE WHEN @name::text IS NOT NULL AND @name::text != '' THEN @name::text ELSE name END,
-    position_cutoff = CASE WHEN @position_cutoff::numeric IS NOT NULL AND @position_cutoff::numeric != 0 THEN @position_cutoff::numeric ELSE position_cutoff END
+    position_cutoff = CASE WHEN @position_cutoff::numeric IS NOT NULL AND @position_cutoff::numeric != 0 THEN @position_cutoff::numeric ELSE position_cutoff END,
+    solo = CASE WHEN @solo::boolean IS NOT NULL THEN @solo::boolean ELSE solo END
 WHERE guild_id = @guild_id
 AND wom_id = @wom_id
 RETURNING name, guild_id, wom_id, position_cutoff;
@@ -296,7 +297,7 @@ SELECT "thumbnail", "order", "name" FROM categories;
 SELECT "name", "thumbnail", "discord_icon", "order" FROM achievement;
 
 -- name: GetGuildEvents :many
-SELECT "name", "wom_id", "position_cutoff" FROM event WHERE guild_id = @guild_id;
+SELECT "name", "wom_id", "guild_id", "position_cutoff", "solo" FROM event WHERE guild_id = @guild_id;
 
 -- name: GetGuildPointSources :many
 SELECT "source", "points", "name" FROM point_sources WHERE guild_id = @guild_id;
@@ -312,12 +313,14 @@ INSERT INTO event (
 	name,
 	wom_id,
 	guild_id,
-	position_cutoff
+	position_cutoff,
+	solo
 ) VALUES (
 	@name,
 	@wom_id,
 	@guild_id,
-	@position_cutoff
+	@position_cutoff,
+	@solo
 );
 
 -- name: InsertEventParticipants :exec
@@ -437,7 +440,8 @@ SELECT
     e.guild_id,
     ep.user_id,
     ep.placement,
-    e.position_cutoff
+    e.position_cutoff,
+    e.solo
 FROM event e
 JOIN event_participant ep ON e.wom_id = ep.event_id
 WHERE ep.user_id = @user_id AND ep.guild_id = @guild_id

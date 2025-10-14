@@ -35,6 +35,12 @@ func (s *Server) GetEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(events) == 0 {
+		// Return an empty array
+		jw.WriteResponse([]int{})
+		return
+	}
+
 	jw.WriteResponse(events)
 }
 
@@ -122,12 +128,22 @@ func (s *Server) RegisterEvent(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 
+	solo := true
+	if c.Type == "team" {
+		solo = false
+	}
+
+	if len(body.TeamNames) > 0 {
+		body.PositionCutoff = len(body.TeamNames)
+	}
+
 	q := s.queries.WithTx(tx)
 	ei := database.WrapExec(q.CreateEvent, r.Context(), database.CreateEventParams{
 		Name:           c.Title,
 		WomID:          fmt.Sprintf("%d", c.ID),
 		GuildID:        p["guild_id"],
 		PositionCutoff: int16(body.PositionCutoff),
+		Solo:           solo,
 	})
 	if ei != nil {
 		s.handleDatabaseError(*ei, jw)
@@ -222,6 +238,7 @@ func (s *Server) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 type EventParams struct {
 	Name           string         `json:"name"`
 	PositionCutoff pgtype.Numeric `json:"position_cutoff"`
+	Solo           bool           `json:"solo"`
 }
 
 // @Summary		Updates a guild event
@@ -264,6 +281,7 @@ func (s *Server) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	event_params := database.UpdateEventParams{
 		Name:           params.Name,
 		PositionCutoff: params.PositionCutoff,
+		Solo:           params.Solo,
 		GuildID:        p["guild_id"],
 		WomID:          p["event_id"],
 	}
