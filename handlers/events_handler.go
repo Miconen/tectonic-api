@@ -35,6 +35,12 @@ func (s *Server) GetEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(events) == 0 {
+		// Return an empty array
+		jw.WriteResponse([]int{})
+		return
+	}
+
 	jw.WriteResponse(events)
 }
 
@@ -232,6 +238,7 @@ func (s *Server) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 type EventParams struct {
 	Name           string         `json:"name"`
 	PositionCutoff pgtype.Numeric `json:"position_cutoff"`
+	Solo           bool           `json:"solo"`
 }
 
 // @Summary		Updates a guild event
@@ -274,6 +281,7 @@ func (s *Server) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	event_params := database.UpdateEventParams{
 		Name:           params.Name,
 		PositionCutoff: params.PositionCutoff,
+		Solo:           params.Solo,
 		GuildID:        p["guild_id"],
 		WomID:          p["event_id"],
 	}
