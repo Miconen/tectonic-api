@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+
 	"tectonic-api/handlers"
 	"tectonic-api/logging"
 	"tectonic-api/middleware"
@@ -70,7 +71,8 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	timesRouter := guildsRouter.PathPrefix("/{guild_id}/times").Subrouter()
 	timesRouter.HandleFunc("", b.server.GetGuildTimes).Methods("GET")
 	timesRouter.HandleFunc("", b.server.CreateTime).Methods("POST")
-	timesRouter.HandleFunc("/{boss}", b.server.RevertClanPb).Methods("DELETE")
+	timesRouter.HandleFunc("/{boss}/clear", b.server.ClearClanPb).Methods("DELETE")
+	timesRouter.HandleFunc("/{boss}/revert", b.server.RevertClanPb).Methods("DELETE")
 	timesRouter.HandleFunc("/id/{time_id}", b.server.RemoveTime).Methods("DELETE")
 
 	// Teams
