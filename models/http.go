@@ -1,8 +1,9 @@
 package models
 
 import (
-	"tectonic-api/database"
 	"time"
+
+	"tectonic-api/database"
 )
 
 // InputGuild Model - for creating guilds
@@ -141,13 +142,14 @@ type User struct {
 // Detailed User Model
 // @Description Model of active guild member containing events, times and achievements
 type DetailedUser struct {
-	UserId       string            `json:"user_id"`
-	GuildId      string            `json:"guild_id"`
-	Points       int               `json:"points"`
-	RSNs         []UserRsn         `json:"rsns"`
-	Times        []UserTime        `json:"times"`
-	Events       []UserEvent       `json:"events"`
-	Achievements []UserAchievement `json:"achievements"`
+	UserId             string                  `json:"user_id"`
+	GuildId            string                  `json:"guild_id"`
+	Points             int                     `json:"points"`
+	RSNs               []UserRsn               `json:"rsns"`
+	Times              []UserTime              `json:"times"`
+	Events             []UserEvent             `json:"events"`
+	Achievements       []UserAchievement       `json:"achievements"`
+	CombatAchievements []UserCombatAchievement `json:"combat_achievements"`
 }
 
 // Detailed Achievement
@@ -354,3 +356,32 @@ type ErrorResponse struct {
 // Body Model
 // @Description HTTP Body model for all responses
 type Empty struct{}
+
+// CompleteCombatAchievementBody Model - for completing a CA
+// @Description Model for combat achievement completion request
+type CompleteCombatAchievementBody struct {
+	UserIds []string `json:"user_ids" validate:"required,min=1,max=8,dive,discord_snowflake"`
+}
+
+// CreateCombatAchievementBody Model - for admin CA creation
+// @Description Model for creating a new combat achievement
+type CreateCombatAchievementBody struct {
+	Name        string `json:"name" validate:"required,min=1,max=64"`
+	PointSource string `json:"point_source" validate:"required,min=1,max=32"`
+}
+
+// UserCombatAchievement Model - for user CA completions in detailed user
+// @Description Model of a completed combat achievement
+type UserCombatAchievement struct {
+	Name string `json:"name"`
+}
+
+func UserCombatAchievementsFromRows(rows []string) []UserCombatAchievement {
+	result := make([]UserCombatAchievement, len(rows))
+	for i := range rows {
+		result[i] = UserCombatAchievement{
+			Name: rows[i],
+		}
+	}
+	return result
+}

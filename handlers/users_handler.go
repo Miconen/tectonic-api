@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
 	"tectonic-api/database"
 	"tectonic-api/models"
 	"tectonic-api/utils"
@@ -67,14 +68,23 @@ func (s *Server) getDetailedUsers(ctx context.Context, user_ids []string, guild_
 			return nil, err
 		}
 
+		ca_rows, err := database.WrapQuery(s.queries.GetUserCombatAchievements, ctx, database.GetUserCombatAchievementsParams{
+			UserID:  user_id,
+			GuildID: guild_id,
+		})
+		if err != nil {
+			return nil, err
+		}
+
 		detailed_users = append(detailed_users, models.DetailedUser{
-			UserId:       user.UserID,
-			GuildId:      user.GuildID,
-			Points:       int(user.Points),
-			RSNs:         models.UserRsnsFromRows(rsns_rows),
-			Times:        models.UserTimesFromRows(times_rows),
-			Events:       models.UserEventFromRows(events_rows),
-			Achievements: models.UserAchievementsFromRows(achievements_rows),
+			UserId:             user.UserID,
+			GuildId:            user.GuildID,
+			Points:             int(user.Points),
+			RSNs:               models.UserRsnsFromRows(rsns_rows),
+			Times:              models.UserTimesFromRows(times_rows),
+			Events:             models.UserEventFromRows(events_rows),
+			Achievements:       models.UserAchievementsFromRows(achievements_rows),
+			CombatAchievements: models.UserCombatAchievementsFromRows(ca_rows),
 		})
 	}
 
@@ -129,7 +139,6 @@ func (s *Server) GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
 		GuildID: p["guild_id"],
 		Rsns:    strings.Split(p["rsns"], ","),
 	})
-
 	if err != nil {
 		s.handleDatabaseError(*err, jw)
 		return
@@ -171,7 +180,6 @@ func (s *Server) GetUsersByWom(w http.ResponseWriter, r *http.Request) {
 		GuildID: p["guild_id"],
 		WomIds:  strings.Split(p["wom_ids"], ","),
 	})
-
 	if err != nil {
 		s.handleDatabaseError(*err, jw)
 		return

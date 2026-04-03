@@ -132,6 +132,9 @@ const (
 
 	ERROR_POINT_SOURCE_NOT_FOUND // Point source not found
 	ERROR_POINT_SOURCE_EXISTS    // Point source already exists
+
+	ERROR_COMBAT_ACHIEVEMENT_NOT_FOUND // Combat achievement not found
+	ERROR_COMBAT_ACHIEVEMENT_EXISTS    // Combat achievement already exists
 )
 
 // Server errors
