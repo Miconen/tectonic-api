@@ -33,3 +33,15 @@ Content-Type: application/json
     "{{user_id}}",
   ]
 }
+
+
+### Grant CA to user
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/combat-achievements/Perfect%20Theatre HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Remove CA from user
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/combat-achievements/Perfect%20Theatre HTTP/1.1
+Authorization: {{api_key}}
