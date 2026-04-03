@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
@@ -52,23 +53,31 @@ func (s *Server) EndCompetition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	competition, err := s.womClient.GetCompetition(id)
+	c, err := s.womClient.GetCompetition(id)
 	if err != nil {
-		// TODO: differentiate response errors from request errors
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
+		s.handleWomError(err, jw)
 		return
 	}
 
-	if len(competition.Participations) == 0 {
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
+	emptyResponse := CompetitionResponse{
+		Title:            c.Title,
+		ParticipantCount: c.ParticipantCount,
+		Participants:     []models.DetailedUser{},
+		Accounts:         []string{},
+		Cutoff:           cutoff,
+		PointsGiven:      0,
+	}
+
+	if len(c.Participations) == 0 {
+		jw.WriteResponse(emptyResponse)
 		return
 	}
 
 	rsns := make([]string, 0)
-	accounts := make([]string, len(competition.Participations))
+	accounts := make([]string, len(c.Participations))
 
 	// Get participants valid for points
-	for i, val := range competition.Participations {
+	for i, val := range c.Participations {
 		accounts[i] = val.Player.DisplayName
 
 		// Skip player if they didn't make the cutoff
@@ -79,8 +88,8 @@ func (s *Server) EndCompetition(w http.ResponseWriter, r *http.Request) {
 		rsns = append(rsns, val.Player.DisplayName)
 	}
 
-	if len(rsns) == 0 {
-		jw.WriteError(models.ERROR_PARTICIPATION_NOT_FOUND)
+	if len(c.Participations) == 0 {
+		jw.WriteResponse(emptyResponse)
 		return
 	}
 
@@ -99,24 +108,6 @@ func (s *Server) EndCompetition(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, ei := s.getDetailedUsers(r.Context(), user_ids, p["guild_id"])
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
-	given_params := database.GetPointsValueParams{
-		Event:   "event_participation",
-		GuildID: p["guild_id"],
-	}
-
-	given, err := q.GetPointsValue(r.Context(), given_params)
-	ei = database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
 	points_params := database.UpdatePointsByEventParams{
 		Event:   "event_participation",
 		GuildID: p["guild_id"],
@@ -124,8 +115,8 @@ func (s *Server) EndCompetition(w http.ResponseWriter, r *http.Request) {
 	}
 
 	points, err := q.UpdatePointsByEvent(r.Context(), points_params)
-	ei = database.ClassifyError(err)
 	if err != nil {
+		ei = database.ClassifyError(err)
 		s.handleDatabaseError(*ei, jw)
 		return
 	}
@@ -140,18 +131,24 @@ func (s *Server) EndCompetition(w http.ResponseWriter, r *http.Request) {
 		logging.Get().Info("no activated users found in competition")
 	}
 
-	for i := range users {
-		// Users stored points dont include given points, so we add them here
-		users[i].Points = int(given)
+	users, ei := s.getDetailedUsers(r.Context(), user_ids, p["guild_id"])
+	if ei != nil {
+		s.handleDatabaseError(*ei, jw)
+		return
+	}
+
+	var pointsGiven int
+	if len(points) > 0 {
+		pointsGiven = int(points[0].GivenPoints)
 	}
 
 	response := CompetitionResponse{
-		Title:            competition.Title,
-		ParticipantCount: competition.ParticipantCount,
+		Title:            c.Title,
+		ParticipantCount: c.ParticipantCount,
 		Participants:     users,
 		Accounts:         rsns,
 		Cutoff:           cutoff,
-		PointsGiven:      int(given),
+		PointsGiven:      pointsGiven,
 	}
 
 	jw.WriteResponse(response)
