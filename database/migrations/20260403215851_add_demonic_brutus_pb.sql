@@ -1,10 +1,10 @@
 -- +goose Up
 -- +goose StatementBegin
 INSERT INTO "bosses" ("name", "display_name", "category", "solo")
-VALUES ('demonic_brutus', 'Demonic Brutus', 'Miscellaneous', '1');
+VALUES ('demonic_brutus', 'Demonic Brutus', 'Miscellaneous', true);
 
-INSERT INTO "guild_bosses" ("boss", "guild_id", "pb_id")
-SELECT 'demonic_brutus', g.guild_id, NULL
+INSERT INTO "guild_bosses" ("boss", "guild_id", "pb_id", "category")
+SELECT 'demonic_brutus', g.guild_id, NULL, 'Miscellaneous'
 FROM "guilds" g;
 -- +goose StatementEnd
 
