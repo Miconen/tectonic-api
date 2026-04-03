@@ -179,3 +179,69 @@ func (s *Server) CompleteCombatAchievement(w http.ResponseWriter, r *http.Reques
 
 	jw.WriteResponse(points)
 }
+
+// @Summary		Grant a combat achievement to a user
+// @Description	Mark a user as having completed a combat achievement (no points awarded)
+// @Tags			CombatAchievement
+// @Produce		json
+// @Param			guild_id	path		string	true	"Guild ID"
+// @Param			user_id		path		string	true	"User ID"
+// @Param			ca_name		path		string	true	"Combat Achievement Name"
+// @Success		201			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		404			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/combat-achievements/{ca_name} [POST]
+func (s *Server) GiveUserCombatAchievement(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
+	p := mux.Vars(r)
+
+	ei := database.WrapExec(s.queries.GiveUserCombatAchievement, r.Context(), database.GiveUserCombatAchievementParams{
+		UserID:                p["user_id"],
+		GuildID:               p["guild_id"],
+		CombatAchievementName: p["ca_name"],
+	})
+	if ei != nil {
+		s.handleDatabaseError(*ei, jw)
+		return
+	}
+
+	jw.WriteResponse(http.NoBody)
+}
+
+// @Summary		Remove a combat achievement from a user
+// @Description	Remove a user's combat achievement completion record
+// @Tags			CombatAchievement
+// @Produce		json
+// @Param			guild_id	path		string	true	"Guild ID"
+// @Param			user_id		path		string	true	"User ID"
+// @Param			ca_name		path		string	true	"Combat Achievement Name"
+// @Success		204			{object}	models.Empty
+// @Failure		401			{object}	models.Empty
+// @Failure		404			{object}	models.Empty
+// @Failure		429			{object}	models.Empty
+// @Failure		500			{object}	models.Empty
+// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/combat-achievements/{ca_name} [DELETE]
+func (s *Server) RemoveUserCombatAchievement(w http.ResponseWriter, r *http.Request) {
+	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
+	p := mux.Vars(r)
+
+	rows, err := s.queries.RemoveUserCombatAchievement(r.Context(), database.RemoveUserCombatAchievementParams{
+		UserID:                p["user_id"],
+		GuildID:               p["guild_id"],
+		CombatAchievementName: p["ca_name"],
+	})
+	ei := database.ClassifyError(err)
+	if ei != nil {
+		s.handleDatabaseError(*ei, jw)
+		return
+	}
+
+	if rows == 0 {
+		jw.WriteError(models.ERROR_COMBAT_ACHIEVEMENT_NOT_FOUND)
+		return
+	}
+
+	jw.WriteResponse(http.NoBody)
+}

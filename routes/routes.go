@@ -101,6 +101,10 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	usersRouter.HandleFunc("/wom/{wom_id}", b.server.RemoveUserByWom).Methods("DELETE")
 	usersRouter.HandleFunc("/{user_id}", b.server.RemoveUserById).Methods("DELETE")
 
+	// User Combat Achievements
+	usersRouter.HandleFunc("/{user_id}/combat-achievements/{ca_name}", b.server.GiveUserCombatAchievement).Methods("POST")
+	usersRouter.HandleFunc("/{user_id}/combat-achievements/{ca_name}", b.server.RemoveUserCombatAchievement).Methods("DELETE")
+
 	// Achievements
 	usersRouter.HandleFunc("/rsn/{rsn}/achievements/{achievement}", b.server.GiveAchievementByRsn).Methods("POST")
 	usersRouter.HandleFunc("/rsn/{rsn}/achievements/{achievement}", b.server.RemoveAchievementByRsn).Methods("DELETE")

@@ -510,3 +510,14 @@ ON CONFLICT ON CONSTRAINT "user_combat_achievement_pkey" DO NOTHING;
 SELECT uca.combat_achievement_name
 FROM user_combat_achievement uca
 WHERE uca.user_id = @user_id AND uca.guild_id = @guild_id;
+
+-- name: GiveUserCombatAchievement :exec
+INSERT INTO user_combat_achievement (user_id, guild_id, combat_achievement_name)
+VALUES (@user_id, @guild_id, @combat_achievement_name)
+ON CONFLICT ON CONSTRAINT "user_combat_achievement_pkey" DO NOTHING;
+
+-- name: RemoveUserCombatAchievement :execrows
+DELETE FROM user_combat_achievement
+WHERE user_id = @user_id
+AND guild_id = @guild_id
+AND combat_achievement_name = @combat_achievement_name;
