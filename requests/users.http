@@ -1,0 +1,64 @@
+### Create user
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/users HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "rsn": "{{rsn}}",
+  "user_id": "{{user_id}}"
+}
+
+
+### Get user by ID
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Get user by RSN
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/users/rsn/{{rsn}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Get user by WOM ID
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/users/wom/{{wom_id}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Get user times
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/times HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Get user events
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/events HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Get user achievements
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/achievements HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Delete user by ID
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Delete user by RSN
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/users/rsn/{{rsn}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Delete user by WOM ID
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/users/wom/{{wom_id}} HTTP/1.1
+Authorization: {{api_key}}

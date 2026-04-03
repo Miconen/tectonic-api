@@ -1,0 +1,56 @@
+### Get guild events
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/events HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Get event details
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/events/{{event_id}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Register solo event
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/events HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "event_id": "{{competition_id}}",
+  "position_cutoff": 3
+}
+
+
+### Register team event
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/events HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "event_id": "{{competition_id}}",
+  "team_names": [
+    "Team A",
+    "Team B"
+  ]
+}
+
+
+### Update event
+
+PUT {{base_url}}/api/v1/guilds/{{guild_id}}/events/{{event_id}} HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "name": "Updated Event Name",
+  "position_cutoff": 3,
+  "solo": true
+}
+
+
+### Delete event
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/events/{{event_id}} HTTP/1.1
+Authorization: {{api_key}}

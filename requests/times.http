@@ -1,0 +1,37 @@
+### Get guild times
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/times HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Submit new time
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/times HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "boss_name": "{{boss}}",
+  "time": 1234,
+  "user_ids": [
+    "{{user_id}}"
+  ]
+}
+
+
+### Revert clan PB (fall back to next best)
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/times/{{boss}}/revert HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Clear clan PB (remove entirely)
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/times/{{boss}}/clear HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Remove time by ID
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/times/id/{{time_id}} HTTP/1.1
+Authorization: {{api_key}}

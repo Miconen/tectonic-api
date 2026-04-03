@@ -1,0 +1,46 @@
+### Create guild
+
+POST {{base_url}}/api/v1/guilds HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "guild_id": "{{guild_id}}"
+}
+
+
+### Get guild
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Update guild
+
+PUT {{base_url}}/api/v1/guilds/{{guild_id}} HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "category_messages": [],
+  "multiplier": 1,
+  "pb_channel_id": ""
+}
+
+
+### Delete guild
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Get leaderboard
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/leaderboard HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Get point sources
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/points HTTP/1.1
+Authorization: {{api_key}}

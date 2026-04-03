@@ -1,0 +1,22 @@
+### Give preset points
+
+PUT {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/points/{{point_event}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Give custom points
+
+PUT {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/points/custom/10 HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Give negative custom points
+
+PUT {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/points/custom/-5 HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Update guild point source
+
+PUT {{base_url}}/api/v1/guilds/{{guild_id}}/points/{{point_event}}/15 HTTP/1.1
+Authorization: {{api_key}}
