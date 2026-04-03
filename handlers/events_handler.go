@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
+
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
@@ -104,20 +104,7 @@ func (s *Server) RegisterEvent(w http.ResponseWriter, r *http.Request) {
 
 	c, err := s.womClient.GetCompetition(body.EventId)
 	if err != nil {
-		var apiErr *utils.WomAPIError
-		if errors.As(err, &apiErr) {
-			switch apiErr.StatusCode {
-			case http.StatusNotFound:
-				jw.WriteError(models.ERROR_WOMID_NOT_FOUND)
-			case http.StatusGatewayTimeout:
-				jw.WriteError(models.ERROR_WOM_UNAVAILABLE)
-			default:
-				jw.WriteError(models.ERROR_API_UNAVAILABLE)
-			}
-		} else {
-			// network or JSON decoding error
-			jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		}
+		s.handleWomError(err, jw)
 		return
 	}
 
