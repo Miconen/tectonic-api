@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"context"
+	"errors"
+	"net/http"
+	"time"
+
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -160,4 +163,27 @@ func queryExists(ctx context.Context, conn *pgxpool.Conn, jw *utils.JsonWriter, 
 	}
 
 	return true
+}
+
+// Handlers should delegate WOM errors to this function always.
+// This handler will alwas write the response, so the caller should
+// always short circuit the handler.
+func (s *Server) handleWomError(err error, jw *utils.JsonWriter) {
+	if err != nil {
+		var apiErr *utils.WomAPIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.StatusCode {
+			case http.StatusNotFound:
+				jw.WriteError(models.ERROR_WOMID_NOT_FOUND)
+			case http.StatusGatewayTimeout:
+				jw.WriteError(models.ERROR_WOM_UNAVAILABLE)
+			default:
+				jw.WriteError(models.ERROR_API_UNAVAILABLE)
+			}
+		} else {
+			// network or JSON decoding error
+			jw.WriteError(models.ERROR_API_UNAVAILABLE)
+		}
+		return
+	}
 }
