@@ -1,0 +1,16 @@
+### Get all bosses
+
+GET {{base_url}}/api/v1/bosses HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Get all categories
+
+GET {{base_url}}/api/v1/categories HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Get all achievements
+
+GET {{base_url}}/api/v1/achievements HTTP/1.1
+Authorization: {{api_key}}

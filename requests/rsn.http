@@ -1,0 +1,15 @@
+### Add RSN to user
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/rsns HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "rsn": "{{rsn}}"
+}
+
+
+### Remove RSN from user
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/rsns/{{rsn}} HTTP/1.1
+Authorization: {{api_key}}

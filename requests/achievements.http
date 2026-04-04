@@ -1,0 +1,22 @@
+### Give achievement by user ID
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/achievements/{{achievement}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Give achievement by RSN
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/users/rsn/{{rsn}}/achievements/{{achievement}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Remove achievement by user ID
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/achievements/{{achievement}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Remove achievement by RSN
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/users/rsn/{{rsn}}/achievements/{{achievement}} HTTP/1.1
+Authorization: {{api_key}}

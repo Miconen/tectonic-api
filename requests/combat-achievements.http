@@ -1,0 +1,47 @@
+### Get guild combat achievements
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/combat-achievements HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Create combat achievement
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/combat-achievements HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "name": "Custom CA",
+  "point_source": "combat_achievement_low"
+}
+
+
+### Delete combat achievement
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/combat-achievements/Custom%20CA HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Complete combat achievement
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/combat-achievements/Perfect%20Theatre/complete HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "user_ids": [
+    "{{user_id}}",
+  ]
+}
+
+
+### Grant CA to user
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/combat-achievements/Perfect%20Theatre HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Remove CA from user
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}}/combat-achievements/Perfect%20Theatre HTTP/1.1
+Authorization: {{api_key}}

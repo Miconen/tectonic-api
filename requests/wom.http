@@ -1,0 +1,16 @@
+### End competition (give participation points)
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/wom/competition/{{competition_id}}/cutoff/{{cutoff}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Competition winners (not implemented)
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/wom/winners/{{competition_id}} HTTP/1.1
+Authorization: {{api_key}}
+
+
+### Competition team position (not implemented)
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/wom/winners/{{competition_id}}/team/TeamName HTTP/1.1
+Authorization: {{api_key}}

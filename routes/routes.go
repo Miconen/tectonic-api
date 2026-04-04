@@ -101,11 +101,22 @@ func (b *APIBuilder) AttachV1Routes() *mux.Router {
 	usersRouter.HandleFunc("/wom/{wom_id}", b.server.RemoveUserByWom).Methods("DELETE")
 	usersRouter.HandleFunc("/{user_id}", b.server.RemoveUserById).Methods("DELETE")
 
+	// User Combat Achievements
+	usersRouter.HandleFunc("/{user_id}/combat-achievements/{ca_name}", b.server.GiveUserCombatAchievement).Methods("POST")
+	usersRouter.HandleFunc("/{user_id}/combat-achievements/{ca_name}", b.server.RemoveUserCombatAchievement).Methods("DELETE")
+
 	// Achievements
 	usersRouter.HandleFunc("/rsn/{rsn}/achievements/{achievement}", b.server.GiveAchievementByRsn).Methods("POST")
 	usersRouter.HandleFunc("/rsn/{rsn}/achievements/{achievement}", b.server.RemoveAchievementByRsn).Methods("DELETE")
 	usersRouter.HandleFunc("/{user_id}/achievements/{achievement}", b.server.GiveAchievementById).Methods("POST")
 	usersRouter.HandleFunc("/{user_id}/achievements/{achievement}", b.server.RemoveAchievementById).Methods("DELETE")
+
+	// Combat Achievements
+	caRouter := guildsRouter.PathPrefix("/{guild_id}/combat-achievements").Subrouter()
+	caRouter.HandleFunc("", b.server.GetGuildCombatAchievements).Methods("GET")
+	caRouter.HandleFunc("", b.server.CreateCombatAchievement).Methods("POST")
+	caRouter.HandleFunc("/{ca_name}", b.server.DeleteCombatAchievement).Methods("DELETE")
+	caRouter.HandleFunc("/{ca_name}/complete", b.server.CompleteCombatAchievement).Methods("POST")
 
 	// RSN
 	rsnsRouter := usersRouter.PathPrefix("/{user_id}/rsns").Subrouter()

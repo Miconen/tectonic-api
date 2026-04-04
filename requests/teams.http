@@ -1,0 +1,46 @@
+### Add teammate by boss
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/teams/boss/{{boss}} HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "guild_id": "{{guild_id}}",
+  "user_id": "{{user_id}}"
+}
+
+
+### Add teammate by run ID
+
+POST {{base_url}}/api/v1/guilds/{{guild_id}}/teams/id/{{run_id}} HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "guild_id": "{{guild_id}}",
+  "user_id": "{{user_id}}"
+}
+
+
+### Remove teammate by boss
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/teams/boss/{{boss}} HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "guild_id": "{{guild_id}}",
+  "user_id": "{{user_id}}"
+}
+
+
+### Remove teammate by run ID
+
+DELETE {{base_url}}/api/v1/guilds/{{guild_id}}/teams/id/{{run_id}} HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "guild_id": "{{guild_id}}",
+  "user_id": "{{user_id}}"
+}

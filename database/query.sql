@@ -84,7 +84,7 @@ WITH point_value AS (
 UPDATE users
 SET points = points + (SELECT points FROM point_value)
 WHERE user_id = ANY(@user_ids::text[])
-AND users.guild_id = @guild_id 
+AND users.guild_id = @guild_id
 RETURNING user_id, guild_id, points, (SELECT points FROM point_value) AS given_points;
 
 -- name: UpdatePointsCustom :many
@@ -148,18 +148,18 @@ INSERT INTO rsn (
 );
 
 -- name: AddToTeamByBoss :exec
-INSERT INTO teams (run_id, user_id, guild_id) 
+INSERT INTO teams (run_id, user_id, guild_id)
 VALUES (
-    (SELECT pb_id 
-     FROM guild_bosses 
-     WHERE guild_id = @guild_id 
+    (SELECT pb_id
+     FROM guild_bosses
+     WHERE guild_id = @guild_id
        AND boss = @boss_name),
     @user_id,
     @guild_id
 );
 
 -- name: AddToTeamById :exec
-INSERT INTO teams (run_id, user_id, guild_id) 
+INSERT INTO teams (run_id, user_id, guild_id)
 VALUES (
     @run_id,
     @user_id,
@@ -167,10 +167,10 @@ VALUES (
 );
 
 -- name: RemoveFromTeamByBoss :execrows
-DELETE FROM teams 
+DELETE FROM teams
 WHERE run_id = (
-    SELECT pb_id 
-    FROM guild_bosses 
+    SELECT pb_id
+    FROM guild_bosses
      WHERE guild_bosses.guild_id = @guild_id
        AND boss = @boss_name
 )
@@ -178,7 +178,7 @@ AND user_id = @user_id
 AND guild_id = @guild_id;
 
 -- name: RemoveFromTeamById :execrows
-DELETE FROM teams 
+DELETE FROM teams
 WHERE run_id = @run_id
 AND user_id = @user_id
 AND guild_id = @guild_id;
@@ -203,13 +203,13 @@ AND t.run_id = (
 );
 
 -- name: RevertGuildBossPb :exec
-UPDATE guild_bosses 
+UPDATE guild_bosses
 SET pb_id = (
-    SELECT run_id 
-    FROM times 
+    SELECT run_id
+    FROM times
     WHERE times.guild_id = @guild_id
       AND times.boss_name = @boss_name
-    ORDER BY time ASC 
+    ORDER BY time ASC
     LIMIT 1
 )
 WHERE guild_bosses.guild_id = @guild_id
@@ -250,34 +250,34 @@ SELECT @run_id, unnest(@user_ids::text[]), @guild_id;
 SELECT
     g.guild_id,
     g.pb_channel_id,
-    (SELECT json_agg(tm) FROM teams tm 
-     JOIN times t ON tm.run_id = t.run_id 
+    (SELECT json_agg(tm) FROM teams tm
+     JOIN times t ON tm.run_id = t.run_id
      JOIN guild_bosses gb ON t.run_id = gb.pb_id
      WHERE t.guild_id = g.guild_id
      	AND gb.guild_id = g.guild_id) AS teammates,
 
-    (SELECT json_agg(t) FROM times t 
-     JOIN guild_bosses gb ON t.run_id = gb.pb_id 
+    (SELECT json_agg(t) FROM times t
+     JOIN guild_bosses gb ON t.run_id = gb.pb_id
      WHERE t.guild_id = g.guild_id
      	AND gb.guild_id = g.guild_id
      	AND gb.pb_id IS NOT NULL) AS pbs,
 
-    (SELECT json_agg(b) FROM bosses b 
-     JOIN guild_bosses gb ON b.name = gb.boss 
+    (SELECT json_agg(b) FROM bosses b
+     JOIN guild_bosses gb ON b.name = gb.boss
      WHERE gb.guild_id = g.guild_id) AS bosses,
 
-    (SELECT json_agg(c) FROM categories c 
-     JOIN guild_categories gc ON c.name = gc.category 
+    (SELECT json_agg(c) FROM categories c
+     JOIN guild_categories gc ON c.name = gc.category
      WHERE gc.guild_id = g.guild_id) AS categories,
 
-    (SELECT json_agg(gb) FROM guild_bosses gb 
+    (SELECT json_agg(gb) FROM guild_bosses gb
      WHERE gb.guild_id = g.guild_id) AS guild_bosses,
 
-    (SELECT json_agg(gc) FROM guild_categories gc 
+    (SELECT json_agg(gc) FROM guild_categories gc
      WHERE gc.guild_id = g.guild_id) AS guild_categories
 
 FROM guilds g
-WHERE g.guild_id = @guild_id; 
+WHERE g.guild_id = @guild_id;
 
 -- name: UpdateCategoryMessageIds :execrows
 UPDATE guild_categories
@@ -325,7 +325,7 @@ INSERT INTO event (
 
 -- name: InsertEventParticipants :exec
 WITH participant_data AS (
-    SELECT 
+    SELECT
         unnest(@participant_ids::text[]) as wom_id,
 		generate_series(1, ARRAY_LENGTH(@participant_ids::text[], 1)) as placement
 )
@@ -334,8 +334,8 @@ INSERT INTO event_participant (
     placement,
     guild_id,
     event_id
-) 
-SELECT 
+)
+SELECT
     r.user_id,
     pd.placement,
     @guild_id,
@@ -345,7 +345,7 @@ JOIN rsn r ON r.wom_id = pd.wom_id AND r.guild_id = @guild_id;
 
 -- name: InsertEventTeams :exec
 WITH participant_data AS (
-    SELECT 
+    SELECT
         unnest(@participant_ids::text[]) as wom_id,
         unnest(@participant_placements::int[]) as placement
 )
@@ -354,8 +354,8 @@ INSERT INTO event_participant (
     guild_id,
     placement,
     event_id
-) 
-SELECT 
+)
+SELECT
     r.user_id,
     @guild_id,
     pd.placement,
@@ -480,3 +480,44 @@ DELETE FROM user_achievement ua
 WHERE ua.user_id IN (SELECT r.user_id FROM rsn r WHERE r.rsn = @rsn)
 AND ua.achievement_name = @achievement_name
 AND ua.guild_id = @guild_id;
+
+-- name: GetGuildCombatAchievements :many
+SELECT ca.name, ca.point_source, ps.points, ps.name AS point_source_display_name
+FROM combat_achievement ca
+JOIN point_sources ps ON ca.guild_id = ps.guild_id AND ca.point_source = ps.source
+WHERE ca.guild_id = @guild_id
+ORDER BY ca.name;
+
+-- name: GetCombatAchievement :one
+SELECT ca.name, ca.point_source
+FROM combat_achievement ca
+WHERE ca.name = @name AND ca.guild_id = @guild_id;
+
+-- name: CreateCombatAchievement :exec
+INSERT INTO combat_achievement (name, guild_id, point_source)
+VALUES (@name, @guild_id, @point_source);
+
+-- name: DeleteCombatAchievement :execrows
+DELETE FROM combat_achievement
+WHERE name = @name AND guild_id = @guild_id;
+
+-- name: CompleteCombatAchievement :exec
+INSERT INTO user_combat_achievement (user_id, guild_id, combat_achievement_name)
+SELECT unnest(@user_ids::text[]), @guild_id, @combat_achievement_name
+ON CONFLICT ON CONSTRAINT "user_combat_achievement_pkey" DO NOTHING;
+
+-- name: GetUserCombatAchievements :many
+SELECT uca.combat_achievement_name
+FROM user_combat_achievement uca
+WHERE uca.user_id = @user_id AND uca.guild_id = @guild_id;
+
+-- name: GiveUserCombatAchievement :exec
+INSERT INTO user_combat_achievement (user_id, guild_id, combat_achievement_name)
+VALUES (@user_id, @guild_id, @combat_achievement_name)
+ON CONFLICT ON CONSTRAINT "user_combat_achievement_pkey" DO NOTHING;
+
+-- name: RemoveUserCombatAchievement :execrows
+DELETE FROM user_combat_achievement
+WHERE user_id = @user_id
+AND guild_id = @guild_id
+AND combat_achievement_name = @combat_achievement_name;
