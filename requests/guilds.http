@@ -44,3 +44,14 @@ Authorization: {{api_key}}
 
 GET {{base_url}}/api/v1/guilds/{{guild_id}}/points HTTP/1.1
 Authorization: {{api_key}}
+
+
+### Set mod channel
+
+PUT {{base_url}}/api/v1/guilds/{{guild_id}} HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "mod_channel_id": "123456789012345678"
+}
