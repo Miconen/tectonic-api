@@ -116,13 +116,14 @@ DELETE FROM guilds
 WHERE guild_id = $1;
 
 -- name: GetGuild :one
-SELECT guild_id, multiplier, pb_channel_id FROM guilds
+SELECT guild_id, multiplier, pb_channel_id, mod_channel_id FROM guilds
 WHERE guild_id = $1 LIMIT 1;
 
 -- name: UpdateGuild :one
 UPDATE guilds SET
     multiplier = CASE WHEN @multiplier::numeric IS NOT NULL AND @multiplier::numeric != 0 THEN @multiplier::numeric ELSE multiplier END,
-    pb_channel_id = CASE WHEN @pb_channel_id::text IS NOT NULL AND @pb_channel_id::text != '' THEN @pb_channel_id::text ELSE pb_channel_id END
+    pb_channel_id = CASE WHEN @pb_channel_id::text IS NOT NULL AND @pb_channel_id::text != '' THEN @pb_channel_id::text ELSE pb_channel_id END,
+    mod_channel_id = CASE WHEN @mod_channel_id::text IS NOT NULL AND @mod_channel_id::text != '' THEN @mod_channel_id::text ELSE mod_channel_id END
 WHERE guild_id = @guild_id RETURNING guild_id, multiplier, pb_channel_id;
 
 -- name: UpdateEvent :one

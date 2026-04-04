@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
@@ -128,6 +129,7 @@ type CategoryMessage struct {
 type GuildParams struct {
 	Multiplier       pgtype.Numeric    `json:"multiplier"`
 	PbChannelID      string            `json:"pb_channel_id"`
+	ModChannelID     string            `json:"mod_channel_id"`
 	CategoryMessages []CategoryMessage `json:"category_messages"`
 }
 
@@ -191,9 +193,10 @@ func (s *Server) UpdateGuild(w http.ResponseWriter, r *http.Request) {
 	}
 
 	guild_params := database.UpdateGuildParams{
-		Multiplier:  params.Multiplier,
-		PbChannelID: params.PbChannelID,
-		GuildID:     p["guild_id"],
+		Multiplier:   params.Multiplier,
+		PbChannelID:  params.PbChannelID,
+		ModChannelID: params.ModChannelID,
+		GuildID:      p["guild_id"],
 	}
 
 	_, err = q.UpdateGuild(r.Context(), guild_params)
