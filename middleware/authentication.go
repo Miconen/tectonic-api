@@ -2,15 +2,14 @@ package middleware
 
 import (
 	"net/http"
+
 	"tectonic-api/config"
 	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
-
-	"github.com/gorilla/mux"
 )
 
-func Authentication(cfg *config.Config) mux.MiddlewareFunc {
+func Authentication(cfg *config.Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		logging.Get().Debug("Adding authentication handler")
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
