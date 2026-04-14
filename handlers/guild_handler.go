@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"context"
+	"math/big"
 
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
+	"tectonic-api/utils"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -53,18 +55,12 @@ func (s *Server) DeleteGuild(ctx context.Context, input *DeleteGuildInput) (*str
 	return nil, nil
 }
 
-type GuildCategoryMessage struct {
-	MessageID string `json:"message_id"`
-	Category  string `json:"category"`
-}
-
 type UpdateGuildInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
 	Body    struct {
-		Multiplier       pgtype.Numeric         `json:"multiplier"`
-		PbChannelID      string                 `json:"pb_channel_id"`
-		ModChannelID     string                 `json:"mod_channel_id"`
-		CategoryMessages []GuildCategoryMessage `json:"category_messages"`
+		Multiplier   *float64                 `json:"multiplier,omitempty"`
+		ModChannelID *models.DiscordSnowflake `json:"mod_channel_id,omitempty"`
+		PbUpdate     *models.PbUpdate         `json:"pb_update,omitempty"`
 	}
 }
 
@@ -78,33 +74,48 @@ func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*str
 
 	q := s.queries.WithTx(tx)
 
-	categories := make([]string, len(input.Body.CategoryMessages))
-	messageIds := make([]string, len(input.Body.CategoryMessages))
-	for i, v := range input.Body.CategoryMessages {
-		categories[i] = v.Category
-		messageIds[i] = v.MessageID
-	}
+	// Handle PB update (channel + category messages)
+	var pbChannelID string
+	if input.Body.PbUpdate != nil {
+		pbChannelID = input.Body.PbUpdate.ChannelID.String()
 
-	if len(input.Body.CategoryMessages) > 0 {
-		params := database.UpdateCategoryMessageIdsParams{
+		categories := make([]string, len(input.Body.PbUpdate.CategoryMessages))
+		messageIds := make([]string, len(input.Body.PbUpdate.CategoryMessages))
+		for i, v := range input.Body.PbUpdate.CategoryMessages {
+			categories[i] = v.Category
+			messageIds[i] = v.MessageID.String()
+		}
+
+		_, err := q.UpdateCategoryMessageIds(ctx, database.UpdateCategoryMessageIdsParams{
 			GuildID:    input.GuildID,
 			Categories: categories,
 			MessageIds: messageIds,
-		}
-		_, err := q.UpdateCategoryMessageIds(ctx, params)
+		})
 		if ei := database.ClassifyError(err); ei != nil {
 			return nil, s.dbError(*ei)
 		}
 	}
 
-	guildParams := database.UpdateGuildParams{
-		Multiplier:   input.Body.Multiplier,
-		PbChannelID:  input.Body.PbChannelID,
-		ModChannelID: input.Body.ModChannelID,
-		GuildID:      input.GuildID,
+	// Convert *float64 to pgtype.Numeric
+	var multiplier pgtype.Numeric
+	if input.Body.Multiplier != nil {
+		multiplier.Valid = true
+		multiplier.Int = big.NewInt(int64(*input.Body.Multiplier * 100))
+		multiplier.Exp = -2
 	}
 
-	_, err = q.UpdateGuild(ctx, guildParams)
+	// Convert *DiscordSnowflake to string
+	var modChannelID string
+	if input.Body.ModChannelID != nil {
+		modChannelID = utils.DerefOr(input.Body.ModChannelID, "").String()
+	}
+
+	_, err = q.UpdateGuild(ctx, database.UpdateGuildParams{
+		Multiplier:   multiplier,
+		PbChannelID:  pbChannelID,
+		ModChannelID: modChannelID,
+		GuildID:      input.GuildID,
+	})
 	if ei := database.ClassifyError(err); ei != nil {
 		return nil, s.dbError(*ei)
 	}

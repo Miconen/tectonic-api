@@ -38,3 +38,13 @@ type CreateCombatAchievementBody struct {
 type CompleteCombatAchievementBody struct {
 	UserIDs []DiscordSnowflake `json:"user_ids" minItems:"1" maxItems:"8"`
 }
+
+type GuildCategoryMessage struct {
+	MessageID DiscordSnowflake `json:"message_id"`
+	Category  string           `json:"category"`
+}
+
+type PbUpdate struct {
+	ChannelID        DiscordSnowflake       `json:"channel_id"`
+	CategoryMessages []GuildCategoryMessage `json:"category_messages" minItems:"1"`
+}
