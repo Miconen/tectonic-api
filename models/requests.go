@@ -1,29 +1,28 @@
-// models/requests.go
 package models
 
 type InputGuild struct {
-	GuildId DiscordSnowflake `json:"guild_id"`
+	GuildID DiscordSnowflake `json:"guild_id"`
 }
 
 type InputTime struct {
 	Time     int                `json:"time"      minimum:"1"`
 	BossName string             `json:"boss_name"  minLength:"1" maxLength:"50"`
-	UserIds  []DiscordSnowflake `json:"user_ids"   minItems:"1"  maxItems:"8"`
+	UserIDs  []DiscordSnowflake `json:"user_ids"   minItems:"1"  maxItems:"8"`
 }
 
 type InputTeammate struct {
-	UserId  DiscordSnowflake `json:"user_id"`
-	GuildId DiscordSnowflake `json:"guild_id"`
+	UserID  DiscordSnowflake `json:"user_id"`
+	GuildID DiscordSnowflake `json:"guild_id"`
 }
 
 type InputEvent struct {
-	EventId        int      `json:"event_id"         minimum:"1"`
+	EventID        int      `json:"event_id"         minimum:"1"`
 	TeamNames      []string `json:"team_names,omitempty"`
 	PositionCutoff int      `json:"position_cutoff,omitempty" minimum:"1" maximum:"3"`
 }
 
 type CreateUserBody struct {
-	UserId DiscordSnowflake `json:"user_id"`
+	UserID DiscordSnowflake `json:"user_id"`
 	RSN    RSN              `json:"rsn"`
 }
 
@@ -37,5 +36,5 @@ type CreateCombatAchievementBody struct {
 }
 
 type CompleteCombatAchievementBody struct {
-	UserIds []DiscordSnowflake `json:"user_ids" minItems:"1" maxItems:"8"`
+	UserIDs []DiscordSnowflake `json:"user_ids" minItems:"1" maxItems:"8"`
 }
