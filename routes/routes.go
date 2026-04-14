@@ -3,15 +3,13 @@ package routes
 import (
 	"tectonic-api/handlers"
 
-	_ "tectonic-api/docs"
-
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
 )
 
 func AttachV1Routes(r chi.Router, s *handlers.Server) huma.API {
-	config := huma.DefaultConfig("Tectonic API", "0.1")
+	config := huma.DefaultConfig("Tectonic API", "1.0.0")
 	config.Info.Description = "Functionality provider for Tectonic guild."
 	api := humachi.New(r, config)
 
