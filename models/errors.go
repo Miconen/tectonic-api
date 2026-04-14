@@ -156,90 +156,46 @@ func (e APIV1ErrorCode) Status() int {
 		return http.StatusUnauthorized
 	case ERROR_WOM_UNAVAILABLE:
 		return http.StatusServiceUnavailable
-	case ERROR_API_UNAVAILABLE:
+	case ERROR_API_UNAVAILABLE, ERROR_API_DEAD:
 		return http.StatusInternalServerError
-	case ERROR_API_DEAD:
-		return http.StatusInternalServerError
-	case ERROR_WRONG_BODY:
+	case ERROR_WRONG_BODY, ERROR_WRONG_PARAMS, ERROR_VALIDATION_FAILED:
 		return http.StatusBadRequest
-	case ERROR_WRONG_PARAMS:
-		return http.StatusBadRequest
-	case ERROR_VALIDATION_FAILED:
-		return http.StatusBadRequest
-	// Model
-	case ERROR_GUILD_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_GUILD_EXISTS:
-		return http.StatusConflict
+	}
 
-	case ERROR_BOSS_NOT_FOUND:
+	switch e {
+	case ERROR_GUILD_NOT_FOUND,
+		ERROR_BOSS_NOT_FOUND,
+		ERROR_CATEGORY_NOT_FOUND,
+		ERROR_RSN_NOT_FOUND,
+		ERROR_TIME_NOT_FOUND, ERROR_USER_NOT_FOUND,
+		ERROR_WOMID_NOT_FOUND,
+		ERROR_PARTICIPATION_NOT_FOUND,
+		ERROR_GUILD_BOSS_NOT_FOUND,
+		ERROR_GUILD_CATEGORY_NOT_FOUND,
+		ERROR_TEAM_NOT_FOUND,
+		ERROR_EVENT_NOT_FOUND,
+		ERROR_ACHIEVEMENT_NOT_FOUND,
+		ERROR_USER_ACHIEVEMENT_NOT_FOUND,
+		ERROR_POINT_SOURCE_NOT_FOUND,
+		ERROR_COMBAT_ACHIEVEMENT_NOT_FOUND:
 		return http.StatusNotFound
-	case ERROR_BOSS_EXISTS:
-		return http.StatusConflict
 
-	case ERROR_CATEGORY_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_CATEGORY_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_RSN_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_RSN_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_TIME_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_TIME_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_USER_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_USER_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_WOMID_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_WOMID_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_PARTICIPATION_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_PARTICIPATION_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_GUILD_BOSS_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_GUILD_BOSS_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_GUILD_CATEGORY_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_GUILD_CATEGORY_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_TEAM_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_TEAM_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_EVENT_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_EVENT_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_ACHIEVEMENT_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_ACHIEVEMENT_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_USER_ACHIEVEMENT_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_USER_ACHIEVEMENT_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_POINT_SOURCE_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_POINT_SOURCE_EXISTS:
+	case ERROR_GUILD_EXISTS,
+		ERROR_BOSS_EXISTS,
+		ERROR_CATEGORY_EXISTS,
+		ERROR_RSN_EXISTS,
+		ERROR_TIME_EXISTS,
+		ERROR_USER_EXISTS,
+		ERROR_WOMID_EXISTS,
+		ERROR_PARTICIPATION_EXISTS,
+		ERROR_GUILD_BOSS_EXISTS,
+		ERROR_GUILD_CATEGORY_EXISTS,
+		ERROR_TEAM_EXISTS,
+		ERROR_EVENT_EXISTS,
+		ERROR_ACHIEVEMENT_EXISTS,
+		ERROR_USER_ACHIEVEMENT_EXISTS,
+		ERROR_POINT_SOURCE_EXISTS,
+		ERROR_COMBAT_ACHIEVEMENT_EXISTS:
 		return http.StatusConflict
 	}
 
