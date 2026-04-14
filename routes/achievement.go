@@ -10,6 +10,14 @@ import (
 
 func RegisterAchievementRoutes(api huma.API, s *handlers.Server) {
 	huma.Register(api, huma.Operation{
+		OperationID: "get-achievements",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/achievements",
+		Summary:     "Get all supported achievements",
+		Tags:        []string{"Achievement"},
+	}, s.GetAchievements)
+
+	huma.Register(api, huma.Operation{
 		OperationID: "give-achievement-by-id",
 		Method:      http.MethodPost,
 		Path:        "/api/v1/guilds/{guild_id}/users/{user_id}/achievements/{achievement}",

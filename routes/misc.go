@@ -24,12 +24,4 @@ func RegisterMiscRoutes(api huma.API, s *handlers.Server) {
 		Summary:     "Get all categories",
 		Tags:        []string{"Miscellaneous"},
 	}, s.GetCategories)
-
-	huma.Register(api, huma.Operation{
-		OperationID: "get-achievements",
-		Method:      http.MethodGet,
-		Path:        "/api/v1/achievements",
-		Summary:     "Get all supported achievements",
-		Tags:        []string{"Achievement"},
-	}, s.GetAchievements)
 }
