@@ -15,16 +15,46 @@ GET {{base_url}}/api/v1/guilds/{{guild_id}} HTTP/1.1
 Authorization: {{api_key}}
 
 
-### Update guild
+### Update guild (full example)
 
 PUT {{base_url}}/api/v1/guilds/{{guild_id}} HTTP/1.1
 Authorization: {{api_key}}
 Content-Type: application/json
 
 {
-  "category_messages": [],
-  "multiplier": 1,
-  "pb_channel_id": ""
+  "mod_channel_id": "894970423282892852",
+  "multiplier": 2,
+  "pb_update": {
+    "category_messages": [
+      {
+        "category": "gwd",
+        "message_id": "123456789012345678"
+      }
+    ],
+    "channel_id": "894970423282892852"
+  }
+}
+
+
+### Set mod channel only
+
+PUT {{base_url}}/api/v1/guilds/{{guild_id}} HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "mod_channel_id": "123456789012345678"
+}
+
+
+### Set multiplier only
+
+PUT {{base_url}}/api/v1/guilds/{{guild_id}} HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "multiplier": 2
 }
 
 
@@ -44,14 +74,3 @@ Authorization: {{api_key}}
 
 GET {{base_url}}/api/v1/guilds/{{guild_id}}/points HTTP/1.1
 Authorization: {{api_key}}
-
-
-### Set mod channel
-
-PUT {{base_url}}/api/v1/guilds/{{guild_id}} HTTP/1.1
-Authorization: {{api_key}}
-Content-Type: application/json
-
-{
-  "mod_channel_id": "123456789012345678"
-}
