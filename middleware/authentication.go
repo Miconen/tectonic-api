@@ -1,12 +1,12 @@
 package middleware
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"tectonic-api/config"
 	"tectonic-api/logging"
 	"tectonic-api/models"
-	"tectonic-api/utils"
 )
 
 func Authentication(cfg *config.Config) func(http.Handler) http.Handler {
@@ -23,8 +23,9 @@ func Authentication(cfg *config.Config) func(http.Handler) http.Handler {
 			rlog.Debug("Validating API key")
 			if token != cfg.APIKey {
 				rlog.Warn("Authentication key is invalid")
-				jw := utils.NewJsonWriter(w, r, http.StatusUnauthorized)
-				jw.WriteError(models.ERROR_INVALID_TOKEN)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusUnauthorized)
+				json.NewEncoder(w).Encode(models.NewTectonicError(models.ERROR_INVALID_TOKEN))
 				return
 			}
 
