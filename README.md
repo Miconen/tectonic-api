@@ -15,7 +15,7 @@ As we are in the process of rewriting our current frontend, Tectonic API will be
 ## Installation
 
 ```
-git clone https://github.com/yourusername/tectonic-api.git
+git clone https://github.com/Miconen/tectonic-api.git
 cd tectonic-api
 docker compose --profile dev up --build
 ```
@@ -25,7 +25,7 @@ docker compose --profile dev up --build
 
 ## Endpoints
 
-The API provides several endpoints that can be viewed through Swagger. `{baseUrl}/swagger/v1/`
+The API provides several endpoints that can be viewed through: `/docs`.
 
 ## Testing
 
@@ -46,6 +46,7 @@ The API has a lot of interplay and dependency on existing data.
 For this we use Golangs native integration testing. We also have a basic Postman pipeline for running through our endpoints which we are phasing out currently.
 
 ### Go integration tests
+
 #### Before running Go integration tests you will need...
 
 - Include a `DATABASE_URL` variable in your environment/shell. (`DATABASE_URL=postgresql://postgres:postgres@localhost:5432/tectonic`)
@@ -56,6 +57,7 @@ For this we use Golangs native integration testing. We also have a basic Postman
 Run `go test ./routes`
 
 ### Postman integration tests (Deprecated)
+
 #### Before running Postman you will need...
 
 - The project running, either locally or hosted.
@@ -70,12 +72,6 @@ To run this test, import it into Postman and select `Run Collection`.
 ## Frontends
 
 You can find the frontend for this project at [Tectonic Bot](https://github.com/Miconen/tectonic-bot).
-
-## Tech stack
-
-- Go ([mux](https://github.com/gorilla/mux), [pgx](https://github.com/jackc/pgx/v5), [Squirrel](https://github.com/Masterminds/squirrel), [swaggo](https://github.com/swaggo/swag))
-- PostgreSQL
-- Docker
 
 ## Contributing
 
