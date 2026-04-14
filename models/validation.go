@@ -77,3 +77,11 @@ func isValidRSNChar(r rune) bool {
 		(r >= '0' && r <= '9') ||
 		r == ' ' || r == '-' || r == '_'
 }
+
+func SnowflakesToStrings(ids []DiscordSnowflake) []string {
+	out := make([]string, len(ids))
+	for i, id := range ids {
+		out[i] = string(id)
+	}
+	return out
+}
