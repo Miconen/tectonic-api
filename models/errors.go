@@ -139,15 +139,3 @@ func (e APIV1ErrorCode) Status() int {
 
 	return http.StatusInternalServerError
 }
-
-func (e APIV1ErrorCode) ToErrorResponse() ErrorResponse {
-	msg := e.Message()
-	return ErrorResponse{
-		Code:    uint(e),
-		Message: msg,
-	}
-}
-
-func ValidationFailed(details any) APIV1Error {
-	return NewValidationError(details)
-}
