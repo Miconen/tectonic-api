@@ -81,20 +81,20 @@ func (s *Server) getDetailedUsers(ctx context.Context, userIDs []string, guildID
 
 // Handlers
 
-type GetUsersByIdInput struct {
+type GetUsersByIDInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
 	UserIDs string `path:"user_ids" doc:"Comma-separated User Snowflake IDs"`
 }
-type GetUsersByIdOutput struct {
+type GetUsersByIDOutput struct {
 	Body []models.DetailedUser
 }
 
-func (s *Server) GetUsersById(ctx context.Context, input *GetUsersByIdInput) (*GetUsersByIdOutput, error) {
+func (s *Server) GetUsersById(ctx context.Context, input *GetUsersByIDInput) (*GetUsersByIDOutput, error) {
 	users, ei := s.getDetailedUsers(ctx, strings.Split(input.UserIDs, ","), input.GuildID)
 	if ei != nil {
 		return nil, s.dbError(*ei)
 	}
-	return &GetUsersByIdOutput{Body: users}, nil
+	return &GetUsersByIDOutput{Body: users}, nil
 }
 
 type GetUsersByRsnInput struct {
@@ -199,9 +199,14 @@ func (s *Server) GetUserTimes(ctx context.Context, input *GetUserTimesInput) (*G
 	return &GetUserTimesOutput{Body: models.UserTimesFromRows(rows)}, nil
 }
 
+type CreateUserBody struct {
+	UserID string `json:"user_id"`
+	RSN    string `json:"rsn"`
+}
+
 type CreateUserInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
-	Body    models.CreateUserBody
+	Body    CreateUserBody
 }
 type CreateUserOutput struct {
 	Body any
@@ -217,7 +222,7 @@ func (s *Server) CreateUser(ctx context.Context, input *CreateUserInput) (*Creat
 		GuildID: input.GuildID,
 		WomID:   strconv.Itoa(wom.Id),
 		Rsn:     wom.DisplayName,
-		UserID:  input.Body.UserId,
+		UserID:  input.Body.UserID,
 	}
 
 	user, err := s.queries.CreateUser(ctx, params)
@@ -227,12 +232,12 @@ func (s *Server) CreateUser(ctx context.Context, input *CreateUserInput) (*Creat
 	return &CreateUserOutput{Body: user}, nil
 }
 
-type RemoveUserByIdInput struct {
+type RemoveUserByIDInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
 	UserID  string `path:"user_id" doc:"User Snowflake ID"`
 }
 
-func (s *Server) RemoveUserById(ctx context.Context, input *RemoveUserByIdInput) (*struct{}, error) {
+func (s *Server) RemoveUserById(ctx context.Context, input *RemoveUserByIDInput) (*struct{}, error) {
 	rows, err := s.queries.DeleteUserById(ctx, database.DeleteUserByIdParams{
 		GuildID: input.GuildID,
 		UserID:  input.UserID,
