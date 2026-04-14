@@ -84,10 +84,6 @@ const (
 
 const untreated APIV1ErrorCode = 10000 // Some error happened but left untreated, please file an issue here: https://github.com/Miconen/tectonic-api/issues/new
 
-func (e APIV1ErrorCode) Message() string {
-	return e.String()
-}
-
 func (e APIV1ErrorCode) Status() int {
 	switch e {
 	case ERROR_INVALID_TOKEN:
