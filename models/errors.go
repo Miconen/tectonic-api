@@ -7,73 +7,11 @@ import (
 type APIV1Error interface {
 	Message() string
 	Status() int
-	ToErrorResponse() ErrorResponse
+	Code() uint
 }
 
-type APIV1ErrorWithDetails interface {
-	APIV1Error
-	WithDetails(details any) APIV1ErrorWithDetails
-}
-
-type APIV1ErrorTodo struct {
-	detail string
-	status int
-}
-
-type ValidationError struct {
-	Code    APIV1ErrorCode
-	details any
-}
-
-func NewValidationError(details any) APIV1ErrorWithDetails {
-	return &ValidationError{
-		Code:    ERROR_VALIDATION_FAILED,
-		details: details,
-	}
-}
-
-func (e *ValidationError) Message() string {
-	return ERROR_VALIDATION_FAILED.String()
-}
-
-func (e *ValidationError) Status() int {
-	return http.StatusBadRequest
-}
-
-func (e *ValidationError) ToErrorResponse() ErrorResponse {
-	return ErrorResponse{
-		Code:    uint(e.Code),
-		Message: e.Message(),
-		Details: e.details,
-	}
-}
-
-func (e *ValidationError) WithDetails(details any) APIV1ErrorWithDetails {
-	return &ValidationError{
-		Code:    e.Code,
-		details: details,
-	}
-}
-
-func ERROR_TODO(status int, detail string) APIV1Error {
-	return &APIV1ErrorTodo{status: status, detail: detail}
-}
-
-func (et *APIV1ErrorTodo) Message() string {
-	return untreated.String()
-}
-
-func (et *APIV1ErrorTodo) Status() int {
-	return et.status
-}
-
-func (et *APIV1ErrorTodo) ToErrorResponse() ErrorResponse {
-	return ErrorResponse{
-		Code:    uint(untreated),
-		Message: et.Message(),
-		Details: et.detail,
-	}
-}
+func (e APIV1ErrorCode) Code() uint      { return uint(e) }
+func (e APIV1ErrorCode) Message() string { return e.String() }
 
 //go:generate stringer -type=APIV1ErrorCode -linecomment -output=errors_string.go
 type APIV1ErrorCode uint
