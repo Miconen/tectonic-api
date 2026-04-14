@@ -57,11 +57,7 @@ func (s *Server) DeleteGuild(ctx context.Context, input *DeleteGuildInput) (*str
 
 type UpdateGuildInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
-	Body    struct {
-		Multiplier   *float64                 `json:"multiplier,omitempty"`
-		ModChannelID *models.DiscordSnowflake `json:"mod_channel_id,omitempty"`
-		PbUpdate     *models.PbUpdate         `json:"pb_update,omitempty"`
-	}
+	Body    models.UpdateGuildBody
 }
 
 func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*struct{}, error) {

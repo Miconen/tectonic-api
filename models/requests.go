@@ -48,3 +48,9 @@ type PbUpdate struct {
 	ChannelID        DiscordSnowflake       `json:"channel_id"`
 	CategoryMessages []GuildCategoryMessage `json:"category_messages" minItems:"1"`
 }
+
+type UpdateGuildBody struct {
+	Multiplier   *float64          `json:"multiplier,omitempty"`
+	ModChannelID *DiscordSnowflake `json:"mod_channel_id,omitempty"`
+	PbUpdate     *PbUpdate         `json:"pb_update,omitempty"`
+}
