@@ -23,15 +23,14 @@ import (
 )
 
 type TestVariables struct {
-	GuildId         string
-	UserId          string
+	GuildID         string
+	UserID          string
 	Rsn             string
 	RsnExtra        string
-	ChannelId       string
-	Multiplier      int
-	WomId           string
-	EventClassicId  int
-	EventTeamId     int
+	ChannelID       string
+	WomID           string
+	EventClassicID  int
+	EventTeamID     int
 	AchievementName string
 }
 
@@ -43,7 +42,7 @@ func (tv TestVariables) RsnExtraEscaped() string {
 	return url.PathEscape(tv.RsnExtra)
 }
 
-type TestTable struct {
+type TestCase struct {
 	Name       string
 	Method     string
 	Path       string
@@ -51,7 +50,7 @@ type TestTable struct {
 	StatusCode int
 }
 
-func MustEncode(v any) io.Reader {
+func mustEncode(v any) io.Reader {
 	if v == nil {
 		return nil
 	}
@@ -92,59 +91,65 @@ func setupRouter(t *testing.T) http.Handler {
 		os.Exit(1)
 	}
 
-	// No auth/rate-limit middleware — just routes
 	r := chi.NewRouter()
 	routes.AttachV1Routes(r, srv)
-
 	return r
 }
 
-func TestMain(t *testing.T) {
+func TestRoutes(t *testing.T) {
 	router := setupRouter(t)
 
-	vars := TestVariables{
-		GuildId:         "test_guild",
-		UserId:          "test_user",
+	v := TestVariables{
+		GuildID:         "123456789012345678",
+		UserID:          "987654321098765432",
 		Rsn:             "Comfy hug",
 		RsnExtra:        "Uncomfy hug",
-		ChannelId:       "2012",
-		Multiplier:      1,
-		WomId:           "39527",
-		EventClassicId:  77922,
-		EventTeamId:     66321,
+		ChannelID:       "111222333444555666",
+		WomID:           "39527",
+		EventClassicID:  77922,
+		EventTeamID:     66321,
 		AchievementName: "Ironman",
 	}
 
-	createUser := TestTable{
+	createUser := TestCase{
 		Name:   "Create User",
 		Method: "POST",
-		Path:   fmt.Sprintf("/api/v1/guilds/%s/users", vars.GuildId),
+		Path:   fmt.Sprintf("/api/v1/guilds/%s/users", v.GuildID),
 		Body: models.CreateUserBody{
-			UserId: vars.UserId,
-			RSN:    vars.Rsn,
+			UserID: models.DiscordSnowflake(v.UserID),
+			RSN:    models.RSN(v.Rsn),
 		},
 		StatusCode: 200,
 	}
 
-	tt := []TestTable{
-		// Guild CRUD
+	tt := []TestCase{
+		// === Guild ===
 		{
 			Name:   "Create Guild",
 			Method: "POST",
 			Path:   "/api/v1/guilds",
 			Body: models.InputGuild{
-				GuildId: vars.GuildId,
+				GuildID: models.DiscordSnowflake(v.GuildID),
 			},
 			StatusCode: 200,
 		},
 		{
-			Name:       "Guild Exists",
+			Name:       "Get Guild",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s", vars.GuildId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s", v.GuildID),
+			StatusCode: 200,
+		},
+		{
+			Name:   "Update Guild",
+			Method: "PUT",
+			Path:   fmt.Sprintf("/api/v1/guilds/%s", v.GuildID),
+			Body: models.UpdateGuildBody{
+				ModChannelID: ptrTo(models.DiscordSnowflake(v.ChannelID)),
+			},
 			StatusCode: 200,
 		},
 
-		// Misc
+		// === Misc ===
 		{
 			Name:       "Get Bosses",
 			Method:     "GET",
@@ -164,105 +169,105 @@ func TestMain(t *testing.T) {
 			StatusCode: 200,
 		},
 
-		// User CRUD
+		// === User ===
 		createUser,
 		{
-			Name:       "Single User Exists (By User ID)",
+			Name:       "Get User (By ID)",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s", vars.GuildId, vars.UserId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s", v.GuildID, v.UserID),
 			StatusCode: 200,
 		},
 		{
-			Name:       "Single User Exists (By WOM ID)",
+			Name:       "Get User (By WOM)",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/wom/%s", vars.GuildId, vars.WomId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/wom/%s", v.GuildID, v.WomID),
 			StatusCode: 200,
 		},
 		{
-			Name:       "Single User Exists (By RSN)",
+			Name:       "Get User (By RSN)",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/rsn/%s", vars.GuildId, vars.RsnEscaped()),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/rsn/%s", v.GuildID, v.RsnEscaped()),
 			StatusCode: 200,
 		},
 		{
 			Name:       "Get User Events",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/events", vars.GuildId, vars.UserId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/events", v.GuildID, v.UserID),
 			StatusCode: 200,
 		},
 		{
 			Name:       "Get User Times",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/times", vars.GuildId, vars.UserId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/times", v.GuildID, v.UserID),
 			StatusCode: 200,
 		},
 		{
 			Name:       "Get User Achievements",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/achievements", vars.GuildId, vars.UserId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/achievements", v.GuildID, v.UserID),
 			StatusCode: 200,
 		},
 
-		// RSN
+		// === RSN ===
 		{
 			Name:   "Create RSN",
 			Method: "POST",
-			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/%s/rsns", vars.GuildId, vars.UserId),
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/users/%s/rsns", v.GuildID, v.UserID),
 			Body: models.CreateRsnBody{
-				RSN: vars.RsnExtra,
+				RSN: models.RSN(v.RsnExtra),
 			},
 			StatusCode: 200,
 		},
 		{
 			Name:       "Delete RSN",
 			Method:     "DELETE",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/rsns/%s", vars.GuildId, vars.UserId, vars.RsnExtraEscaped()),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/rsns/%s", v.GuildID, v.UserID, v.RsnExtraEscaped()),
 			StatusCode: 200,
 		},
 
-		// Points
+		// === Points ===
 		{
 			Name:       "Update Points (Event)",
 			Method:     "PUT",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/points/split_high", vars.GuildId, vars.UserId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/points/split_high", v.GuildID, v.UserID),
 			StatusCode: 200,
 		},
 		{
 			Name:       "Update Points (Custom)",
 			Method:     "PUT",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/points/custom/30", vars.GuildId, vars.UserId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/points/custom/30", v.GuildID, v.UserID),
 			StatusCode: 200,
 		},
 		{
 			Name:       "Get Point Sources",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/points", vars.GuildId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/points", v.GuildID),
 			StatusCode: 200,
 		},
 
-		// Leaderboard
+		// === Leaderboard ===
 		{
-			Name:       "Leaderboard Exists",
+			Name:       "Get Leaderboard",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/leaderboard", vars.GuildId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/leaderboard", v.GuildID),
 			StatusCode: 200,
 		},
 
-		// WOM
+		// === WOM ===
 		{
 			Name:       "End Competition",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/wom/competition/66321/cutoff/30", vars.GuildId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/wom/competition/66321/cutoff/30", v.GuildID),
 			StatusCode: 200,
 		},
 
-		// Events
+		// === Events ===
 		{
 			Name:   "Create Classic Event",
 			Method: "POST",
-			Path:   fmt.Sprintf("/api/v1/guilds/%s/events", vars.GuildId),
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/events", v.GuildID),
 			Body: models.InputEvent{
-				EventId:        vars.EventClassicId,
+				EventID:        v.EventClassicID,
 				PositionCutoff: 5,
 			},
 			StatusCode: 200,
@@ -270,9 +275,9 @@ func TestMain(t *testing.T) {
 		{
 			Name:   "Create Team Event",
 			Method: "POST",
-			Path:   fmt.Sprintf("/api/v1/guilds/%s/events", vars.GuildId),
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/events", v.GuildID),
 			Body: models.InputEvent{
-				EventId: vars.EventTeamId,
+				EventID: v.EventTeamID,
 				TeamNames: []string{
 					"The Jack Off Lanter",
 					"Green Fingerers",
@@ -283,101 +288,97 @@ func TestMain(t *testing.T) {
 		{
 			Name:       "List Events",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/events", vars.GuildId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/events", v.GuildID),
 			StatusCode: 200,
 		},
 		{
 			Name:       "Get Event",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/events/%d", vars.GuildId, vars.EventClassicId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/events/%d", v.GuildID, v.EventClassicID),
 			StatusCode: 200,
 		},
 		{
 			Name:       "Delete Classic Event",
 			Method:     "DELETE",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/events/%d", vars.GuildId, vars.EventClassicId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/events/%d", v.GuildID, v.EventClassicID),
 			StatusCode: 200,
 		},
 		{
 			Name:       "Delete Team Event",
 			Method:     "DELETE",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/events/%d", vars.GuildId, vars.EventTeamId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/events/%d", v.GuildID, v.EventTeamID),
 			StatusCode: 200,
 		},
 
-		// Achievement give/remove
+		// === Achievements ===
 		{
 			Name:       "Give Achievement",
 			Method:     "POST",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/achievements/%s", vars.GuildId, vars.UserId, vars.AchievementName),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/achievements/%s", v.GuildID, v.UserID, v.AchievementName),
 			StatusCode: 200,
 		},
 		{
 			Name:       "Remove Achievement",
 			Method:     "DELETE",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/achievements/%s", vars.GuildId, vars.UserId, vars.AchievementName),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/achievements/%s", v.GuildID, v.UserID, v.AchievementName),
 			StatusCode: 200,
 		},
 
-		// Times
+		// === Times ===
 		{
 			Name:   "Create Time",
 			Method: "POST",
-			Path:   fmt.Sprintf("/api/v1/guilds/%s/times", vars.GuildId),
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/times", v.GuildID),
 			Body: models.InputTime{
-				Time:     rand.Int(),
+				Time:     rand.Intn(100000) + 1,
 				BossName: "vardorvis",
-				UserIds:  []string{vars.UserId},
+				UserIDs:  []models.DiscordSnowflake{models.DiscordSnowflake(v.UserID)},
 			},
 			StatusCode: 200,
 		},
-
-		// Guild times
 		{
 			Name:       "Get Guild Times",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/times", vars.GuildId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/times", v.GuildID),
 			StatusCode: 200,
 		},
 
-		// Delete user variations
+		// === Delete Users (all variations) ===
 		{
-			Name:       "Delete User (By User ID)",
+			Name:       "Delete User (By ID)",
 			Method:     "DELETE",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s", vars.GuildId, vars.UserId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s", v.GuildID, v.UserID),
 			StatusCode: 200,
 		},
 		createUser,
 		{
-			Name:       "Delete User (By Wom ID)",
+			Name:       "Delete User (By WOM)",
 			Method:     "DELETE",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/wom/%s", vars.GuildId, vars.WomId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/wom/%s", v.GuildID, v.WomID),
 			StatusCode: 200,
 		},
 		createUser,
 		{
 			Name:       "Delete User (By RSN)",
 			Method:     "DELETE",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/rsn/%s", vars.GuildId, vars.RsnEscaped()),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/rsn/%s", v.GuildID, v.RsnEscaped()),
 			StatusCode: 200,
 		},
 
-		// Cleanup
+		// === Cleanup ===
 		{
 			Name:       "Delete Guild",
 			Method:     "DELETE",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s", vars.GuildId),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s", v.GuildID),
 			StatusCode: 200,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			w := httptest.NewRecorder()
-
 			var body io.Reader
 			if tc.Body != nil {
-				body = MustEncode(tc.Body)
+				body = mustEncode(tc.Body)
 			}
 
 			r := httptest.NewRequest(tc.Method, tc.Path, body)
@@ -385,6 +386,7 @@ func TestMain(t *testing.T) {
 				r.Header.Set("Content-Type", "application/json")
 			}
 
+			w := httptest.NewRecorder()
 			router.ServeHTTP(w, r)
 
 			if w.Code != tc.StatusCode {
@@ -393,4 +395,9 @@ func TestMain(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Helper for pointer fields
+func ptrTo[T any](v T) *T {
+	return &v
 }
