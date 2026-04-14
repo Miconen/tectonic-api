@@ -1,183 +1,105 @@
 package handlers
 
 import (
-	"net/http"
-	"strconv"
+	"context"
 	"strings"
+
 	"tectonic-api/database"
 	"tectonic-api/models"
-	"tectonic-api/utils"
-
-	"github.com/gorilla/mux"
 )
 
-// @Summary		Update a user(s) points
-// @Description	Update a user(s)' points in our backend by unique user Snowflake (ID)
-// @Tags			Points
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string		true	"Guild ID"
-// @Param			user_ids	path		[]string	true	"User IDs"
-// @Param			point_event	path		string		true	"Point event"
-// @Param			guild		body		models.User	true	"User"
-// @Success		200			{object}	models.User
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		409			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_ids}/points/{point_event} [PUT]
-func (s *Server) UpdatePoints(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+type UpdatePointsInput struct {
+	GuildID    string `path:"guild_id" doc:"Guild Snowflake ID"`
+	UserIDs    string `path:"user_ids" doc:"Comma-separated User Snowflake IDs"`
+	PointEvent string `path:"point_event" doc:"Point event name"`
+}
+type UpdatePointsOutput struct {
+	Body any
+}
 
-	p := mux.Vars(r)
+func (s *Server) UpdatePoints(ctx context.Context, input *UpdatePointsInput) (*UpdatePointsOutput, error) {
 	params := database.UpdatePointsByEventParams{
-		Event:   p["point_event"],
-		GuildID: p["guild_id"],
-		UserIds: strings.Split(p["user_ids"], ","),
+		Event:   input.PointEvent,
+		GuildID: input.GuildID,
+		UserIds: strings.Split(input.UserIDs, ","),
 	}
 
-	user, err := s.queries.UpdatePointsByEvent(r.Context(), params)
-	ei := database.ClassifyError(err)
-	if err != nil {
-		s.handleDatabaseErrorCustom(*ei, jw, func(dh *dbHandler, jw *utils.JsonWriter) {
-			switch dh.Code {
-			case "23502":
-				jw.WriteError(models.ERROR_POINT_SOURCE_NOT_FOUND)
-			default:
-				jw.WriteError(s.getConstraintError(*ei))
-			}
-		})
-		return
+	user, err := s.queries.UpdatePointsByEvent(ctx, params)
+	if ei := database.ClassifyError(err); ei != nil {
+		if ei.Recoverable && ei.Code == "23502" {
+			return nil, models.NewTectonicError(models.ERROR_POINT_SOURCE_NOT_FOUND)
+		}
+		return nil, s.dbError(*ei)
 	}
 
 	if len(user) == 0 {
-		jw.WriteError(models.ERROR_POINT_SOURCE_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_POINT_SOURCE_NOT_FOUND)
 	}
-
-	jw.WriteResponse(user)
+	return &UpdatePointsOutput{Body: user}, nil
 }
 
-// @Summary		Update a user(s) points
-// @Description	Update a user(s)' points in our backend by unique user Snowflake (ID)
-// @Tags			Points
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string		true	"Guild ID"
-// @Param			user_ids	path		[]string	true	"User ID"
-// @Param			points		path		string		true	"Points"
-// @Param			guild		body		models.User	true	"User"
-// @Success		200			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		409			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_ids}/points/custom/{points} [PUT]
-func (s *Server) UpdatePointsCustom(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+type UpdatePointsCustomInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	UserIDs string `path:"user_ids" doc:"Comma-separated User Snowflake IDs"`
+	Points  int    `path:"points" doc:"Points to add"`
+}
+type UpdatePointsCustomOutput struct {
+	Body any
+}
 
-	p := mux.Vars(r)
+func (s *Server) UpdatePointsCustom(ctx context.Context, input *UpdatePointsCustomInput) (*UpdatePointsCustomOutput, error) {
 	params := database.UpdatePointsCustomParams{
-		Points:  0,
-		UserIds: strings.Split(p["user_ids"], ","),
-		GuildID: p["guild_id"],
+		Points:  int32(input.Points),
+		UserIds: strings.Split(input.UserIDs, ","),
+		GuildID: input.GuildID,
 	}
 
-	points, err := strconv.Atoi(p["points"])
-	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
-		return
-	}
-
-	params.Points = int32(points)
-
-	user, err := s.queries.UpdatePointsCustom(r.Context(), params)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+	user, err := s.queries.UpdatePointsCustom(ctx, params)
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
 	if len(user) == 0 {
-		jw.WriteError(models.ERROR_POINT_SOURCE_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_POINT_SOURCE_NOT_FOUND)
 	}
-
-	jw.WriteResponse(user)
+	return &UpdatePointsCustomOutput{Body: user}, nil
 }
 
-// @Summary		Get the guild's point sources
-// @Description	Get the point sources that the guild has created
-// @Tags			Points
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Success		200			{object}	database.Event
-// @Failure		400			{object}	models.ErrorResponse
-// @Failure		401			{object}	models.ErrorResponse
-// @Failure		404			{object}	models.ErrorResponse
-// @Failure		500			{object}	models.ErrorResponse
-// @Router			/api/v1/guilds/{guild_id}/points [GET]
-func (s *Server) GetPointSources(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-	p := mux.Vars(r)
-
-	events, err := database.WrapQuery(s.queries.GetGuildPointSources, r.Context(), p["guild_id"])
-	if err != nil {
-		s.handleDatabaseError(*err, jw)
-		return
-	}
-
-	jw.WriteResponse(events)
+type GetPointSourcesInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+}
+type GetPointSourcesOutput struct {
+	Body any
 }
 
-// @Summary		Update a guild point source
-// @Description	Update a guilds points source
-// @Tags			Points
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string		true	"Guild ID"
-// @Param			user_ids	path		[]string	true	"User ID"
-// @Param			points		path		string		true	"Points"
-// @Param			guild		body		models.User	true	"User"
-// @Success		200			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		409			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/points/{point_source}/{points} [PUT]
-func (s *Server) UpdateGuildPointSource(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-
-	p := mux.Vars(r)
-
-	params := database.UpdateGuildPointSourceParams{
-		Points:      0,
-		GuildID:     p["guild_id"],
-		PointSource: p["point_source"],
-	}
-
-	points, err := strconv.Atoi(p["points"])
-	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
-		return
-	}
-
-	params.Points = int32(points)
-
-	rowsaf, err := s.queries.UpdateGuildPointSource(r.Context(), params)
-	ei := database.ClassifyError(err)
+func (s *Server) GetPointSources(ctx context.Context, input *GetPointSourcesInput) (*GetPointSourcesOutput, error) {
+	events, ei := database.WrapQuery(s.queries.GetGuildPointSources, ctx, input.GuildID)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
+	}
+	return &GetPointSourcesOutput{Body: events}, nil
+}
+
+type UpdateGuildPointSourceInput struct {
+	GuildID     string `path:"guild_id" doc:"Guild Snowflake ID"`
+	PointSource string `path:"point_source" doc:"Point source name"`
+	Points      int    `path:"points" doc:"New point value"`
+}
+
+func (s *Server) UpdateGuildPointSource(ctx context.Context, input *UpdateGuildPointSourceInput) (*struct{}, error) {
+	params := database.UpdateGuildPointSourceParams{
+		Points:      int32(input.Points),
+		GuildID:     input.GuildID,
+		PointSource: input.PointSource,
 	}
 
-	if rowsaf == 0 {
-		jw.WriteError(models.ERROR_POINT_SOURCE_NOT_FOUND)
-		return
+	rowsAf, err := s.queries.UpdateGuildPointSource(ctx, params)
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
-	jw.WriteResponse(http.NoBody)
+	if rowsAf == 0 {
+		return nil, models.NewTectonicError(models.ERROR_POINT_SOURCE_NOT_FOUND)
+	}
+	return nil, nil
 }

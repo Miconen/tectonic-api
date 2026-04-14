@@ -1,29 +1,19 @@
 package handlers
 
 import (
-	"context"
 	"errors"
 	"net/http"
-	"time"
 
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-type dbHandler struct {
-	database.ErrorInfo
-}
 
 func (s *Server) getConstraintError(ei database.ErrorInfo) models.APIV1Error {
 	switch ei.Code {
-	case "23503": // Foreign constraint violation
-
+	case "23503":
 		c := s.constraintsMap[ei.Err.ConstraintName]
-
 		switch c.ForeignTable {
 		case "achievement":
 			return models.ERROR_ACHIEVEMENT_NOT_FOUND
@@ -54,10 +44,8 @@ func (s *Server) getConstraintError(ei database.ErrorInfo) models.APIV1Error {
 		case "users":
 			return models.ERROR_USER_NOT_FOUND
 		}
-	case "23505": // Unique constraint violation
-
+	case "23505":
 		c := s.constraintsMap[ei.Err.ConstraintName]
-
 		switch c.Table {
 		case "achievement":
 			return models.ERROR_ACHIEVEMENT_EXISTS
@@ -91,99 +79,31 @@ func (s *Server) getConstraintError(ei database.ErrorInfo) models.APIV1Error {
 	}
 
 	logging.Get().Error("Database untreated error", "error_info", ei)
-	return models.ERROR_TODO(400, time.Now().String())
+	return models.ERROR_API_UNAVAILABLE
 }
 
-// Handlers should delegate database errors to this function always.
-// This handler will alwas write the response, so the caller should
-// always short circuit the handler.
-func (s *Server) handleDatabaseError(ei database.ErrorInfo, jw *utils.JsonWriter) {
-	dh := &dbHandler{ErrorInfo: ei}
-
-	if dh.Severity == database.SeverityFatal || dh.Severity == database.SeverityPanic {
-		logging.Get().Error("DATABASE FAILURE", "err", dh.Error())
-		jw.WriteError(models.ERROR_API_DEAD)
-	} else if !dh.Recoverable {
-		logging.Get().Error("DATABASE NON-RECOVERABLE ERROR", "err", dh.Error())
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-	} else {
-		logging.Get().Warn("QUERY ERROR", "err", dh.Error())
-		jw.WriteError(s.getConstraintError(ei))
+func (s *Server) dbError(ei database.ErrorInfo) *models.TectonicError {
+	if ei.Severity == database.SeverityFatal || ei.Severity == database.SeverityPanic {
+		logging.Get().Error("DATABASE FAILURE", "err", ei.Error())
+		return models.NewTectonicError(models.ERROR_API_DEAD)
 	}
-}
-
-type dbHandlerFunc func(dh *dbHandler, jw *utils.JsonWriter)
-
-func (s *Server) handleDatabaseErrorCustom(ei database.ErrorInfo, jw *utils.JsonWriter, dhc dbHandlerFunc) {
-	dh := &dbHandler{ErrorInfo: ei}
-
-	if dh.Severity == database.SeverityFatal || dh.Severity == database.SeverityPanic {
-		logging.Get().Error("DATABASE FAILURE", "err", dh.Error())
-		jw.WriteError(models.ERROR_API_DEAD)
-	} else if !dh.Recoverable {
-		logging.Get().Error("DATABASE NON-RECOVERABLE ERROR", "err", dh.Error())
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-	} else {
-		logging.Get().Warn("QUERY ERROR", "err", dh.Error())
-		dhc(dh, jw)
+	if !ei.Recoverable {
+		logging.Get().Error("DATABASE NON-RECOVERABLE ERROR", "err", ei.Error())
+		return models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
+	logging.Get().Warn("QUERY ERROR", "err", ei.Error())
+	return models.NewTectonicError(s.getConstraintError(ei))
 }
 
-// Checks if guild exists on the database.
-func guildExists(ctx context.Context, conn *pgxpool.Conn, jw *utils.JsonWriter, guild_id string) bool {
-	return queryExists(ctx, conn, jw, "SELECT EXISTS (SELECT guild_id FROM guilds WHERE guild_id = $1)", guild_id, models.ERROR_GUILD_NOT_FOUND)
-}
-
-// Checks if user exists on the database.
-func userExists(ctx context.Context, conn *pgxpool.Conn, jw *utils.JsonWriter, user_id string) bool {
-	return queryExists(ctx, conn, jw, "SELECT EXISTS (SELECT user_id FROM users WHERE user_id = $1)", user_id, models.ERROR_USER_NOT_FOUND)
-}
-
-// Checks if event exists on the database.
-func eventExists(ctx context.Context, conn *pgxpool.Conn, jw *utils.JsonWriter, event_id string) bool {
-	return queryExists(ctx, conn, jw, "SELECT EXISTS (SELECT wom_id FROM event WHERE wom_id = $1)", event_id, models.ERROR_EVENT_NOT_FOUND)
-}
-
-// Checks if achievent exists on the database.
-func achievementExists(ctx context.Context, conn *pgxpool.Conn, jw *utils.JsonWriter, name string) bool {
-	return queryExists(ctx, conn, jw, "SELECT EXISTS (SELECT name FROM achievement WHERE name = $1)", name, models.ERROR_ACHIEVEMENT_NOT_FOUND)
-}
-
-func queryExists(ctx context.Context, conn *pgxpool.Conn, jw *utils.JsonWriter, sql string, param string, api_err models.APIV1ErrorCode) bool {
-	exists := false
-	err := conn.QueryRow(ctx, sql, param).Scan(&exists)
-	if err != nil {
-		jw.WriteError(models.ERROR_API_DEAD)
-		return false
-	}
-
-	if !exists {
-		jw.WriteError(api_err)
-		return false
-	}
-
-	return true
-}
-
-// Handlers should delegate WOM errors to this function always.
-// This handler will alwas write the response, so the caller should
-// always short circuit the handler.
-func (s *Server) handleWomError(err error, jw *utils.JsonWriter) {
-	if err != nil {
-		var apiErr *utils.WomAPIError
-		if errors.As(err, &apiErr) {
-			switch apiErr.StatusCode {
-			case http.StatusNotFound:
-				jw.WriteError(models.ERROR_WOMID_NOT_FOUND)
-			case http.StatusGatewayTimeout:
-				jw.WriteError(models.ERROR_WOM_UNAVAILABLE)
-			default:
-				jw.WriteError(models.ERROR_API_UNAVAILABLE)
-			}
-		} else {
-			// network or JSON decoding error
-			jw.WriteError(models.ERROR_API_UNAVAILABLE)
+func (s *Server) womError(err error) *models.TectonicError {
+	var apiErr *utils.WomAPIError
+	if errors.As(err, &apiErr) {
+		switch apiErr.StatusCode {
+		case http.StatusNotFound:
+			return models.NewTectonicError(models.ERROR_WOMID_NOT_FOUND)
+		case http.StatusGatewayTimeout:
+			return models.NewTectonicError(models.ERROR_WOM_UNAVAILABLE)
 		}
-		return
 	}
+	return models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 }

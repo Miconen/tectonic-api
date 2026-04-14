@@ -1,52 +1,38 @@
 package handlers
 
 import (
-	"net/http"
+	"context"
 
 	"tectonic-api/database"
-	"tectonic-api/utils"
+	"tectonic-api/models"
 )
 
-// @Summary		Get all bosses
-// @Description	Get all bosses tracked by the application
-// @Tags			Miscellaneous
-// @Produce		json
-// @Success		200	{object}	models.Guild
-// @Failure		429	{object}	models.Empty
-// @Failure		500	{object}	models.Empty
-// @Router			/api/v1/bosses [GET]
-func (s *Server) GetBosses(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-
-	bosses, err := s.queries.GetBosses(r.Context())
-	ei := database.ClassifyError(err)
-	if err != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+type (
+	GetBossesInput  struct{}
+	GetBossesOutput struct {
+		Body []database.Boss
 	}
+)
 
-	// Write JSON response
-	jw.WriteResponse(bosses)
+func (s *Server) GetBosses(ctx context.Context, input *GetBossesInput) (*GetBossesOutput, error) {
+	bosses, err := s.queries.GetBosses(ctx)
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, models.NewTectonicError(s.getConstraintError(*ei))
+	}
+	return &GetBossesOutput{Body: bosses}, nil
 }
 
-// @Summary		Get all categories
-// @Description	Get all categories tracked by the application
-// @Tags			Miscellaneous
-// @Produce		json
-// @Success		200	{object}	models.Guild
-// @Failure		429	{object}	models.Empty
-// @Failure		500	{object}	models.Empty
-// @Router			/api/v1/categories [GET]
-func (s *Server) GetCategories(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-
-	categories, err := s.queries.GetCategories(r.Context())
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+type (
+	GetCategoriesInput  struct{}
+	GetCategoriesOutput struct {
+		Body []database.Category
 	}
+)
 
-	// Write JSON response
-	jw.WriteResponse(categories)
+func (s *Server) GetCategories(ctx context.Context, input *GetCategoriesInput) (*GetCategoriesOutput, error) {
+	categories, err := s.queries.GetCategories(ctx)
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, models.NewTectonicError(s.getConstraintError(*ei))
+	}
+	return &GetCategoriesOutput{Body: categories}, nil
 }

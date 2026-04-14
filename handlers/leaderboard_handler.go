@@ -1,50 +1,36 @@
 package handlers
 
 import (
-	"net/http"
+	"context"
+
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
-	"tectonic-api/utils"
-
-	"github.com/gorilla/mux"
 )
 
-// @Summary		Get a guilds leaderboard by ID
-// @Description	Get guilds leaderboard details by unique guild Snowflake (ID)
-// @Tags			Leaderboard
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Success		200			{object}	models.Users
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/leaderboard [GET]
-func (s *Server) GetLeaderboard(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+type GetLeaderboardInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+}
+type GetLeaderboardOutput struct {
+	Body any
+}
 
-	p := mux.Vars(r)
-
+func (s *Server) GetLeaderboard(ctx context.Context, input *GetLeaderboardInput) (*GetLeaderboardOutput, error) {
 	params := database.GetLeaderboardParams{
-		GuildID:   p["guild_id"],
+		GuildID:   input.GuildID,
 		UserLimit: 50,
 	}
 
-	logging.Get().DebugContext(r.Context(), "querying leaderboard from database", "guild_id", params.GuildID, "user_limit", params.UserLimit)
-	rows, err := s.queries.GetLeaderboard(r.Context(), params)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+	logging.Get().DebugContext(ctx, "querying leaderboard from database", "guild_id", params.GuildID, "user_limit", params.UserLimit)
+	rows, err := s.queries.GetLeaderboard(ctx, params)
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
 	if len(rows) == 0 {
-		jw.WriteError(models.ERROR_USER_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_USER_NOT_FOUND)
 	}
 
 	leaderboard := database.NewLeaderboardFromRows(rows)
-	jw.WriteResponse(leaderboard)
+	return &GetLeaderboardOutput{Body: leaderboard}, nil
 }

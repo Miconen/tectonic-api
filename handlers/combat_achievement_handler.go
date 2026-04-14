@@ -1,247 +1,142 @@
 package handlers
 
 import (
-	"net/http"
+	"context"
 
 	"tectonic-api/database"
 	"tectonic-api/models"
-	"tectonic-api/utils"
-
-	"github.com/gorilla/mux"
 )
 
-// @Summary		Get guild combat achievements
-// @Description	Get all combat achievements configured for a guild
-// @Tags			CombatAchievement
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Success		200			{object}	[]database.GetGuildCombatAchievementsRow
-// @Failure		401			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/combat-achievements [GET]
-func (s *Server) GetGuildCombatAchievements(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-	p := mux.Vars(r)
-
-	cas, err := database.WrapQuery(s.queries.GetGuildCombatAchievements, r.Context(), p["guild_id"])
-	if err != nil {
-		s.handleDatabaseError(*err, jw)
-		return
-	}
-
-	jw.WriteResponse(cas)
+type GetGuildCombatAchievementsInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+}
+type GetGuildCombatAchievementsOutput struct {
+	Body []database.GetGuildCombatAchievementsRow
 }
 
-// @Summary		Create a combat achievement for a guild
-// @Description	Create a new combat achievement linked to an existing point source
-// @Tags			CombatAchievement
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string								true	"Guild ID"
-// @Param			body		body		models.CreateCombatAchievementBody	true	"Combat Achievement"
-// @Success		201			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		409			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/combat-achievements [POST]
-func (s *Server) CreateCombatAchievement(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
-	p := mux.Vars(r)
-
-	var body models.CreateCombatAchievementBody
-	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
-		return
-	}
-
-	err := s.queries.CreateCombatAchievement(r.Context(), database.CreateCombatAchievementParams{
-		Name:        body.Name,
-		GuildID:     p["guild_id"],
-		PointSource: body.PointSource,
-	})
-	ei := database.ClassifyError(err)
+func (s *Server) GetGuildCombatAchievements(ctx context.Context, input *GetGuildCombatAchievementsInput) (*GetGuildCombatAchievementsOutput, error) {
+	cas, ei := database.WrapQuery(s.queries.GetGuildCombatAchievements, ctx, input.GuildID)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return &GetGuildCombatAchievementsOutput{Body: cas}, nil
 }
 
-// @Summary		Delete a combat achievement from a guild
-// @Description	Delete a combat achievement and all user completions (cascading)
-// @Tags			CombatAchievement
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			ca_name		path		string	true	"Combat Achievement Name"
-// @Success		204			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/combat-achievements/{ca_name} [DELETE]
-func (s *Server) DeleteCombatAchievement(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
-	p := mux.Vars(r)
+type CreateCombatAchievementInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	Body    models.CreateCombatAchievementBody
+}
 
-	rows, err := s.queries.DeleteCombatAchievement(r.Context(), database.DeleteCombatAchievementParams{
-		Name:    p["ca_name"],
-		GuildID: p["guild_id"],
+func (s *Server) CreateCombatAchievement(ctx context.Context, input *CreateCombatAchievementInput) (*struct{}, error) {
+	err := s.queries.CreateCombatAchievement(ctx, database.CreateCombatAchievementParams{
+		Name:        input.Body.Name,
+		GuildID:     input.GuildID,
+		PointSource: input.Body.PointSource,
 	})
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
+	return nil, nil
+}
 
+type DeleteCombatAchievementInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	CAName  string `path:"ca_name" doc:"Combat Achievement Name"`
+}
+
+func (s *Server) DeleteCombatAchievement(ctx context.Context, input *DeleteCombatAchievementInput) (*struct{}, error) {
+	rows, err := s.queries.DeleteCombatAchievement(ctx, database.DeleteCombatAchievementParams{
+		Name:    input.CAName,
+		GuildID: input.GuildID,
+	})
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
+	}
 	if rows == 0 {
-		jw.WriteError(models.ERROR_COMBAT_ACHIEVEMENT_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_COMBAT_ACHIEVEMENT_NOT_FOUND)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
-// @Summary		Complete a combat achievement
-// @Description	Award points to all users and mark new completers
-// @Tags			CombatAchievement
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string									true	"Guild ID"
-// @Param			ca_name		path		string									true	"Combat Achievement Name"
-// @Param			body		body		models.CompleteCombatAchievementBody		true	"Users"
-// @Success		200			{object}	[]database.UpdatePointsByEventRow
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/combat-achievements/{ca_name}/complete [POST]
-func (s *Server) CompleteCombatAchievement(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-	p := mux.Vars(r)
+type CompleteCombatAchievementInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	CAName  string `path:"ca_name" doc:"Combat Achievement Name"`
+	Body    models.CompleteCombatAchievementBody
+}
+type CompleteCombatAchievementOutput struct {
+	Body []database.UpdatePointsByEventRow
+}
 
-	var body models.CompleteCombatAchievementBody
-	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
-		return
-	}
-
-	tx, err := database.CreateTx(r.Context())
+func (s *Server) CompleteCombatAchievement(ctx context.Context, input *CompleteCombatAchievementInput) (*CompleteCombatAchievementOutput, error) {
+	tx, err := database.CreateTx(ctx)
 	if err != nil {
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
+	defer tx.Rollback(ctx)
 
 	q := s.queries.WithTx(tx)
-	defer tx.Rollback(r.Context())
 
-	// 1. Validate CA exists and get point_source
-	ca, err := q.GetCombatAchievement(r.Context(), database.GetCombatAchievementParams{
-		Name:    p["ca_name"],
-		GuildID: p["guild_id"],
+	ca, err := q.GetCombatAchievement(ctx, database.GetCombatAchievementParams{
+		Name:    input.CAName,
+		GuildID: input.GuildID,
 	})
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
-	// 2. Award points to all users
-	points, err := q.UpdatePointsByEvent(r.Context(), database.UpdatePointsByEventParams{
+	points, err := q.UpdatePointsByEvent(ctx, database.UpdatePointsByEventParams{
 		Event:   ca.PointSource,
-		GuildID: p["guild_id"],
-		UserIds: body.UserIds,
+		GuildID: input.GuildID,
+		UserIds: input.Body.UserIds,
 	})
-	ei = database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
-	// 3. Mark all users as having completed the CA (duplicates ignored)
-	err = q.CompleteCombatAchievement(r.Context(), database.CompleteCombatAchievementParams{
-		UserIds:               body.UserIds,
-		GuildID:               p["guild_id"],
-		CombatAchievementName: p["ca_name"],
+	err = q.CompleteCombatAchievement(ctx, database.CompleteCombatAchievementParams{
+		UserIds:               input.Body.UserIds,
+		GuildID:               input.GuildID,
+		CombatAchievementName: input.CAName,
 	})
-	ei = database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
-	if err = tx.Commit(r.Context()); err != nil {
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
+	if err = tx.Commit(ctx); err != nil {
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
-
-	jw.WriteResponse(points)
+	return &CompleteCombatAchievementOutput{Body: points}, nil
 }
 
-// @Summary		Grant a combat achievement to a user
-// @Description	Mark a user as having completed a combat achievement (no points awarded)
-// @Tags			CombatAchievement
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			user_id		path		string	true	"User ID"
-// @Param			ca_name		path		string	true	"Combat Achievement Name"
-// @Success		201			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/combat-achievements/{ca_name} [POST]
-func (s *Server) GiveUserCombatAchievement(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
-	p := mux.Vars(r)
-
-	ei := database.WrapExec(s.queries.GiveUserCombatAchievement, r.Context(), database.GiveUserCombatAchievementParams{
-		UserID:                p["user_id"],
-		GuildID:               p["guild_id"],
-		CombatAchievementName: p["ca_name"],
-	})
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
-	jw.WriteResponse(http.NoBody)
+type UserCombatAchievementInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	UserID  string `path:"user_id" doc:"User Snowflake ID"`
+	CAName  string `path:"ca_name" doc:"Combat Achievement Name"`
 }
 
-// @Summary		Remove a combat achievement from a user
-// @Description	Remove a user's combat achievement completion record
-// @Tags			CombatAchievement
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			user_id		path		string	true	"User ID"
-// @Param			ca_name		path		string	true	"Combat Achievement Name"
-// @Success		204			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/combat-achievements/{ca_name} [DELETE]
-func (s *Server) RemoveUserCombatAchievement(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
-	p := mux.Vars(r)
-
-	rows, err := s.queries.RemoveUserCombatAchievement(r.Context(), database.RemoveUserCombatAchievementParams{
-		UserID:                p["user_id"],
-		GuildID:               p["guild_id"],
-		CombatAchievementName: p["ca_name"],
+func (s *Server) GiveUserCombatAchievement(ctx context.Context, input *UserCombatAchievementInput) (*struct{}, error) {
+	ei := database.WrapExec(s.queries.GiveUserCombatAchievement, ctx, database.GiveUserCombatAchievementParams{
+		UserID:                input.UserID,
+		GuildID:               input.GuildID,
+		CombatAchievementName: input.CAName,
 	})
-	ei := database.ClassifyError(err)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
+	return nil, nil
+}
 
+func (s *Server) RemoveUserCombatAchievement(ctx context.Context, input *UserCombatAchievementInput) (*struct{}, error) {
+	rows, err := s.queries.RemoveUserCombatAchievement(ctx, database.RemoveUserCombatAchievementParams{
+		UserID:                input.UserID,
+		GuildID:               input.GuildID,
+		CombatAchievementName: input.CAName,
+	})
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
+	}
 	if rows == 0 {
-		jw.WriteError(models.ERROR_COMBAT_ACHIEVEMENT_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_COMBAT_ACHIEVEMENT_NOT_FOUND)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }

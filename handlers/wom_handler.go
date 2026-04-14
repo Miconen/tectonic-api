@@ -1,15 +1,11 @@
 package handlers
 
 import (
-	"net/http"
-	"strconv"
+	"context"
 
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
-	"tectonic-api/utils"
-
-	"github.com/gorilla/mux"
 )
 
 type CompetitionResponse struct {
@@ -21,42 +17,19 @@ type CompetitionResponse struct {
 	PointsGiven      int                   `json:"points_given"`
 }
 
-// @Summary		Handle Wise Old Man competitions
-// @Description	Handle point giving and automatic data fetching through the Wise Old Man API
-// @Tags			WOM
-// @Accept			json
-// @Produce		json
-// @Param			guild_id		path		string	true	"Guild ID"
-// @Param			competition_id	path		string	true	"Competition ID"
-// @Param			cutoff			path		integer	true	"Cutoff"
-// @Success		200				{object}	CompetitionResponse
-// @Failure		400				{object}	models.Empty
-// @Failure		401				{object}	models.Empty
-// @Failure		409				{object}	models.Empty
-// @Failure		429				{object}	models.Empty
-// @Failure		500				{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/wom/competition/{competition_id}/cutoff/{cutoff} [GET]
-func (s *Server) EndCompetition(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+type EndCompetitionInput struct {
+	GuildID       string `path:"guild_id" doc:"Guild Snowflake ID"`
+	CompetitionID int    `path:"competition_id" doc:"WOM Competition ID"`
+	Cutoff        int    `path:"cutoff" doc:"Minimum score cutoff"`
+}
+type EndCompetitionOutput struct {
+	Body CompetitionResponse
+}
 
-	p := mux.Vars(r)
-
-	id, err := strconv.Atoi(p["competition_id"])
+func (s *Server) EndCompetition(ctx context.Context, input *EndCompetitionInput) (*EndCompetitionOutput, error) {
+	c, err := s.womClient.GetCompetition(input.CompetitionID)
 	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
-		return
-	}
-
-	cutoff, err := strconv.Atoi(p["cutoff"])
-	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
-		return
-	}
-
-	c, err := s.womClient.GetCompetition(id)
-	if err != nil {
-		s.handleWomError(err, jw)
-		return
+		return nil, s.womError(err)
 	}
 
 	emptyResponse := CompetitionResponse{
@@ -64,77 +37,63 @@ func (s *Server) EndCompetition(w http.ResponseWriter, r *http.Request) {
 		ParticipantCount: c.ParticipantCount,
 		Participants:     []models.DetailedUser{},
 		Accounts:         []string{},
-		Cutoff:           cutoff,
+		Cutoff:           input.Cutoff,
 		PointsGiven:      0,
 	}
 
 	if len(c.Participations) == 0 {
-		jw.WriteResponse(emptyResponse)
-		return
+		return &EndCompetitionOutput{Body: emptyResponse}, nil
 	}
 
 	rsns := make([]string, 0)
 	accounts := make([]string, len(c.Participations))
 
-	// Get participants valid for points
 	for i, val := range c.Participations {
 		accounts[i] = val.Player.DisplayName
-
-		// Skip player if they didn't make the cutoff
-		if val.Progress.Gained < float64(cutoff) {
+		if val.Progress.Gained < float64(input.Cutoff) {
 			continue
 		}
-
 		rsns = append(rsns, val.Player.DisplayName)
 	}
 
-	if len(c.Participations) == 0 {
-		jw.WriteResponse(emptyResponse)
-		return
+	if len(rsns) == 0 {
+		emptyResponse.Accounts = accounts
+		return &EndCompetitionOutput{Body: emptyResponse}, nil
 	}
 
-	tx, err := database.CreateTx(r.Context())
+	tx, err := database.CreateTx(ctx)
 	if err != nil {
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
+	defer tx.Rollback(ctx)
 
 	q := s.queries.WithTx(tx)
-	defer tx.Rollback(r.Context())
 
-	user_ids, ei := database.WrapQuery(q.GetUserByRsn, r.Context(), rsns)
+	userIDs, ei := database.WrapQuery(q.GetUserByRsn, ctx, rsns)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
 
-	points_params := database.UpdatePointsByEventParams{
+	points, err := q.UpdatePointsByEvent(ctx, database.UpdatePointsByEventParams{
 		Event:   "event_participation",
-		GuildID: p["guild_id"],
-		UserIds: user_ids,
+		GuildID: input.GuildID,
+		UserIds: userIDs,
+	})
+	if dbEi := database.ClassifyError(err); dbEi != nil {
+		return nil, s.dbError(*dbEi)
 	}
 
-	points, err := q.UpdatePointsByEvent(r.Context(), points_params)
-	if err != nil {
-		ei = database.ClassifyError(err)
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
-	err = tx.Commit(r.Context())
-	if err != nil {
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
+	if err = tx.Commit(ctx); err != nil {
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
 
 	if len(points) == 0 {
 		logging.Get().Info("no activated users found in competition")
 	}
 
-	users, ei := s.getDetailedUsers(r.Context(), user_ids, p["guild_id"])
+	users, ei := s.getDetailedUsers(ctx, userIDs, input.GuildID)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
 
 	var pointsGiven int
@@ -142,50 +101,39 @@ func (s *Server) EndCompetition(w http.ResponseWriter, r *http.Request) {
 		pointsGiven = int(points[0].GivenPoints)
 	}
 
-	response := CompetitionResponse{
+	return &EndCompetitionOutput{Body: CompetitionResponse{
 		Title:            c.Title,
 		ParticipantCount: c.ParticipantCount,
 		Participants:     users,
 		Accounts:         rsns,
-		Cutoff:           cutoff,
+		Cutoff:           input.Cutoff,
 		PointsGiven:      pointsGiven,
-	}
-
-	jw.WriteResponse(response)
+	}}, nil
 }
 
-// @Summary		Event winners endpoint
-// @Description	Handle past event winners and automatic data fetching through the Wise Old Man API
-// @Tags			WOM
-// @Accept			json
-// @Produce		json
-// @Param			guild_id		path		string	true	"Guild ID"
-// @Param			competition_id	path		string	true	"Competition ID"
-// @Param			cutoff			path		integer	true	"Cutoff"
-// @Success		200				{object}	CompetitionResponse
-// @Failure		400				{object}	models.ErrorResponse
-// @Failure		401				{object}	models.ErrorResponse
-// @Failure		409				{object}	models.ErrorResponse
-// @Failure		429				{object}	models.ErrorResponse
-// @Failure		500				{object}	models.ErrorResponse
-// @Router			/api/v1/guilds/{guild_id}/wom/winners/{competition_id} [GET]
-func (s *Server) CompetitionWinners(w http.ResponseWriter, r *http.Request) {
+type CompetitionWinnersInput struct {
+	GuildID       string `path:"guild_id" doc:"Guild Snowflake ID"`
+	CompetitionID string `path:"competition_id" doc:"WOM Competition ID"`
+}
+type CompetitionWinnersOutput struct {
+	Body any
 }
 
-// @Summary		Event winners by teamname endpoint
-// @Description	Handle past event winners through teamname and automatic data fetching through the Wise Old Man API
-// @Tags			WOM
-// @Accept			json
-// @Produce		json
-// @Param			guild_id		path		string	true	"Guild ID"
-// @Param			competition_id	path		string	true	"Competition ID"
-// @Param			cutoff			path		integer	true	"Cutoff"
-// @Success		200				{object}	CompetitionResponse
-// @Failure		400				{object}	models.ErrorResponse
-// @Failure		401				{object}	models.ErrorResponse
-// @Failure		409				{object}	models.ErrorResponse
-// @Failure		429				{object}	models.ErrorResponse
-// @Failure		500				{object}	models.ErrorResponse
-// @Router			/api/v1/guilds/{guild_id}/wom/winners/{competition_id}/team/{team} [GET]
-func (s *Server) CompetitionTeamPosition(w http.ResponseWriter, r *http.Request) {
+func (s *Server) CompetitionWinners(ctx context.Context, input *CompetitionWinnersInput) (*CompetitionWinnersOutput, error) {
+	// TODO: implement
+	return nil, nil
+}
+
+type CompetitionTeamPositionInput struct {
+	GuildID       string `path:"guild_id" doc:"Guild Snowflake ID"`
+	CompetitionID string `path:"competition_id" doc:"WOM Competition ID"`
+	Team          string `path:"team" doc:"Team name"`
+}
+type CompetitionTeamPositionOutput struct {
+	Body any
+}
+
+func (s *Server) CompetitionTeamPosition(ctx context.Context, input *CompetitionTeamPositionInput) (*CompetitionTeamPositionOutput, error) {
+	// TODO: implement
+	return nil, nil
 }
