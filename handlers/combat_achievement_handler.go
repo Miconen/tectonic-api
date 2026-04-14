@@ -87,14 +87,14 @@ func (s *Server) CompleteCombatAchievement(ctx context.Context, input *CompleteC
 	points, err := q.UpdatePointsByEvent(ctx, database.UpdatePointsByEventParams{
 		Event:   ca.PointSource,
 		GuildID: input.GuildID,
-		UserIds: input.Body.UserIds,
+		UserIds: models.SnowflakesToStrings(input.Body.UserIDs),
 	})
 	if ei := database.ClassifyError(err); ei != nil {
 		return nil, s.dbError(*ei)
 	}
 
 	err = q.CompleteCombatAchievement(ctx, database.CompleteCombatAchievementParams{
-		UserIds:               input.Body.UserIds,
+		UserIds:               models.SnowflakesToStrings(input.Body.UserIDs),
 		GuildID:               input.GuildID,
 		CombatAchievementName: input.CAName,
 	})

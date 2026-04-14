@@ -65,7 +65,7 @@ func (s *Server) RegisterEvent(ctx context.Context, input *RegisterEventInput) (
 		input.Body.PositionCutoff = 3
 	}
 
-	c, err := s.womClient.GetCompetition(input.Body.EventId)
+	c, err := s.womClient.GetCompetition(input.Body.EventID)
 	if err != nil {
 		return nil, s.womError(err)
 	}

@@ -8,14 +8,10 @@ import (
 	"tectonic-api/models"
 )
 
-type CreateRsnBody struct {
-	RSN string `json:"rsn"`
-}
-
 type CreateRSNInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
 	UserID  string `path:"user_id" doc:"User Snowflake ID"`
-	Body    CreateRsnBody
+	Body    models.CreateRsnBody
 }
 
 func (s *Server) CreateRSN(ctx context.Context, input *CreateRSNInput) (*struct{}, error) {

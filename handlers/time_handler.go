@@ -38,9 +38,9 @@ type AddTeammateByBossInput struct {
 
 func (s *Server) AddTeammateByBoss(ctx context.Context, input *AddTeammateByBossInput) (*struct{}, error) {
 	params := database.AddToTeamByBossParams{
-		GuildID:  input.Body.GuildId,
+		GuildID:  string(input.Body.GuildID),
 		BossName: input.Boss,
-		UserID:   input.Body.UserId,
+		UserID:   string(input.Body.UserID),
 	}
 	ei := database.WrapExec(s.queries.AddToTeamByBoss, ctx, params)
 	if ei != nil {
@@ -57,8 +57,8 @@ type AddTeammateByRunIdInput struct {
 
 func (s *Server) AddTeammateByRunId(ctx context.Context, input *AddTeammateByRunIdInput) (*struct{}, error) {
 	params := database.AddToTeamByIdParams{
-		GuildID: input.Body.GuildId,
-		UserID:  input.Body.UserId,
+		GuildID: string(input.Body.GuildID),
+		UserID:  string(input.Body.UserID),
 		RunID:   int32(input.RunID),
 	}
 	ei := database.WrapExec(s.queries.AddToTeamById, ctx, params)
@@ -76,8 +76,8 @@ type RemoveTeammateByBossInput struct {
 
 func (s *Server) RemoveTeammateByBoss(ctx context.Context, input *RemoveTeammateByBossInput) (*struct{}, error) {
 	params := database.RemoveFromTeamByBossParams{
-		GuildID:  input.Body.GuildId,
-		UserID:   input.Body.UserId,
+		GuildID:  string(input.Body.GuildID),
+		UserID:   string(input.Body.UserID),
 		BossName: input.Boss,
 	}
 	rows, ei := database.WrapQuery(s.queries.RemoveFromTeamByBoss, ctx, params)
@@ -98,8 +98,8 @@ type RemoveTeammateByRunIdInput struct {
 
 func (s *Server) RemoveTeammateByRunId(ctx context.Context, input *RemoveTeammateByRunIdInput) (*struct{}, error) {
 	params := database.RemoveFromTeamByIdParams{
-		GuildID: input.Body.GuildId,
-		UserID:  input.Body.UserId,
+		GuildID: string(input.Body.GuildID),
+		UserID:  string(input.Body.UserID),
 		RunID:   int32(input.RunID),
 	}
 	rows, ei := database.WrapQuery(s.queries.RemoveFromTeamById, ctx, params)
@@ -175,7 +175,7 @@ func (s *Server) CreateTime(ctx context.Context, input *CreateTimeInput) (*Creat
 
 	err = q.CreateTeam(ctx, database.CreateTeamParams{
 		RunID:   runID,
-		UserIds: input.Body.UserIds,
+		UserIds: models.SnowflakesToStrings(input.Body.UserIDs),
 		GuildID: input.GuildID,
 	})
 	if ei := database.ClassifyError(err); ei != nil {

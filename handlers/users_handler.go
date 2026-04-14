@@ -199,15 +199,11 @@ func (s *Server) GetUserTimes(ctx context.Context, input *GetUserTimesInput) (*G
 	return &GetUserTimesOutput{Body: models.UserTimesFromRows(rows)}, nil
 }
 
-type CreateUserBody struct {
-	UserID string `json:"user_id"`
-	RSN    string `json:"rsn"`
-}
-
 type CreateUserInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
-	Body    CreateUserBody
+	Body    models.CreateUserBody
 }
+
 type CreateUserOutput struct {
 	Body any
 }
@@ -222,7 +218,7 @@ func (s *Server) CreateUser(ctx context.Context, input *CreateUserInput) (*Creat
 		GuildID: input.GuildID,
 		WomID:   strconv.Itoa(wom.Id),
 		Rsn:     wom.DisplayName,
-		UserID:  input.Body.UserID,
+		UserID:  string(input.Body.UserID),
 	}
 
 	user, err := s.queries.CreateUser(ctx, params)

@@ -12,7 +12,7 @@ type GetLeaderboardInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
 }
 type GetLeaderboardOutput struct {
-	Body any
+	Body []database.UserData
 }
 
 func (s *Server) GetLeaderboard(ctx context.Context, input *GetLeaderboardInput) (*GetLeaderboardOutput, error) {

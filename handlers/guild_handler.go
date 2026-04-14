@@ -11,14 +11,15 @@ import (
 )
 
 type GetGuildInput struct {
-	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	GuildID models.DiscordSnowflake `path:"guild_id" doc:"Guild Snowflake ID"`
 }
+
 type GetGuildOutput struct {
-	Body any
+	Body database.Guild
 }
 
 func (s *Server) GetGuild(ctx context.Context, input *GetGuildInput) (*GetGuildOutput, error) {
-	guild, err := s.queries.GetGuild(ctx, input.GuildID)
+	guild, err := s.queries.GetGuild(ctx, string(input.GuildID))
 	if ei := database.ClassifyError(err); ei != nil {
 		return nil, s.dbError(*ei)
 	}
@@ -30,7 +31,7 @@ type CreateGuildInput struct {
 }
 
 func (s *Server) CreateGuild(ctx context.Context, input *CreateGuildInput) (*struct{}, error) {
-	_, err := s.queries.CreateGuild(ctx, input.Body.GuildId)
+	_, err := s.queries.CreateGuild(ctx, string(input.Body.GuildID))
 	if ei := database.ClassifyError(err); ei != nil {
 		return nil, s.dbError(*ei)
 	}
