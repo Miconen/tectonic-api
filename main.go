@@ -16,11 +16,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// @title			Tectonic API
-// @version		0.1
-// @description	Functionality provider for Tectonic guild.
-// @host			localhost:8080
-// @BasePath		/api
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
