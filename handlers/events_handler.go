@@ -16,7 +16,7 @@ type GetEventsInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
 }
 type GetEventsOutput struct {
-	Body any
+	Body []database.Event
 }
 
 func (s *Server) GetEvents(ctx context.Context, input *GetEventsInput) (*GetEventsOutput, error) {
@@ -25,7 +25,7 @@ func (s *Server) GetEvents(ctx context.Context, input *GetEventsInput) (*GetEven
 		return nil, s.dbError(*ei)
 	}
 	if len(events) == 0 {
-		return &GetEventsOutput{Body: []int{}}, nil
+		return &GetEventsOutput{Body: []database.Event{}}, nil
 	}
 	return &GetEventsOutput{Body: events}, nil
 }

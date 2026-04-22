@@ -9,7 +9,7 @@ import (
 type (
 	GetAchievementsInput  struct{}
 	GetAchievementsOutput struct {
-		Body any
+		Body []database.Achievement
 	}
 )
 

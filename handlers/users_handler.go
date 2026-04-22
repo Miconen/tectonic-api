@@ -150,7 +150,7 @@ type GetUserAchievementsInput struct {
 	UserID  string `path:"user_id" doc:"User Snowflake ID"`
 }
 type GetUserAchievementsOutput struct {
-	Body any
+	Body []database.GetUserAchievementsRow
 }
 
 func (s *Server) GetUserAchievements(ctx context.Context, input *GetUserAchievementsInput) (*GetUserAchievementsOutput, error) {
@@ -166,7 +166,7 @@ type GetUserEventsInput struct {
 	UserID  string `path:"user_id" doc:"User Snowflake ID"`
 }
 type GetUserEventsOutput struct {
-	Body any
+	Body []database.GetUserEventsRow
 }
 
 func (s *Server) GetUserEvents(ctx context.Context, input *GetUserEventsInput) (*GetUserEventsOutput, error) {
@@ -205,7 +205,7 @@ type CreateUserInput struct {
 }
 
 type CreateUserOutput struct {
-	Body any
+	Body database.CreateUserRow
 }
 
 func (s *Server) CreateUser(ctx context.Context, input *CreateUserInput) (*CreateUserOutput, error) {

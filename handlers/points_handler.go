@@ -14,7 +14,7 @@ type UpdatePointsInput struct {
 	PointEvent string `path:"point_event" doc:"Point event name"`
 }
 type UpdatePointsOutput struct {
-	Body any
+	Body []database.UpdatePointsByEventRow
 }
 
 func (s *Server) UpdatePoints(ctx context.Context, input *UpdatePointsInput) (*UpdatePointsOutput, error) {
@@ -44,7 +44,7 @@ type UpdatePointsCustomInput struct {
 	Points  int    `path:"points" doc:"Points to add"`
 }
 type UpdatePointsCustomOutput struct {
-	Body any
+	Body []database.UpdatePointsCustomRow
 }
 
 func (s *Server) UpdatePointsCustom(ctx context.Context, input *UpdatePointsCustomInput) (*UpdatePointsCustomOutput, error) {
@@ -69,7 +69,7 @@ type GetPointSourcesInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
 }
 type GetPointSourcesOutput struct {
-	Body any
+	Body []database.GetGuildPointSourcesRow
 }
 
 func (s *Server) GetPointSources(ctx context.Context, input *GetPointSourcesInput) (*GetPointSourcesOutput, error) {

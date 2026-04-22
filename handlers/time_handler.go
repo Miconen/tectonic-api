@@ -16,7 +16,7 @@ type GetGuildTimesInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
 }
 type GetGuildTimesOutput struct {
-	Body any
+	Body database.DetailedGuildJSON
 }
 
 func (s *Server) GetGuildTimes(ctx context.Context, input *GetGuildTimesInput) (*GetGuildTimesOutput, error) {
