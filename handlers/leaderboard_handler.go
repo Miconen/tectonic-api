@@ -12,7 +12,7 @@ type GetLeaderboardInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
 }
 type GetLeaderboardOutput struct {
-	Body []database.UserData
+	Body []models.LeaderboardUser
 }
 
 func (s *Server) GetLeaderboard(ctx context.Context, input *GetLeaderboardInput) (*GetLeaderboardOutput, error) {
@@ -31,6 +31,6 @@ func (s *Server) GetLeaderboard(ctx context.Context, input *GetLeaderboardInput)
 		return nil, models.NewTectonicError(models.ERROR_USER_NOT_FOUND)
 	}
 
-	leaderboard := database.NewLeaderboardFromRows(rows)
+	leaderboard := models.LeaderboardFromRows(rows)
 	return &GetLeaderboardOutput{Body: leaderboard}, nil
 }

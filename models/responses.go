@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	"tectonic-api/database"
@@ -162,4 +163,102 @@ type DetailedEvent struct {
 type EventParticipation struct {
 	UserId    string `json:"user_id"`
 	Placement int    `json:"placement"`
+}
+
+type DetailedGuild struct {
+	GuildID         string               `json:"guild_id"`
+	PbChannelID     *string              `json:"pb_channel_id"`
+	Teammates       []GuildTeammate      `json:"teammates"`
+	Pbs             []GuildPb            `json:"pbs"`
+	Bosses          []GuildBoss          `json:"bosses"`
+	Categories      []GuildCategory      `json:"categories"`
+	GuildBosses     []GuildBossEntry     `json:"guild_bosses"`
+	GuildCategories []GuildCategoryEntry `json:"guild_categories"`
+}
+
+type GuildTeammate struct {
+	RunID   int32  `json:"run_id"`
+	UserID  string `json:"user_id"`
+	GuildID string `json:"guild_id"`
+}
+
+type GuildPb struct {
+	RunID    int32  `json:"run_id"`
+	Time     int32  `json:"time"`
+	BossName string `json:"boss_name"`
+	Date     string `json:"date"`
+	GuildID  string `json:"guild_id"`
+}
+
+type GuildBoss struct {
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+	Category    string `json:"category"`
+	Solo        bool   `json:"solo"`
+}
+
+type GuildCategory struct {
+	Thumbnail string `json:"thumbnail"`
+	Order     int16  `json:"order"`
+	Name      string `json:"name"`
+}
+
+type GuildBossEntry struct {
+	Boss     string `json:"boss"`
+	GuildID  string `json:"guild_id"`
+	PbID     *int32 `json:"pb_id"`
+	Category string `json:"category"`
+}
+
+type GuildCategoryEntry struct {
+	GuildID   string `json:"guild_id"`
+	Category  string `json:"category"`
+	MessageID string `json:"message_id"`
+}
+
+func DetailedGuildFromRow(row database.GetDetailedGuildRow) DetailedGuild {
+	g := DetailedGuild{
+		GuildID:         row.GuildID,
+		Teammates:       []GuildTeammate{},
+		Pbs:             []GuildPb{},
+		Bosses:          []GuildBoss{},
+		Categories:      []GuildCategory{},
+		GuildBosses:     []GuildBossEntry{},
+		GuildCategories: []GuildCategoryEntry{},
+	}
+
+	if row.PbChannelID.Valid {
+		g.PbChannelID = &row.PbChannelID.String
+	}
+
+	json.Unmarshal(row.Teammates, &g.Teammates)
+	json.Unmarshal(row.Pbs, &g.Pbs)
+	json.Unmarshal(row.Bosses, &g.Bosses)
+	json.Unmarshal(row.Categories, &g.Categories)
+	json.Unmarshal(row.GuildBosses, &g.GuildBosses)
+	json.Unmarshal(row.GuildCategories, &g.GuildCategories)
+
+	return g
+}
+
+type LeaderboardUser struct {
+	UserID  string    `json:"user_id"`
+	GuildID string    `json:"guild_id"`
+	Points  int32     `json:"points"`
+	RSNs    []UserRsn `json:"rsns"`
+}
+
+func LeaderboardFromRows(rows []database.GetLeaderboardRow) []LeaderboardUser {
+	list := make([]LeaderboardUser, 0, len(rows))
+	for _, row := range rows {
+		user := LeaderboardUser{
+			UserID:  row.UserID,
+			GuildID: row.GuildID,
+			Points:  row.Points,
+			RSNs:    []UserRsn{},
+		}
+		json.Unmarshal(row.Rsns, &user.RSNs)
+		list = append(list, user)
+	}
+	return list
 }

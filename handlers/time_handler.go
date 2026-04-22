@@ -16,7 +16,7 @@ type GetGuildTimesInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
 }
 type GetGuildTimesOutput struct {
-	Body database.DetailedGuildJSON
+	Body models.DetailedGuild
 }
 
 func (s *Server) GetGuildTimes(ctx context.Context, input *GetGuildTimesInput) (*GetGuildTimesOutput, error) {
@@ -24,7 +24,7 @@ func (s *Server) GetGuildTimes(ctx context.Context, input *GetGuildTimesInput) (
 	if ei := database.ClassifyError(err); ei != nil {
 		return nil, s.dbError(*ei)
 	}
-	guild := database.NewDetailedGuildFromRow(row)
+	guild := models.DetailedGuildFromRow(row)
 	return &GetGuildTimesOutput{Body: guild}, nil
 }
 
