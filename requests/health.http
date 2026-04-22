@@ -1,3 +1,3 @@
 ### Ping
 
-GET {{base_url}}/ping HTTP/1.1
+GET {{base_url}}/openapi.json HTTP/1.1
