@@ -2,449 +2,285 @@ package handlers
 
 import (
 	"context"
-	"net/http"
 	"strconv"
 	"strings"
 
 	"tectonic-api/database"
 	"tectonic-api/models"
-	"tectonic-api/utils"
-
-	"github.com/gorilla/mux"
 )
 
-func (s *Server) getDetailedUsers(ctx context.Context, user_ids []string, guild_id string) ([]models.DetailedUser, *database.ErrorInfo) {
-	if len(user_ids) == 0 {
+// Unchanged private helper
+func (s *Server) getDetailedUsers(ctx context.Context, userIDs []string, guildID string) ([]models.DetailedUser, *database.ErrorInfo) {
+	if len(userIDs) == 0 {
 		return []models.DetailedUser{}, nil
 	}
 
-	detailed_users := make([]models.DetailedUser, 0, len(user_ids))
+	detailedUsers := make([]models.DetailedUser, 0, len(userIDs))
 
-	for _, user_id := range user_ids {
-		user_rows, err := database.WrapQuery(s.queries.GetUsersById, ctx, database.GetUsersByIdParams{
-			GuildID: guild_id,
-			UserIds: []string{user_id},
+	for _, userID := range userIDs {
+		userRows, err := database.WrapQuery(s.queries.GetUsersById, ctx, database.GetUsersByIdParams{
+			GuildID: guildID,
+			UserIds: []string{userID},
 		})
 		if err != nil {
 			return nil, err
 		}
-
-		if len(user_rows) == 0 {
+		if len(userRows) != 1 {
 			continue
 		}
 
-		if len(user_rows) != 1 {
-			continue
-		}
+		user := userRows[0]
 
-		user := user_rows[0]
-
-		rsns_rows, err := database.WrapQuery(s.queries.GetUserRsns, ctx, database.GetUserRsnsParams{
-			UserID:  user_id,
-			GuildID: guild_id,
+		rsnsRows, err := database.WrapQuery(s.queries.GetUserRsns, ctx, database.GetUserRsnsParams{
+			UserID: userID, GuildID: guildID,
 		})
 		if err != nil {
 			return nil, err
 		}
 
-		times_rows, err := database.WrapQuery(s.queries.GetUserTimes, ctx, database.GetUserTimesParams{
-			UserID:  user_id,
-			GuildID: guild_id,
+		timesRows, err := database.WrapQuery(s.queries.GetUserTimes, ctx, database.GetUserTimesParams{
+			UserID: userID, GuildID: guildID,
 		})
 		if err != nil {
 			return nil, err
 		}
 
-		achievements_rows, err := database.WrapQuery(s.queries.GetUserAchievements, ctx, user_id)
+		achievementsRows, err := database.WrapQuery(s.queries.GetUserAchievements, ctx, userID)
 		if err != nil {
 			return nil, err
 		}
 
-		events_rows, err := database.WrapQuery(s.queries.GetUserEvents, ctx, database.GetUserEventsParams{
-			UserID:  user_id,
-			GuildID: guild_id,
+		eventsRows, err := database.WrapQuery(s.queries.GetUserEvents, ctx, database.GetUserEventsParams{
+			UserID: userID, GuildID: guildID,
 		})
 		if err != nil {
 			return nil, err
 		}
 
-		ca_rows, err := database.WrapQuery(s.queries.GetUserCombatAchievements, ctx, database.GetUserCombatAchievementsParams{
-			UserID:  user_id,
-			GuildID: guild_id,
+		caRows, err := database.WrapQuery(s.queries.GetUserCombatAchievements, ctx, database.GetUserCombatAchievementsParams{
+			UserID: userID, GuildID: guildID,
 		})
 		if err != nil {
 			return nil, err
 		}
 
-		detailed_users = append(detailed_users, models.DetailedUser{
+		detailedUsers = append(detailedUsers, models.DetailedUser{
 			UserId:             user.UserID,
 			GuildId:            user.GuildID,
 			Points:             int(user.Points),
-			RSNs:               models.UserRsnsFromRows(rsns_rows),
-			Times:              models.UserTimesFromRows(times_rows),
-			Events:             models.UserEventFromRows(events_rows),
-			Achievements:       models.UserAchievementsFromRows(achievements_rows),
-			CombatAchievements: models.UserCombatAchievementsFromRows(ca_rows),
+			RSNs:               models.UserRsnsFromRows(rsnsRows),
+			Times:              models.UserTimesFromRows(timesRows),
+			Events:             models.UserEventFromRows(eventsRows),
+			Achievements:       models.UserAchievementsFromRows(achievementsRows),
+			CombatAchievements: models.UserCombatAchievementsFromRows(caRows),
 		})
 	}
 
-	return detailed_users, nil
+	return detailedUsers, nil
 }
 
-// @Summary		Get one or more users by ID(s)
-// @Description	Get user details by unique user Snowflake (ID)
-// @Tags			Users
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			user_ids	path		string	true	"User ID(s)"
-// @Success		200			{object}	database.DetailedUser[]
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_ids} [GET]
-func (s *Server) GetUsersById(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-	p := mux.Vars(r)
+// Handlers
 
-	detailed_users, err := s.getDetailedUsers(r.Context(), strings.Split(p["user_ids"], ","), p["guild_id"])
-	if err != nil {
-		s.handleDatabaseError(*err, jw)
-		return
-	}
-
-	jw.WriteResponse(detailed_users)
+type GetUsersByIDInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	UserIDs string `path:"user_ids" doc:"Comma-separated User Snowflake IDs"`
+}
+type GetUsersByIDOutput struct {
+	Body []models.DetailedUser
 }
 
-// @Summary		Get one or more users by RSN(s)
-// @Description	Get user details by unique user Snowflake (ID)
-// @Tags			Users
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			rsns		path		string	true	"User RSN(s)"
-// @Success		200			{object}	database.User[]
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/rsn/{rsns} [GET]
-func (s *Server) GetUsersByRsn(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-
-	p := mux.Vars(r)
-
-	user_ids, err := database.WrapQuery(s.queries.GetGuildUserByRsn, r.Context(), database.GetGuildUserByRsnParams{
-		GuildID: p["guild_id"],
-		Rsns:    strings.Split(p["rsns"], ","),
-	})
-	if err != nil {
-		s.handleDatabaseError(*err, jw)
-		return
-	}
-
-	users, ei := s.getDetailedUsers(
-		r.Context(),
-		user_ids,
-		p["guild_id"],
-	)
-
+func (s *Server) GetUsersById(ctx context.Context, input *GetUsersByIDInput) (*GetUsersByIDOutput, error) {
+	users, ei := s.getDetailedUsers(ctx, strings.Split(input.UserIDs, ","), input.GuildID)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
-
-	jw.WriteResponse(users)
+	return &GetUsersByIDOutput{Body: users}, nil
 }
 
-// @Summary		Get one or more users by WomID(s)
-// @Description	Get user details by unique user Snowflake (ID)
-// @Tags			Users
-// @Produce		json
-// @Param			guild_id	path		string		true	"Guild ID"
-// @Param			wom_ids		path		[]string	true	"User WomID(s)"
-// @Success		200			{object}	database.User[]
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/wom/{wom_ids} [GET]
-func (s *Server) GetUsersByWom(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+type GetUsersByRsnInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	RSNs    string `path:"rsns" doc:"Comma-separated RuneScape Names"`
+}
+type GetUsersByRsnOutput struct {
+	Body []models.DetailedUser
+}
 
-	p := mux.Vars(r)
-
-	user_ids, err := database.WrapQuery(s.queries.GetGuildUserByWom, r.Context(), database.GetGuildUserByWomParams{
-		GuildID: p["guild_id"],
-		WomIds:  strings.Split(p["wom_ids"], ","),
+func (s *Server) GetUsersByRsn(ctx context.Context, input *GetUsersByRsnInput) (*GetUsersByRsnOutput, error) {
+	userIDs, ei := database.WrapQuery(s.queries.GetGuildUserByRsn, ctx, database.GetGuildUserByRsnParams{
+		GuildID: input.GuildID,
+		Rsns:    strings.Split(input.RSNs, ","),
 	})
-	if err != nil {
-		s.handleDatabaseError(*err, jw)
-		return
-	}
-
-	users, ei := s.getDetailedUsers(
-		r.Context(),
-		user_ids,
-		p["guild_id"],
-	)
-
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
 
-	jw.WriteResponse(users)
-}
-
-// @Summary		Get the user's achievemnts
-// @Description	Get all user's achievemnts registered in the API.
-// @Tags			Users
-// @Produce		json
-// @Param			guild_id	path		string		true	"Guild ID"
-// @Param			wom_ids		path		[]string	true	"User WomID(s)"
-// @Success		200			{object}	database.GetUserAchievemntsRow[]
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/achievements [GET]
-func (s *Server) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-	p := mux.Vars(r)
-
-	achievements, err := database.WrapQuery(s.queries.GetUserAchievements, r.Context(), p["user_id"])
-	if err != nil {
-		s.handleDatabaseError(*err, jw)
-		return
+	users, ei := s.getDetailedUsers(ctx, userIDs, input.GuildID)
+	if ei != nil {
+		return nil, s.dbError(*ei)
 	}
-
-	jw.WriteResponse(achievements)
+	return &GetUsersByRsnOutput{Body: users}, nil
 }
 
-// @Summary		Get the user's events
-// @Description	Get all user's events that participated.
-// @Tags			Users
-// @Produce		json
-// @Param			guild_id	path		string		true	"Guild ID"
-// @Param			wom_ids		path		[]string	true	"User WomID(s)"
-// @Success		200			{object}	database.GetUserEventsRow[]
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/events [GET]
-func (s *Server) GetUserEvents(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-	p := mux.Vars(r)
+type GetUsersByWomInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	WomIDs  string `path:"wom_ids" doc:"Comma-separated WOM IDs"`
+}
+type GetUsersByWomOutput struct {
+	Body []models.DetailedUser
+}
 
-	events, err := database.WrapQuery(s.queries.GetUserEvents, r.Context(), database.GetUserEventsParams{
-		UserID:  p["user_id"],
-		GuildID: p["guild_id"],
+func (s *Server) GetUsersByWom(ctx context.Context, input *GetUsersByWomInput) (*GetUsersByWomOutput, error) {
+	userIDs, ei := database.WrapQuery(s.queries.GetGuildUserByWom, ctx, database.GetGuildUserByWomParams{
+		GuildID: input.GuildID,
+		WomIds:  strings.Split(input.WomIDs, ","),
 	})
-	if err != nil {
-		s.handleDatabaseError(*err, jw)
-		return
+	if ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
-	jw.WriteResponse(events)
+	users, ei := s.getDetailedUsers(ctx, userIDs, input.GuildID)
+	if ei != nil {
+		return nil, s.dbError(*ei)
+	}
+	return &GetUsersByWomOutput{Body: users}, nil
 }
 
-// @Summary		Get the user times
-// @Description	Get all user times.
-// @Tags			Users
-// @Produce		json
-// @Param			guild_id	path		string		true	"Guild ID"
-// @Param			wom_ids		path		[]string	true	"User WomID(s)"
-// @Success		200			{object}	models.UserTimes[]
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/times [GET]
-func (s *Server) GetUserTimes(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-	p := mux.Vars(r)
+type GetUserAchievementsInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	UserID  string `path:"user_id" doc:"User Snowflake ID"`
+}
+type GetUserAchievementsOutput struct {
+	Body []database.GetUserAchievementsRow
+}
 
-	rows, err := database.WrapQuery(s.queries.GetUserTimes, r.Context(), database.GetUserTimesParams{
-		UserID:  p["user_id"],
-		GuildID: p["guild_id"],
+func (s *Server) GetUserAchievements(ctx context.Context, input *GetUserAchievementsInput) (*GetUserAchievementsOutput, error) {
+	achievements, ei := database.WrapQuery(s.queries.GetUserAchievements, ctx, input.UserID)
+	if ei != nil {
+		return nil, s.dbError(*ei)
+	}
+	return &GetUserAchievementsOutput{Body: achievements}, nil
+}
+
+type GetUserEventsInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	UserID  string `path:"user_id" doc:"User Snowflake ID"`
+}
+type GetUserEventsOutput struct {
+	Body []database.GetUserEventsRow
+}
+
+func (s *Server) GetUserEvents(ctx context.Context, input *GetUserEventsInput) (*GetUserEventsOutput, error) {
+	events, ei := database.WrapQuery(s.queries.GetUserEvents, ctx, database.GetUserEventsParams{
+		UserID:  input.UserID,
+		GuildID: input.GuildID,
 	})
-	if err != nil {
-		s.handleDatabaseError(*err, jw)
-		return
+	if ei != nil {
+		return nil, s.dbError(*ei)
 	}
-
-	times := models.UserTimesFromRows(rows)
-	jw.WriteResponse(times)
+	return &GetUserEventsOutput{Body: events}, nil
 }
 
-// @Summary		Create / Initialize a new user
-// @Description	Initialize a user in our backend by unique user Snowflake (ID)
-// @Tags			User
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			user_id		body		string	true	"User ID"
-// @Param			rsn			body		string	true	"RSN"
-// @Success		201			{object}	models.Empty
-// @Failure		400			{object}	models.ErrorResponse
-// @Failure		401			{object}	models.Empty
-// @Failure		409			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users [POST]
-func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
-	v := mux.Vars(r)
+type GetUserTimesInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	UserID  string `path:"user_id" doc:"User Snowflake ID"`
+}
+type GetUserTimesOutput struct {
+	Body []models.UserTime
+}
 
-	var body models.CreateUserBody
-
-	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
-		return
+func (s *Server) GetUserTimes(ctx context.Context, input *GetUserTimesInput) (*GetUserTimesOutput, error) {
+	rows, ei := database.WrapQuery(s.queries.GetUserTimes, ctx, database.GetUserTimesParams{
+		UserID:  input.UserID,
+		GuildID: input.GuildID,
+	})
+	if ei != nil {
+		return nil, s.dbError(*ei)
 	}
+	return &GetUserTimesOutput{Body: models.UserTimesFromRows(rows)}, nil
+}
 
-	wom, err := s.womClient.GetWom(body.RSN)
+type CreateUserInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	Body    models.CreateUserBody
+}
+
+type CreateUserOutput struct {
+	Body database.CreateUserRow
+}
+
+func (s *Server) CreateUser(ctx context.Context, input *CreateUserInput) (*CreateUserOutput, error) {
+	wom, err := s.womClient.GetWom(input.Body.RSN)
 	if err != nil {
-		jw.WriteError(models.ERROR_RSN_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_RSN_NOT_FOUND)
 	}
 
 	params := database.CreateUserParams{
-		GuildID: v["guild_id"],
+		GuildID: input.GuildID,
 		WomID:   strconv.Itoa(wom.Id),
 		Rsn:     wom.DisplayName,
-		UserID:  body.UserId,
+		UserID:  string(input.Body.UserID),
 	}
 
-	user, err := s.queries.CreateUser(r.Context(), params)
-	if err != nil {
-		if ei := database.ClassifyError(err); ei != nil {
-			s.handleDatabaseError(*ei, jw)
-			return
-		}
+	user, err := s.queries.CreateUser(ctx, params)
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
-
-	jw.WriteResponse(user)
+	return &CreateUserOutput{Body: user}, nil
 }
 
-// @Summary		Delete a user from guild by User ID
-// @Description	Delete a user in our backend by unique user and guild Snowflake (ID)
-// @Tags			User
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			user_id		path		string	true	"User ID"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_id} [DELETE]
-func (s *Server) RemoveUserById(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
-
-	p := mux.Vars(r)
-
-	params := database.DeleteUserByIdParams{
-		GuildID: p["guild_id"],
-		UserID:  p["user_id"],
-	}
-
-	rows, err := s.queries.DeleteUserById(r.Context(), params)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
-	// TODO: Move this to the above database error handler.
-	// https://github.com/Miconen/tectonic-api/issues/58
-	if rows == 0 {
-		jw.WriteError(models.ERROR_USER_NOT_FOUND)
-		return
-	}
-
-	jw.WriteResponse(http.NoBody)
+type RemoveUserByIDInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	UserID  string `path:"user_id" doc:"User Snowflake ID"`
 }
 
-// @Summary		Delete a user from guild by RSN
-// @Description	Delete a user in our backend by Runescape name
-// @Tags			User
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			rsn			path		string	true	"RSN"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/rsn/{rsn} [DELETE]
-func (s *Server) RemoveUserByRsn(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
-
-	p := mux.Vars(r)
-
-	params := database.DeleteUserByRsnParams{
-		GuildID: p["guild_id"],
-		Rsn:     p["rsn"],
+func (s *Server) RemoveUserById(ctx context.Context, input *RemoveUserByIDInput) (*struct{}, error) {
+	rows, err := s.queries.DeleteUserById(ctx, database.DeleteUserByIdParams{
+		GuildID: input.GuildID,
+		UserID:  input.UserID,
+	})
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
-
-	rows, err := s.queries.DeleteUserByRsn(r.Context(), params)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
 	if rows == 0 {
-		jw.WriteError(models.ERROR_USER_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_USER_NOT_FOUND)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
-// @Summary		Delete a user from guild by Wom ID
-// @Description	Delete a user in our backend by unique user and guild Snowflake (ID)
-// @Tags			User
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			wom_id		path		string	true	"Wom ID"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/wom/{wom_id} [DELETE]
-func (s *Server) RemoveUserByWom(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
+type RemoveUserByRsnInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	RSN     string `path:"rsn" doc:"RuneScape Name"`
+}
 
-	p := mux.Vars(r)
-
-	params := database.DeleteUserByWomParams{
-		GuildID: p["guild_id"],
-		WomID:   p["wom_id"],
+func (s *Server) RemoveUserByRsn(ctx context.Context, input *RemoveUserByRsnInput) (*struct{}, error) {
+	rows, err := s.queries.DeleteUserByRsn(ctx, database.DeleteUserByRsnParams{
+		GuildID: input.GuildID,
+		Rsn:     input.RSN,
+	})
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
-
-	rows, err := s.queries.DeleteUserByWom(r.Context(), params)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
 	if rows == 0 {
-		jw.WriteError(models.ERROR_USER_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_USER_NOT_FOUND)
 	}
+	return nil, nil
+}
 
-	jw.WriteResponse(http.NoBody)
+type RemoveUserByWomInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	WomID   string `path:"wom_id" doc:"WOM ID"`
+}
+
+func (s *Server) RemoveUserByWom(ctx context.Context, input *RemoveUserByWomInput) (*struct{}, error) {
+	rows, err := s.queries.DeleteUserByWom(ctx, database.DeleteUserByWomParams{
+		GuildID: input.GuildID,
+		WomID:   input.WomID,
+	})
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
+	}
+	if rows == 0 {
+		return nil, models.NewTectonicError(models.ERROR_USER_NOT_FOUND)
+	}
+	return nil, nil
 }

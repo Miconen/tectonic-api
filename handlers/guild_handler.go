@@ -1,211 +1,121 @@
 package handlers
 
 import (
-	"encoding/json"
-	"net/http"
+	"context"
+	"math/big"
 
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
 
-	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// @Summary		Get a guild by ID
-// @Description	Get guild details by unique guild Snowflake (ID)
-// @Tags			Guild
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Success		200			{object}	models.Guild
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id} [GET]
-func (s *Server) GetGuild(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-
-	v := mux.Vars(r)
-
-	guildId, ok := v["guild_id"]
-	if !ok {
-		logging.Get().Error("no guild id found in params")
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
-		return
-	}
-
-	guild, err := s.queries.GetGuild(r.Context(), guildId)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
-	// Write JSON response
-	jw.WriteResponse(guild)
+type GetGuildInput struct {
+	GuildID models.DiscordSnowflake `path:"guild_id" doc:"Guild Snowflake ID"`
 }
 
-// @Summary		Create / Initialize a guild
-// @Description	Initialize a guild in our backend by unique guild Snowflake (ID)
-// @Tags			Guild
-// @Accept			json
-// @Produce		json
-// @Param			guild	body		models.InputGuild	true	"Guild"
-// @Success		201		{object}	models.Empty
-// @Failure		400		{object}	models.Empty
-// @Failure		401		{object}	models.Empty
-// @Failure		409		{object}	models.Empty
-// @Failure		429		{object}	models.Empty
-// @Failure		500		{object}	models.Empty
-// @Router			/api/v1/guilds [POST]
-func (s *Server) CreateGuild(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
-
-	body := models.InputGuild{
-		Multiplier: 1,
-	}
-
-	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
-		return
-	}
-
-	_, err := s.queries.CreateGuild(r.Context(), body.GuildId)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
-	jw.WriteResponse(http.NoBody)
+type GetGuildOutput struct {
+	Body database.Guild
 }
 
-// @Summary		Delete a guild
-// @Description	Delete a guild in our backend by unique guild Snowflake (ID)
-// @Tags			Guild
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id} [DELETE]
-func (s *Server) DeleteGuild(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
-
-	v := mux.Vars(r)
-
-	guildId, ok := v["guild_id"]
-	if !ok {
-		logging.Get().Error("no guild id found")
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
-		return
+func (s *Server) GetGuild(ctx context.Context, input *GetGuildInput) (*GetGuildOutput, error) {
+	guild, err := s.queries.GetGuild(ctx, string(input.GuildID))
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
+	return &GetGuildOutput{Body: guild}, nil
+}
 
-	rows, err := s.queries.DeleteGuild(r.Context(), guildId)
-	ei := database.ClassifyError(err)
-	if err != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+type CreateGuildInput struct {
+	Body models.InputGuild
+}
+
+func (s *Server) CreateGuild(ctx context.Context, input *CreateGuildInput) (*struct{}, error) {
+	_, err := s.queries.CreateGuild(ctx, string(input.Body.GuildID))
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
+	return nil, nil
+}
 
+type DeleteGuildInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+}
+
+func (s *Server) DeleteGuild(ctx context.Context, input *DeleteGuildInput) (*struct{}, error) {
+	rows, err := s.queries.DeleteGuild(ctx, input.GuildID)
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
+	}
 	if rows == 0 {
-		jw.WriteError(models.ERROR_GUILD_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_GUILD_NOT_FOUND)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
-type CategoryMessage struct {
-	MessageID string `json:"message_id"`
-	Category  string `json:"category"`
+type UpdateGuildInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	Body    models.UpdateGuildBody
 }
 
-type GuildParams struct {
-	Multiplier       pgtype.Numeric    `json:"multiplier"`
-	PbChannelID      string            `json:"pb_channel_id"`
-	ModChannelID     string            `json:"mod_channel_id"`
-	CategoryMessages []CategoryMessage `json:"category_messages"`
-}
-
-// @Summary		Updates a guild
-// @Description	Update multiplier and/or time channel for a guild
-// @Tags			Guild
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string				true	"Guild ID"
-// @Param			guild		body		GuildParams	true	"Guild"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id} [PUT]
-func (s *Server) UpdateGuild(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
-
-	p := mux.Vars(r)
-
-	tx, err := database.CreateTx(r.Context())
+func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*struct{}, error) {
+	tx, err := database.CreateTx(ctx)
 	if err != nil {
 		logging.Get().Error("Error creating transaction", "error", err)
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
+	defer tx.Rollback(ctx)
 
 	q := s.queries.WithTx(tx)
-	defer tx.Rollback(r.Context())
 
-	var params GuildParams
-	err = json.NewDecoder(r.Body).Decode(&params)
-	if err != nil {
-		logging.Get().Error("Failed to parse request body")
-		jw.WriteError(models.ERROR_WRONG_BODY)
-		return
-	}
+	// Handle PB update (channel + category messages)
+	var pbChannelID string
+	if input.Body.PbUpdate != nil {
+		pbChannelID = input.Body.PbUpdate.ChannelID.String()
 
-	categories := make([]string, len(params.CategoryMessages))
-	messageIds := make([]string, len(params.CategoryMessages))
-	for i, v := range params.CategoryMessages {
-		categories[i] = v.Category
-		messageIds[i] = v.MessageID
-	}
+		categories := make([]string, len(input.Body.PbUpdate.CategoryMessages))
+		messageIds := make([]string, len(input.Body.PbUpdate.CategoryMessages))
+		for i, v := range input.Body.PbUpdate.CategoryMessages {
+			categories[i] = v.Category
+			messageIds[i] = v.MessageID.String()
+		}
 
-	if len(params.CategoryMessages) > 0 {
-		message_params := database.UpdateCategoryMessageIdsParams{
-			GuildID:    p["guild_id"],
+		_, err := q.UpdateCategoryMessageIds(ctx, database.UpdateCategoryMessageIdsParams{
+			GuildID:    input.GuildID,
 			Categories: categories,
 			MessageIds: messageIds,
-		}
-
-		_, errUpdate := q.UpdateCategoryMessageIds(r.Context(), message_params)
-		eiUpdate := database.ClassifyError(errUpdate)
-		if eiUpdate != nil {
-			s.handleDatabaseError(*eiUpdate, jw)
-			return
+		})
+		if ei := database.ClassifyError(err); ei != nil {
+			return nil, s.dbError(*ei)
 		}
 	}
 
-	guild_params := database.UpdateGuildParams{
-		Multiplier:   params.Multiplier,
-		PbChannelID:  params.PbChannelID,
-		ModChannelID: params.ModChannelID,
-		GuildID:      p["guild_id"],
+	// Convert *float64 to pgtype.Numeric
+	var multiplier pgtype.Numeric
+	if input.Body.Multiplier != nil {
+		multiplier.Valid = true
+		multiplier.Int = big.NewInt(int64(*input.Body.Multiplier * 100))
+		multiplier.Exp = -2
 	}
 
-	_, err = q.UpdateGuild(r.Context(), guild_params)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
+	// Convert *DiscordSnowflake to string
+	var modChannelID string
+	if input.Body.ModChannelID != nil {
+		modChannelID = utils.DerefOr(input.Body.ModChannelID, "").String()
 	}
 
-	tx.Commit(r.Context())
+	_, err = q.UpdateGuild(ctx, database.UpdateGuildParams{
+		Multiplier:   multiplier,
+		PbChannelID:  pbChannelID,
+		ModChannelID: modChannelID,
+		GuildID:      input.GuildID,
+	})
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
+	}
 
-	jw.WriteResponse(http.NoBody)
+	tx.Commit(ctx)
+	return nil, nil
 }

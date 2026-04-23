@@ -1,72 +1,50 @@
 package handlers
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
-	"net/http"
 
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
 
-	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// @Summary		Get the guild's events
-// @Description	Get the events that the guild have created
-// @Tags			Event
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Success		200			{object}	database.Event
-// @Failure		400			{object}	models.ErrorResponse
-// @Failure		401			{object}	models.ErrorResponse
-// @Failure		404			{object}	models.ErrorResponse
-// @Failure		500			{object}	models.ErrorResponse
-// @Router			/api/v1/guilds/{guild_id}/events [GET]
-func (s *Server) GetEvents(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-	p := mux.Vars(r)
-
-	events, err := database.WrapQuery(s.queries.GetGuildEvents, r.Context(), p["guild_id"])
-	if err != nil {
-		s.handleDatabaseError(*err, jw)
-		return
-	}
-
-	if len(events) == 0 {
-		// Return an empty array
-		jw.WriteResponse([]int{})
-		return
-	}
-
-	jw.WriteResponse(events)
+type GetEventsInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+}
+type GetEventsOutput struct {
+	Body []database.Event
 }
 
-// @Summary		Get the guild's event
-// @Description	Get the event that the guild have created
-// @Tags			Event
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Success		200			{object}	models.DetailedEvent
-// @Failure		400			{object}	models.ErrorResponse
-// @Failure		401			{object}	models.ErrorResponse
-// @Failure		404			{object}	models.ErrorResponse
-// @Failure		429			{object}	models.ErrorResponse
-// @Failure		500			{object}	models.ErrorResponse
-// @Router			/api/v1/guilds/{guild_id}/events/{event_id} [GET]
-func (s *Server) GetDetailedEvent(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-	p := mux.Vars(r)
+func (s *Server) GetEvents(ctx context.Context, input *GetEventsInput) (*GetEventsOutput, error) {
+	events, ei := database.WrapQuery(s.queries.GetGuildEvents, ctx, input.GuildID)
+	if ei != nil {
+		return nil, s.dbError(*ei)
+	}
+	if len(events) == 0 {
+		return &GetEventsOutput{Body: []database.Event{}}, nil
+	}
+	return &GetEventsOutput{Body: events}, nil
+}
 
-	events, err := database.WrapQuery(s.queries.GetEventParticipation, r.Context(), p["event_id"])
-	if err != nil {
-		s.handleDatabaseError(*err, jw)
-		return
+type GetDetailedEventInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	EventID string `path:"event_id" doc:"Event WOM ID"`
+}
+type GetDetailedEventOutput struct {
+	Body models.DetailedEvent
+}
+
+func (s *Server) GetDetailedEvent(ctx context.Context, input *GetDetailedEventInput) (*GetDetailedEventOutput, error) {
+	events, ei := database.WrapQuery(s.queries.GetEventParticipation, ctx, input.EventID)
+	if ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
-	res := &models.DetailedEvent{
+	res := models.DetailedEvent{
 		Participations: utils.MapField(events, func(p database.GetEventParticipationRow) models.EventParticipation {
 			return models.EventParticipation{
 				UserId:    p.UserID,
@@ -74,67 +52,46 @@ func (s *Server) GetDetailedEvent(w http.ResponseWriter, r *http.Request) {
 			}
 		}),
 	}
-
-	jw.WriteResponse(res)
+	return &GetDetailedEventOutput{Body: res}, nil
 }
 
-// @Summary		Register a guild event
-// @Description	Register a guild event present in the WOM APi
-// @Tags			Event
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Success		201			{object}	database.Event
-// @Failure		400			{object}	models.ErrorResponse
-// @Failure		401			{object}	models.ErrorResponse
-// @Failure		404			{object}	models.ErrorResponse
-// @Failure		429			{object}	models.ErrorResponse
-// @Failure		500			{object}	models.ErrorResponse
-// @Router			/api/v1/guilds/{guild_id}/events [POST]
-func (s *Server) RegisterEvent(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
+type RegisterEventInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	Body    models.InputEvent
+}
 
-	p := mux.Vars(r)
-	body := models.InputEvent{
-		PositionCutoff: 3,
+func (s *Server) RegisterEvent(ctx context.Context, input *RegisterEventInput) (*struct{}, error) {
+	if input.Body.PositionCutoff == 0 {
+		input.Body.PositionCutoff = 3
 	}
 
-	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
-		return
-	}
-
-	c, err := s.womClient.GetCompetition(body.EventId)
+	c, err := s.womClient.GetCompetition(input.Body.EventID)
 	if err != nil {
-		s.handleWomError(err, jw)
-		return
+		return nil, s.womError(err)
 	}
 
-	tx, err := database.CreateTx(r.Context())
+	tx, err := database.CreateTx(ctx)
 	if err != nil {
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
-	defer tx.Rollback(r.Context())
+	defer tx.Rollback(ctx)
 
-	solo := true
-	if c.Type == "team" {
-		solo = false
-	}
+	solo := c.Type != "team"
 
-	if len(body.TeamNames) > 0 {
-		body.PositionCutoff = len(body.TeamNames)
+	if len(input.Body.TeamNames) > 0 {
+		input.Body.PositionCutoff = len(input.Body.TeamNames)
 	}
 
 	q := s.queries.WithTx(tx)
-	ei := database.WrapExec(q.CreateEvent, r.Context(), database.CreateEventParams{
+	ei := database.WrapExec(q.CreateEvent, ctx, database.CreateEventParams{
 		Name:           c.Title,
 		WomID:          fmt.Sprintf("%d", c.ID),
-		GuildID:        p["guild_id"],
-		PositionCutoff: int16(body.PositionCutoff),
+		GuildID:        input.GuildID,
+		PositionCutoff: int16(input.Body.PositionCutoff),
 		Solo:           solo,
 	})
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
 
 	if c.Type == "classic" {
@@ -142,144 +99,94 @@ func (s *Server) RegisterEvent(w http.ResponseWriter, r *http.Request) {
 			return fmt.Sprintf("%d", p.PlayerID)
 		})[0:3]
 
-		params := database.InsertEventParticipantsParams{
+		ei = database.WrapExec(q.InsertEventParticipants, ctx, database.InsertEventParticipantsParams{
 			ParticipantIds: winners,
-			GuildID:        p["guild_id"],
+			GuildID:        input.GuildID,
 			WomID:          fmt.Sprintf("%d", c.ID),
-		}
-
-		ei = database.WrapExec(q.InsertEventParticipants, r.Context(), params)
+		})
 		if ei != nil {
-			s.handleDatabaseError(*ei, jw)
-			return
+			return nil, s.dbError(*ei)
 		}
-	} else if c.Type == "team" && len(body.TeamNames) != 0 {
-		pos_map := make(map[string]int32)
-		for i := range body.TeamNames {
-			pos_map[body.TeamNames[i]] = int32(i + 1)
+	} else if c.Type == "team" && len(input.Body.TeamNames) != 0 {
+		posMap := make(map[string]int32)
+		for i := range input.Body.TeamNames {
+			posMap[input.Body.TeamNames[i]] = int32(i + 1)
 		}
 
 		var ids []string
 		var positions []int32
-
 		for _, participation := range c.Participations {
-			if position, isWinningTeam := pos_map[participation.TeamName]; isWinningTeam {
+			if position, ok := posMap[participation.TeamName]; ok {
 				ids = append(ids, fmt.Sprintf("%d", participation.PlayerID))
 				positions = append(positions, position)
 			}
 		}
 
 		if len(ids) > 0 {
-			params := database.InsertEventTeamsParams{
+			ei = database.WrapExec(q.InsertEventTeams, ctx, database.InsertEventTeamsParams{
 				ParticipantIds:        ids,
 				ParticipantPlacements: positions,
-				GuildID:               p["guild_id"],
+				GuildID:               input.GuildID,
 				WomID:                 fmt.Sprintf("%d", c.ID),
-			}
-
-			ei = database.WrapExec(q.InsertEventTeams, r.Context(), params)
+			})
 			if ei != nil {
-				s.handleDatabaseError(*ei, jw)
-				return
+				return nil, s.dbError(*ei)
 			}
 		}
 	} else {
-		jw.WriteError(models.ERROR_WRONG_BODY)
-		return
+		return nil, models.NewTectonicError(models.ERROR_WRONG_BODY)
 	}
 
-	err = tx.Commit(r.Context())
-	if err != nil {
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
+	if err = tx.Commit(ctx); err != nil {
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
-// @Summary		Delete a guild event
-// @Description	Delete a guild event registered in the API
-// @Tags			Event
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Success		200			{object}	database.Event
-// @Failure		400			{object}	models.ErrorResponse
-// @Failure		401			{object}	models.ErrorResponse
-// @Failure		404			{object}	models.ErrorResponse
-// @Failure		429			{object}	models.ErrorResponse
-// @Failure		500			{object}	models.ErrorResponse
-// @Router			/api/v1/guilds/{guild_id}/events/{event_id} [DELETE]
-func (s *Server) DeleteEvent(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-	p := mux.Vars(r)
+type DeleteEventInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	EventID string `path:"event_id" doc:"Event WOM ID"`
+}
 
-	ei := database.WrapExec(s.queries.DeleteEvent, r.Context(), p["event_id"])
+func (s *Server) DeleteEvent(ctx context.Context, input *DeleteEventInput) (*struct{}, error) {
+	ei := database.WrapExec(s.queries.DeleteEvent, ctx, input.EventID)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
-type EventParams struct {
-	Name           string         `json:"name"`
-	PositionCutoff pgtype.Numeric `json:"position_cutoff"`
-	Solo           bool           `json:"solo"`
+type UpdateEventInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	EventID string `path:"event_id" doc:"Event WOM ID"`
+	Body    struct {
+		Name           string         `json:"name"`
+		PositionCutoff pgtype.Numeric `json:"position_cutoff"`
+		Solo           bool           `json:"solo"`
+	}
 }
 
-// @Summary		Updates a guild event
-// @Description	Update name and/or cutoff for a guild event
-// @Tags			Event
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string				true	"Guild ID"
-// @Param			guild		body		models.UpdateGuild	true	"Guild"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/events/{event_id} [PUT]
-func (s *Server) UpdateEvent(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
-
-	p := mux.Vars(r)
-
-	tx, err := database.CreateTx(r.Context())
+func (s *Server) UpdateEvent(ctx context.Context, input *UpdateEventInput) (*struct{}, error) {
+	tx, err := database.CreateTx(ctx)
 	if err != nil {
 		logging.Get().Error("Error creating transaction", "error", err)
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
+	defer tx.Rollback(ctx)
 
 	q := s.queries.WithTx(tx)
-	defer tx.Rollback(r.Context())
 
-	var params EventParams
-	err = json.NewDecoder(r.Body).Decode(&params)
-	if err != nil {
-		logging.Get().Error("Failed to parse request body")
-		jw.WriteError(models.ERROR_WRONG_BODY)
-		return
+	_, err = q.UpdateEvent(ctx, database.UpdateEventParams{
+		Name:           input.Body.Name,
+		PositionCutoff: input.Body.PositionCutoff,
+		Solo:           input.Body.Solo,
+		GuildID:        input.GuildID,
+		WomID:          input.EventID,
+	})
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
-	event_params := database.UpdateEventParams{
-		Name:           params.Name,
-		PositionCutoff: params.PositionCutoff,
-		Solo:           params.Solo,
-		GuildID:        p["guild_id"],
-		WomID:          p["event_id"],
-	}
-
-	_, err = q.UpdateEvent(r.Context(), event_params)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-	}
-
-	tx.Commit(r.Context())
-
-	jw.WriteResponse(http.NoBody)
+	tx.Commit(ctx)
+	return nil, nil
 }

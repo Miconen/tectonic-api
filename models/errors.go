@@ -7,73 +7,11 @@ import (
 type APIV1Error interface {
 	Message() string
 	Status() int
-	ToErrorResponse() ErrorResponse
+	Code() uint
 }
 
-type APIV1ErrorWithDetails interface {
-	APIV1Error
-	WithDetails(details any) APIV1ErrorWithDetails
-}
-
-type APIV1ErrorTodo struct {
-	detail string
-	status int
-}
-
-type ValidationError struct {
-	Code    APIV1ErrorCode
-	details any
-}
-
-func NewValidationError(details any) APIV1ErrorWithDetails {
-	return &ValidationError{
-		Code:    ERROR_VALIDATION_FAILED,
-		details: details,
-	}
-}
-
-func (e *ValidationError) Message() string {
-	return ERROR_VALIDATION_FAILED.String()
-}
-
-func (e *ValidationError) Status() int {
-	return http.StatusBadRequest
-}
-
-func (e *ValidationError) ToErrorResponse() ErrorResponse {
-	return ErrorResponse{
-		Code:    uint(e.Code),
-		Message: e.Message(),
-		Details: e.details,
-	}
-}
-
-func (e *ValidationError) WithDetails(details any) APIV1ErrorWithDetails {
-	return &ValidationError{
-		Code:    e.Code,
-		details: details,
-	}
-}
-
-func ERROR_TODO(status int, detail string) APIV1Error {
-	return &APIV1ErrorTodo{status: status, detail: detail}
-}
-
-func (et *APIV1ErrorTodo) Message() string {
-	return untreated.String()
-}
-
-func (et *APIV1ErrorTodo) Status() int {
-	return et.status
-}
-
-func (et *APIV1ErrorTodo) ToErrorResponse() ErrorResponse {
-	return ErrorResponse{
-		Code:    uint(untreated),
-		Message: et.Message(),
-		Details: et.detail,
-	}
-}
+func (e APIV1ErrorCode) Code() uint      { return uint(e) }
+func (e APIV1ErrorCode) Message() string { return e.String() }
 
 //go:generate stringer -type=APIV1ErrorCode -linecomment -output=errors_string.go
 type APIV1ErrorCode uint
@@ -146,114 +84,54 @@ const (
 
 const untreated APIV1ErrorCode = 10000 // Some error happened but left untreated, please file an issue here: https://github.com/Miconen/tectonic-api/issues/new
 
-func (e APIV1ErrorCode) Message() string {
-	return e.String()
-}
-
 func (e APIV1ErrorCode) Status() int {
 	switch e {
 	case ERROR_INVALID_TOKEN:
 		return http.StatusUnauthorized
 	case ERROR_WOM_UNAVAILABLE:
 		return http.StatusServiceUnavailable
-	case ERROR_API_UNAVAILABLE:
+	case ERROR_API_UNAVAILABLE, ERROR_API_DEAD:
 		return http.StatusInternalServerError
-	case ERROR_API_DEAD:
-		return http.StatusInternalServerError
-	case ERROR_WRONG_BODY:
+	case ERROR_WRONG_BODY, ERROR_WRONG_PARAMS, ERROR_VALIDATION_FAILED:
 		return http.StatusBadRequest
-	case ERROR_WRONG_PARAMS:
-		return http.StatusBadRequest
-	case ERROR_VALIDATION_FAILED:
-		return http.StatusBadRequest
-	// Model
-	case ERROR_GUILD_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_GUILD_EXISTS:
-		return http.StatusConflict
+	}
 
-	case ERROR_BOSS_NOT_FOUND:
+	switch e {
+	case ERROR_GUILD_NOT_FOUND,
+		ERROR_BOSS_NOT_FOUND,
+		ERROR_CATEGORY_NOT_FOUND,
+		ERROR_RSN_NOT_FOUND,
+		ERROR_TIME_NOT_FOUND, ERROR_USER_NOT_FOUND,
+		ERROR_WOMID_NOT_FOUND,
+		ERROR_PARTICIPATION_NOT_FOUND,
+		ERROR_GUILD_BOSS_NOT_FOUND,
+		ERROR_GUILD_CATEGORY_NOT_FOUND,
+		ERROR_TEAM_NOT_FOUND,
+		ERROR_EVENT_NOT_FOUND,
+		ERROR_ACHIEVEMENT_NOT_FOUND,
+		ERROR_USER_ACHIEVEMENT_NOT_FOUND,
+		ERROR_POINT_SOURCE_NOT_FOUND,
+		ERROR_COMBAT_ACHIEVEMENT_NOT_FOUND:
 		return http.StatusNotFound
-	case ERROR_BOSS_EXISTS:
-		return http.StatusConflict
 
-	case ERROR_CATEGORY_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_CATEGORY_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_RSN_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_RSN_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_TIME_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_TIME_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_USER_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_USER_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_WOMID_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_WOMID_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_PARTICIPATION_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_PARTICIPATION_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_GUILD_BOSS_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_GUILD_BOSS_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_GUILD_CATEGORY_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_GUILD_CATEGORY_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_TEAM_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_TEAM_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_EVENT_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_EVENT_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_ACHIEVEMENT_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_ACHIEVEMENT_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_USER_ACHIEVEMENT_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_USER_ACHIEVEMENT_EXISTS:
-		return http.StatusConflict
-
-	case ERROR_POINT_SOURCE_NOT_FOUND:
-		return http.StatusNotFound
-	case ERROR_POINT_SOURCE_EXISTS:
+	case ERROR_GUILD_EXISTS,
+		ERROR_BOSS_EXISTS,
+		ERROR_CATEGORY_EXISTS,
+		ERROR_RSN_EXISTS,
+		ERROR_TIME_EXISTS,
+		ERROR_USER_EXISTS,
+		ERROR_WOMID_EXISTS,
+		ERROR_PARTICIPATION_EXISTS,
+		ERROR_GUILD_BOSS_EXISTS,
+		ERROR_GUILD_CATEGORY_EXISTS,
+		ERROR_TEAM_EXISTS,
+		ERROR_EVENT_EXISTS,
+		ERROR_ACHIEVEMENT_EXISTS,
+		ERROR_USER_ACHIEVEMENT_EXISTS,
+		ERROR_POINT_SOURCE_EXISTS,
+		ERROR_COMBAT_ACHIEVEMENT_EXISTS:
 		return http.StatusConflict
 	}
 
 	return http.StatusInternalServerError
-}
-
-func (e APIV1ErrorCode) ToErrorResponse() ErrorResponse {
-	msg := e.Message()
-	return ErrorResponse{
-		Code:    uint(e),
-		Message: msg,
-	}
-}
-
-func ValidationFailed(details any) APIV1Error {
-	return NewValidationError(details)
 }

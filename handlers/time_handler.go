@@ -3,509 +3,281 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"strconv"
 	"time"
 
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
-	"tectonic-api/utils"
 
-	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// @Summary		Get all guild times
-// @Description	Get all guild times in a detailed way
-// @Tags			Guild
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Success		200			{object}	models.GuildTimes
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/times [GET]
-func (s *Server) GetGuildTimes(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
-
-	v := mux.Vars(r)
-
-	guildId, ok := v["guild_id"]
-	if !ok {
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
-		return
-	}
-
-	row, err := s.queries.GetDetailedGuild(r.Context(), guildId)
-	ei := database.ClassifyError(err)
-	if err != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
-	guild := database.NewDetailedGuildFromRow(row)
-	jw.WriteResponse(guild)
+type GetGuildTimesInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+}
+type GetGuildTimesOutput struct {
+	Body models.DetailedGuild
 }
 
-// @Summary		Add a new teammate to time
-// @Description	Add a new teammate to a time
-// @Tags			Time
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string				true	"Guild ID"
-// @Param			time		body		models.InputTime	true	"Time"
-// @Success		200			{object}	models.Empty
-// @Success		201			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		409			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/teams/boss/{boss} [POST]
-func (s *Server) AddTeammateByBoss(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
-
-	p := mux.Vars(r)
-	var body models.InputTeammate
-
-	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
-		return
+func (s *Server) GetGuildTimes(ctx context.Context, input *GetGuildTimesInput) (*GetGuildTimesOutput, error) {
+	row, err := s.queries.GetDetailedGuild(ctx, input.GuildID)
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
+	guild := models.DetailedGuildFromRow(row)
+	return &GetGuildTimesOutput{Body: guild}, nil
+}
 
+// Teams
+
+type AddTeammateByBossInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	Boss    string `path:"boss" doc:"Boss name"`
+	Body    models.InputTeammate
+}
+
+func (s *Server) AddTeammateByBoss(ctx context.Context, input *AddTeammateByBossInput) (*struct{}, error) {
 	params := database.AddToTeamByBossParams{
-		GuildID:  body.GuildId,
-		BossName: p["boss"],
-		UserID:   body.UserId,
+		GuildID:  string(input.Body.GuildID),
+		BossName: input.Boss,
+		UserID:   string(input.Body.UserID),
 	}
-
-	ei := database.WrapExec(s.queries.AddToTeamByBoss, r.Context(), params)
+	ei := database.WrapExec(s.queries.AddToTeamByBoss, ctx, params)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
-// @Summary		Add a new teammate to time
-// @Description	Add a new teammate to a time
-// @Tags			Time
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string				true	"Guild ID"
-// @Param			time		body		models.InputTime	true	"Time"
-// @Success		200			{object}	models.Empty
-// @Success		201			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		409			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/teams/id/{run_id} [POST]
-func (s *Server) AddTeammateByRunId(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusCreated)
+type AddTeammateByRunIdInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	RunID   int    `path:"run_id" doc:"Run ID"`
+	Body    models.InputTeammate
+}
 
-	p := mux.Vars(r)
-	var body models.InputTeammate
-
-	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
-		return
-	}
-
-	id, err := strconv.Atoi(p["run_id"])
-	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
-		return
-	}
-
+func (s *Server) AddTeammateByRunId(ctx context.Context, input *AddTeammateByRunIdInput) (*struct{}, error) {
 	params := database.AddToTeamByIdParams{
-		GuildID: body.GuildId,
-		UserID:  body.UserId,
-		RunID:   int32(id),
+		GuildID: string(input.Body.GuildID),
+		UserID:  string(input.Body.UserID),
+		RunID:   int32(input.RunID),
 	}
-
-	ei := database.WrapExec(s.queries.AddToTeamById, r.Context(), params)
+	ei := database.WrapExec(s.queries.AddToTeamById, ctx, params)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
-// @Summary		Remove a teammate from a time
-// @Description	Remove a teammate from a time
-// @Tags			Time
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string				true	"Guild ID"
-// @Param			time		body		models.InputTime	true	"Time"
-// @Success		200			{object}	models.Empty
-// @Success		201			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		409			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/teams/boss/{boss} [DELETE]
-func (s *Server) RemoveTeammateByBoss(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+type RemoveTeammateByBossInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	Boss    string `path:"boss" doc:"Boss name"`
+	Body    models.InputTeammate
+}
 
-	p := mux.Vars(r)
-	var body models.InputTeammate
-
-	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
-		return
-	}
-
+func (s *Server) RemoveTeammateByBoss(ctx context.Context, input *RemoveTeammateByBossInput) (*struct{}, error) {
 	params := database.RemoveFromTeamByBossParams{
-		GuildID:  body.GuildId,
-		UserID:   body.UserId,
-		BossName: p["boss"],
+		GuildID:  string(input.Body.GuildID),
+		UserID:   string(input.Body.UserID),
+		BossName: input.Boss,
 	}
-
-	rows, ei := database.WrapQuery(s.queries.RemoveFromTeamByBoss, r.Context(), params)
+	rows, ei := database.WrapQuery(s.queries.RemoveFromTeamByBoss, ctx, params)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
-
 	if rows == 0 {
-		jw.WriteError(models.ERROR_TEAM_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_TEAM_NOT_FOUND)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
-// @Summary		Remove a teammate from a time
-// @Description	Remove a teammate from a time
-// @Tags			Time
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string				true	"Guild ID"
-// @Param			time		body		models.InputTime	true	"Time"
-// @Success		200			{object}	models.Empty
-// @Success		201			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		409			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/teams/id/{run_id} [DELETE]
-func (s *Server) RemoveTeammateByRunId(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+type RemoveTeammateByRunIdInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	RunID   int    `path:"run_id" doc:"Run ID"`
+	Body    models.InputTeammate
+}
 
-	p := mux.Vars(r)
-	var body models.InputTeammate
-
-	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
-		return
-	}
-
-	id, err := strconv.Atoi(p["run_id"])
-	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
-		return
-	}
-
+func (s *Server) RemoveTeammateByRunId(ctx context.Context, input *RemoveTeammateByRunIdInput) (*struct{}, error) {
 	params := database.RemoveFromTeamByIdParams{
-		GuildID: body.GuildId,
-		UserID:  body.UserId,
-		RunID:   int32(id),
+		GuildID: string(input.Body.GuildID),
+		UserID:  string(input.Body.UserID),
+		RunID:   int32(input.RunID),
 	}
-
-	rows, ei := database.WrapQuery(s.queries.RemoveFromTeamById, r.Context(), params)
+	rows, ei := database.WrapQuery(s.queries.RemoveFromTeamById, ctx, params)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
-
 	if rows == 0 {
-		jw.WriteError(models.ERROR_TEAM_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_TEAM_NOT_FOUND)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
-// @Summary		Add a new best time to guild
-// @Description	Add a new time to a guild in our backend by unique guild Snowflake (ID)
-// @Tags			Time
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string				true	"Guild ID"
-// @Param			time		body		models.InputTime	true	"Time"
-// @Success		200			{object}	models.Empty
-// @Success		201			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		409			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/times [POST]
-func (s *Server) CreateTime(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusOK)
+// Times
 
-	p := mux.Vars(r)
-	var body models.InputTime
+type CreateTimeInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	Body    models.InputTime
+}
+type CreateTimeOutput struct {
+	Body models.TimeResponse
+}
 
-	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
-		return
-	}
-
+func (s *Server) CreateTime(ctx context.Context, input *CreateTimeInput) (*CreateTimeOutput, error) {
 	res := models.TimeResponse{
-		BossName: body.BossName,
-		Time:     body.Time,
+		BossName: input.Body.BossName,
+		Time:     input.Body.Time,
 	}
 
-	tx, err := database.CreateTx(r.Context())
+	tx, err := database.CreateTx(ctx)
 	if err != nil {
 		logging.Get().Error("Error creating transaction", "error", err)
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
+	defer tx.Rollback(ctx)
 
 	q := s.queries.WithTx(tx)
-	defer tx.Rollback(r.Context())
 
-	pb_params := database.CheckPbParams{
-		Boss:    body.BossName,
-		GuildID: p["guild_id"],
+	pb, err := q.CheckPb(ctx, database.CheckPbParams{
+		Boss:    input.Body.BossName,
+		GuildID: input.GuildID,
+	})
+	if ei := database.ClassifyError(err); ei != nil {
+		if ei.Recoverable && ei.Code == "P0002" {
+			return nil, models.NewTectonicError(models.ERROR_GUILD_BOSS_NOT_FOUND)
+		}
+		return nil, s.dbError(*ei)
 	}
 
-	pb, err := q.CheckPb(r.Context(), pb_params)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseErrorCustom(*ei, jw, func(dh *dbHandler, jw *utils.JsonWriter) {
-			switch dh.Code {
-			case "P0002":
-				jw.WriteError(models.ERROR_GUILD_BOSS_NOT_FOUND)
-			}
-		})
-		return
-	}
-
-	// Old pb exists
 	if pb.Time.Valid {
-		old_time := int(pb.Time.Int32)
-		// Check if our time is faster, if not don't continue
-		if old_time <= body.Time {
-			jw.WriteResponse(res)
-			return
+		if int(pb.Time.Int32) <= input.Body.Time {
+			return &CreateTimeOutput{Body: res}, nil
 		}
 	}
 
-	time_params := database.CreateTimeParams{
-		Time:     int32(body.Time),
-		BossName: body.BossName,
+	runID, err := q.CreateTime(ctx, database.CreateTimeParams{
+		Time:     int32(input.Body.Time),
+		BossName: input.Body.BossName,
 		Date:     pgtype.Timestamp{Time: time.Now(), Valid: true},
-		GuildID:  p["guild_id"],
+		GuildID:  input.GuildID,
+	})
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
-	run_id, err := q.CreateTime(r.Context(), time_params)
-	ei = database.ClassifyError(err)
-	if err != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+	_, err = q.UpdatePb(ctx, database.UpdatePbParams{
+		RunID:   pgtype.Int4{Int32: runID, Valid: true},
+		GuildID: input.GuildID,
+		Boss:    input.Body.BossName,
+	})
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
-	changed_pb_params := database.UpdatePbParams{
-		RunID: pgtype.Int4{
-			Int32: run_id,
-			Valid: true,
-		},
-		GuildID: p["guild_id"],
-		Boss:    body.BossName,
+	err = q.CreateTeam(ctx, database.CreateTeamParams{
+		RunID:   runID,
+		UserIds: models.SnowflakesToStrings(input.Body.UserIDs),
+		GuildID: input.GuildID,
+	})
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
-	_, err = q.UpdatePb(r.Context(), changed_pb_params)
-	ei = database.ClassifyError(err)
-	if err != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+	if err = tx.Commit(ctx); err != nil {
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
 
-	team_params := database.CreateTeamParams{
-		RunID:   run_id,
-		UserIds: body.UserIds,
-		GuildID: p["guild_id"],
-	}
-
-	err = q.CreateTeam(r.Context(), team_params)
-	ei = database.ClassifyError(err)
-	if err != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
-	err = tx.Commit(r.Context())
-	ei = database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
-	jw.SetStatus(http.StatusCreated)
-	res.RunID = int(run_id)
+	res.RunID = int(runID)
 	res.OldTime = int(pb.Time.Int32)
-	jw.WriteResponse(res)
+	return &CreateTimeOutput{Body: res}, nil
 }
 
-// @Summary		Remove time from guilds best times
-// @Description	Delete a time in our backend by unique guild Snowflake (ID)
-// @Tags			Time
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			time_id		path		string	true	"Time ID"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/times/id/{time_id} [DELETE]
-func (s *Server) RemoveTime(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
+type RemoveTimeInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	TimeID  int    `path:"time_id" doc:"Time/Run ID"`
+}
 
-	p := mux.Vars(r)
-
+func (s *Server) RemoveTime(ctx context.Context, input *RemoveTimeInput) (*struct{}, error) {
 	params := database.DeleteTimeParams{
-		GuildID: p["guild_id"],
+		GuildID: input.GuildID,
+		RunID:   int32(input.TimeID),
 	}
-
-	id, err := strconv.Atoi(p["time_id"])
-	if err != nil {
-		jw.WriteError(models.ERROR_WRONG_PARAMS)
-		return
+	deleted, err := s.queries.DeleteTime(ctx, params)
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
-
-	params.RunID = int32(id)
-
-	deleted, err := s.queries.DeleteTime(r.Context(), params)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
 	if deleted == 0 {
-		jw.WriteError(models.ERROR_TIME_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_TIME_NOT_FOUND)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
-// @Summary		Clear best pb time
-// @Description	Delete the pb time from a guild boss
-// @Tags			Time
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			boss		path		string	true	"Boss"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/times/{boss}/clear [DELETE]
-func (s *Server) ClearClanPb(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
+type ClearClanPbInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	Boss    string `path:"boss" doc:"Boss name"`
+}
 
-	p := mux.Vars(r)
-
-	tx, err := database.CreateTx(r.Context())
+func (s *Server) ClearClanPb(ctx context.Context, input *ClearClanPbInput) (*struct{}, error) {
+	tx, err := database.CreateTx(ctx)
 	if err != nil {
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
+	defer tx.Rollback(ctx)
 
 	q := s.queries.WithTx(tx)
-	defer tx.Rollback(r.Context())
 
-	removed, ei := s.deletePbRecord(r.Context(), q, p["guild_id"], p["boss"])
+	removed, ei := s.deletePbRecord(ctx, q, input.GuildID, input.Boss)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
-
 	if removed == 0 {
-		jw.WriteError(models.ERROR_TIME_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_TIME_NOT_FOUND)
 	}
 
-	err = tx.Commit(r.Context())
-	if err != nil {
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
+	if err = tx.Commit(ctx); err != nil {
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
-// @Summary		Revert best pb time to second last one
-// @Description	Delete a time in our backend and replace it with the second best
-// @Tags			Time
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			boss		path		string	true	"Boss"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/times/{boss}/revert [DELETE]
-func (s *Server) RevertClanPb(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
+type RevertClanPbInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	Boss    string `path:"boss" doc:"Boss name"`
+}
 
-	p := mux.Vars(r)
-
-	tx, err := database.CreateTx(r.Context())
+func (s *Server) RevertClanPb(ctx context.Context, input *RevertClanPbInput) (*struct{}, error) {
+	tx, err := database.CreateTx(ctx)
 	if err != nil {
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
+	defer tx.Rollback(ctx)
 
 	q := s.queries.WithTx(tx)
-	defer tx.Rollback(r.Context())
 
-	removed, ei := s.deletePbRecord(r.Context(), q, p["guild_id"], p["boss"])
+	removed, ei := s.deletePbRecord(ctx, q, input.GuildID, input.Boss)
 	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+		return nil, s.dbError(*ei)
 	}
-
 	if removed == 0 {
-		jw.WriteError(models.ERROR_TIME_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_TIME_NOT_FOUND)
 	}
 
-	update_params := database.RevertGuildBossPbParams{
-		GuildID:  p["guild_id"],
-		BossName: p["boss"],
+	updateParams := database.RevertGuildBossPbParams{
+		GuildID:  input.GuildID,
+		BossName: input.Boss,
+	}
+	fmt.Println(updateParams)
+	revertEi := database.WrapExec(q.RevertGuildBossPb, ctx, updateParams)
+	if revertEi != nil {
+		return nil, s.dbError(*revertEi)
 	}
 
-	fmt.Println(update_params)
-	ei = database.WrapExec(q.RevertGuildBossPb, r.Context(), update_params)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
+	if err = tx.Commit(ctx); err != nil {
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
-
-	err = tx.Commit(r.Context())
-	if err != nil {
-		jw.WriteError(models.ERROR_API_UNAVAILABLE)
-		return
-	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
+// Unchanged private helper
 func (s *Server) deletePbRecord(ctx context.Context, q *database.Queries, guildID, bossName string) (int64, *database.ErrorInfo) {
 	removed, err := q.DeletePb(ctx, database.DeletePbParams{
 		GuildID:  guildID,
@@ -516,6 +288,5 @@ func (s *Server) deletePbRecord(ctx context.Context, q *database.Queries, guildI
 			return 0, ei
 		}
 	}
-
 	return removed, nil
 }

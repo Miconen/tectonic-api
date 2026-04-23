@@ -1,107 +1,64 @@
 package handlers
 
 import (
-	"net/http"
+	"context"
 	"strconv"
+
 	"tectonic-api/database"
 	"tectonic-api/models"
-	"tectonic-api/utils"
-
-	"github.com/gorilla/mux"
 )
 
-// @Summary		Link an RSN to a user
-// @Description	Link an RSN to a guild and user in our backend by unique guild and user Snowflake (ID)
-// @Tags			RSN
-// @Accept			json
-// @Produce		json
-// @Param			guild_id	path		string			true	"Guild ID"
-// @Param			user_id		path		string			true	"User ID"
-// @Param			user_id		body		string			true	"User ID"
-// @Param			rsn			path		models.InputRSN	true	"RSN"
-// @Success		204			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		409			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/rsns [POST]
-func (s *Server) CreateRSN(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
+type CreateRSNInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	UserID  string `path:"user_id" doc:"User Snowflake ID"`
+	Body    models.CreateRsnBody
+}
 
-	p := mux.Vars(r)
-	var body models.CreateRsnBody
-
-	if err := utils.ParseAndValidateRequestBody(w, r, &body); err != nil {
-		return
+func (s *Server) CreateRSN(ctx context.Context, input *CreateRSNInput) (*struct{}, error) {
+	wom, err := s.womClient.GetWom(input.Body.RSN)
+	if err != nil {
+		return nil, models.NewTectonicError(models.ERROR_RSN_NOT_FOUND)
 	}
 
 	params := database.CreateRsnParams{
-		GuildID: p["guild_id"],
-		UserID:  p["user_id"],
+		GuildID: input.GuildID,
+		UserID:  input.UserID,
+		WomID:   strconv.Itoa(wom.Id),
+		Rsn:     wom.DisplayName,
 	}
 
-	wom, err := s.womClient.GetWom(body.RSN)
-	if err != nil {
-		jw.WriteError(models.ERROR_RSN_NOT_FOUND)
-		return
-	}
-
-	params.WomID = strconv.Itoa(wom.Id)
-	params.Rsn = wom.DisplayName
-
-	err = s.queries.CreateRsn(r.Context(), params)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseErrorCustom(*ei, jw, func(dh *dbHandler, jw *utils.JsonWriter) {
-			switch dh.Code {
+	err = s.queries.CreateRsn(ctx, params)
+	if ei := database.ClassifyError(err); ei != nil {
+		if ei.Recoverable {
+			switch ei.Code {
 			case "23503":
-				jw.WriteError(models.ERROR_USER_NOT_FOUND)
+				return nil, models.NewTectonicError(models.ERROR_USER_NOT_FOUND)
 			case "23505":
-				jw.WriteError(models.ERROR_RSN_EXISTS)
+				return nil, models.NewTectonicError(models.ERROR_RSN_EXISTS)
 			}
-		})
-		return
+		}
+		return nil, s.dbError(*ei)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }
 
-// @Summary		Remove RSN from guild and user
-// @Description	Delete a RSN in our backend by unique guild and user Snowflake (ID)
-// @Tags			RSN
-// @Produce		json
-// @Param			guild_id	path		string	true	"Guild ID"
-// @Param			user_id		path		string	true	"User ID"
-// @Param			rsn			path		string	true	"RSN"
-// @Success		201			{object}	models.Empty
-// @Failure		400			{object}	models.Empty
-// @Failure		401			{object}	models.Empty
-// @Failure		404			{object}	models.Empty
-// @Failure		429			{object}	models.Empty
-// @Failure		500			{object}	models.Empty
-// @Router			/api/v1/guilds/{guild_id}/users/{user_id}/rsns/{rsn} [DELETE]
-func (s *Server) RemoveRSN(w http.ResponseWriter, r *http.Request) {
-	jw := utils.NewJsonWriter(w, r, http.StatusNoContent)
+type RemoveRSNInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	UserID  string `path:"user_id" doc:"User Snowflake ID"`
+	RSN     string `path:"rsn" doc:"RuneScape Name"`
+}
 
-	p := mux.Vars(r)
-	params := database.DeleteRsnParams{
-		GuildID: p["guild_id"],
-		UserID:  p["user_id"],
-		Rsn:     p["rsn"],
+func (s *Server) RemoveRSN(ctx context.Context, input *RemoveRSNInput) (*struct{}, error) {
+	rows, err := s.queries.DeleteRsn(ctx, database.DeleteRsnParams{
+		GuildID: input.GuildID,
+		UserID:  input.UserID,
+		Rsn:     input.RSN,
+	})
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, s.dbError(*ei)
 	}
-
-	rows, err := s.queries.DeleteRsn(r.Context(), params)
-	ei := database.ClassifyError(err)
-	if ei != nil {
-		s.handleDatabaseError(*ei, jw)
-		return
-	}
-
 	if rows == 0 {
-		jw.WriteError(models.ERROR_RSN_NOT_FOUND)
-		return
+		return nil, models.NewTectonicError(models.ERROR_RSN_NOT_FOUND)
 	}
-
-	jw.WriteResponse(http.NoBody)
+	return nil, nil
 }

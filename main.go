@@ -4,19 +4,18 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
 	"tectonic-api/config"
 	"tectonic-api/database"
 	"tectonic-api/handlers"
 	"tectonic-api/logging"
+	"tectonic-api/middleware"
 	"tectonic-api/routes"
 	"tectonic-api/utils"
+
+	"github.com/go-chi/chi/v5"
 )
 
-// @title			Tectonic API
-// @version		0.1
-// @description	Functionality provider for Tectonic guild.
-// @host			localhost:8080
-// @BasePath		/api
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -49,11 +48,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := routes.NewAPIBuilder(srv).AttachV1Routes()
+	r := chi.NewRouter()
+
+	r.Use(
+		logging.LoggingHandler,
+		middleware.CORS,
+		middleware.RateLimit,
+		middleware.Authentication(cfg),
+	)
+
+	routes.AttachV1Routes(r, srv)
 	logging.Get().Info("routes registered")
 
 	logging.Get().Info("server listening to requests", "port", cfg.Port)
-	err = http.ListenAndServe(":"+cfg.Port, router)
+	err = http.ListenAndServe(":"+cfg.Port, r)
 	if err != nil {
 		logging.Get().Error("Server failed to start", "error", err)
 	}

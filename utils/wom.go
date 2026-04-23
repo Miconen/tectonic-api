@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
 	"tectonic-api/config"
 	"tectonic-api/logging"
 	"tectonic-api/models"
@@ -40,8 +41,8 @@ func NewWomClient(cfg *config.Config) *WomClient {
 	}
 }
 
-func (c *WomClient) GetWom(rsn string) (Wom, error) {
-	url := c.baseURL + "/players/" + rsn
+func (c *WomClient) GetWom(rsn models.RSN) (Wom, error) {
+	url := c.baseURL + "/players/" + string(rsn)
 	return handleResponse[Wom](url, c)
 }
 
