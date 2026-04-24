@@ -116,8 +116,12 @@ DELETE FROM guilds
 WHERE guild_id = $1;
 
 -- name: GetGuild :one
-SELECT guild_id, multiplier, pb_channel_id, mod_channel_id FROM guilds
-WHERE guild_id = $1 LIMIT 1;
+SELECT
+    guilds.guild_id, guilds.multiplier, guilds.pb_channel_id, guilds.mod_channel_id,
+    (SELECT count(user_id) FROM users WHERE users.guild_id = $1) as user_count,
+    (SELECT count(run_id) FROM times WHERE times.guild_id = $1) as time_count
+FROM guilds
+WHERE guilds.guild_id = $1 LIMIT 1;
 
 -- name: UpdateGuild :one
 UPDATE guilds SET
@@ -250,7 +254,11 @@ SELECT @run_id, unnest(@user_ids::text[]), @guild_id;
 -- name: GetDetailedGuild :one
 SELECT
     g.guild_id,
+    g.multiplier,
     g.pb_channel_id,
+    g.mod_channel_id,
+    (SELECT count(user_id) FROM users WHERE users.guild_id = @guild_id) as user_count,
+    (SELECT count(run_id) FROM times WHERE times.guild_id = @guild_id) as time_count,
     (SELECT json_agg(tm) FROM teams tm
      JOIN times t ON tm.run_id = t.run_id
      JOIN guild_bosses gb ON t.run_id = gb.pb_id
