@@ -10,15 +10,23 @@ import (
 
 type GetLeaderboardInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	Limit   int32  `query:"limit" default:"50" minimum:"1" maximum:"1000" doc:"Maximum number of users to return"`
 }
 type GetLeaderboardOutput struct {
 	Body []models.LeaderboardUser
 }
 
 func (s *Server) GetLeaderboard(ctx context.Context, input *GetLeaderboardInput) (*GetLeaderboardOutput, error) {
+	limit := input.Limit
+	if limit <= 0 {
+		limit = 50
+	} else if limit > 1000 {
+		limit = 1000
+	}
+
 	params := database.GetLeaderboardParams{
 		GuildID:   input.GuildID,
-		UserLimit: 50,
+		UserLimit: limit,
 	}
 
 	logging.Get().DebugContext(ctx, "querying leaderboard from database", "guild_id", params.GuildID, "user_limit", params.UserLimit)
