@@ -165,15 +165,24 @@ type EventParticipation struct {
 	Placement int    `json:"placement"`
 }
 
-type DetailedGuild struct {
-	GuildID         string               `json:"guild_id"`
-	PbChannelID     *string              `json:"pb_channel_id"`
-	Teammates       []GuildTeammate      `json:"teammates"`
-	Pbs             []GuildPb            `json:"pbs"`
-	Bosses          []GuildBoss          `json:"bosses"`
-	Categories      []GuildCategory      `json:"categories"`
-	GuildBosses     []GuildBossEntry     `json:"guild_bosses"`
-	GuildCategories []GuildCategoryEntry `json:"guild_categories"`
+type GuildDetails struct {
+	Teammates       []GuildTeammate      `json:"teammates,omitempty"`
+	Pbs             []GuildPb            `json:"pbs,omitempty"`
+	Bosses          []GuildBoss          `json:"bosses,omitempty"`
+	Categories      []GuildCategory      `json:"categories,omitempty"`
+	GuildBosses     []GuildBossEntry     `json:"guild_bosses,omitempty"`
+	GuildCategories []GuildCategoryEntry `json:"guild_categories,omitempty"`
+}
+
+type Guild struct {
+	GuildID      string  `json:"guild_id"`
+	Multiplier   int32   `json:"multiplier"`
+	PbChannelID  *string `json:"pb_channel_id"`
+	ModChannelID *string `json:"mod_channel_id"`
+	UserCount    int64   `json:"user_count"`
+	TimeCount    int64   `json:"time_count"`
+
+	GuildDetails
 }
 
 type GuildTeammate struct {
@@ -216,19 +225,53 @@ type GuildCategoryEntry struct {
 	MessageID string `json:"message_id"`
 }
 
-func DetailedGuildFromRow(row database.GetDetailedGuildRow) DetailedGuild {
-	g := DetailedGuild{
-		GuildID:         row.GuildID,
-		Teammates:       []GuildTeammate{},
-		Pbs:             []GuildPb{},
-		Bosses:          []GuildBoss{},
-		Categories:      []GuildCategory{},
-		GuildBosses:     []GuildBossEntry{},
-		GuildCategories: []GuildCategoryEntry{},
+func GuildResponseFromRow(row database.GetGuildRow) Guild {
+	var pbChannelID *string
+	if row.PbChannelID.Valid {
+		pbChannelID = &row.PbChannelID.String
 	}
 
+	var modChannelID *string
+	if row.ModChannelID.Valid {
+		modChannelID = &row.ModChannelID.String
+	}
+
+	return Guild{
+		GuildID:      row.GuildID,
+		Multiplier:   row.Multiplier,
+		PbChannelID:  pbChannelID,
+		ModChannelID: modChannelID,
+		UserCount:    row.UserCount,
+		TimeCount:    row.TimeCount,
+	}
+}
+
+func GuildResponseFromDetailedRow(row database.GetDetailedGuildRow) Guild {
+	var pbChannelID *string
 	if row.PbChannelID.Valid {
-		g.PbChannelID = &row.PbChannelID.String
+		pbChannelID = &row.PbChannelID.String
+	}
+
+	var modChannelID *string
+	if row.ModChannelID.Valid {
+		modChannelID = &row.ModChannelID.String
+	}
+
+	g := Guild{
+		GuildID:      row.GuildID,
+		Multiplier:   row.Multiplier,
+		PbChannelID:  pbChannelID,
+		ModChannelID: modChannelID,
+		UserCount:    row.UserCount,
+		TimeCount:    row.TimeCount,
+		GuildDetails: GuildDetails{
+			Teammates:       []GuildTeammate{},
+			Pbs:             []GuildPb{},
+			Bosses:          []GuildBoss{},
+			Categories:      []GuildCategory{},
+			GuildBosses:     []GuildBossEntry{},
+			GuildCategories: []GuildCategoryEntry{},
+		},
 	}
 
 	json.Unmarshal(row.Teammates, &g.Teammates)

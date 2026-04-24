@@ -13,18 +13,29 @@ import (
 )
 
 type GetGuildInput struct {
-	GuildID models.DiscordSnowflake `path:"guild_id" doc:"Guild Snowflake ID"`
+	GuildID  models.DiscordSnowflake `path:"guild_id" doc:"Guild Snowflake ID"`
+	Detailed bool                    `query:"detailed" default:"false" doc:"Fetch detailed guild information"`
 }
 
 type GetGuildOutput struct {
-	Body database.Guild
+	Body models.Guild
 }
 
 func (s *Server) GetGuild(ctx context.Context, input *GetGuildInput) (*GetGuildOutput, error) {
-	guild, err := s.queries.GetGuild(ctx, string(input.GuildID))
+	if input.Detailed {
+		row, err := s.queries.GetDetailedGuild(ctx, string(input.GuildID))
+		if ei := database.ClassifyError(err); ei != nil {
+			return nil, s.dbError(*ei)
+		}
+		guild := models.GuildResponseFromDetailedRow(row)
+		return &GetGuildOutput{Body: guild}, nil
+	}
+
+	row, err := s.queries.GetGuild(ctx, string(input.GuildID))
 	if ei := database.ClassifyError(err); ei != nil {
 		return nil, s.dbError(*ei)
 	}
+	guild := models.GuildResponseFromRow(row)
 	return &GetGuildOutput{Body: guild}, nil
 }
 
