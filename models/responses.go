@@ -12,11 +12,22 @@ type DetailedUser struct {
 	UserId             string                  `json:"user_id"`
 	GuildId            string                  `json:"guild_id"`
 	Points             int                     `json:"points"`
+	Rank               int64                   `json:"rank"`
+	Tier               *UserTier               `json:"tier,omitempty"`
 	RSNs               []UserRsn               `json:"rsns"`
-	Times              []UserTime              `json:"times"`
+	Records            []UserRecord            `json:"records"`
 	Events             []UserEvent             `json:"events"`
 	Achievements       []UserAchievement       `json:"achievements"`
 	CombatAchievements []UserCombatAchievement `json:"combat_achievements"`
+}
+
+// UserTier - the user's current rank tier based on points
+type UserTier struct {
+	Name         string  `json:"name"`
+	Icon         *string `json:"icon,omitempty"`
+	RoleID       *string `json:"role_id,omitempty"`
+	MinPoints    int32   `json:"min_points"`
+	DisplayOrder int16   `json:"display_order"`
 }
 
 // User sub-models
@@ -80,56 +91,58 @@ func UserEventFromRows(rows []database.GetUserEventsRow) []UserEvent {
 	return result
 }
 
-type TimeTeammates struct {
+type RecordTeammate struct {
 	UserID  string `json:"user_id"`
 	GuildID string `json:"guild_id"`
 }
 
-type UserTime struct {
-	Id          int32           `json:"run_id"`
-	BossName    string          `json:"boss_name"`
-	DisplayName string          `json:"display_name"`
-	Category    string          `json:"category"`
-	Solo        bool            `json:"solo"`
-	Date        time.Time       `json:"date"`
-	Time        int32           `json:"time"`
-	Teammates   []TimeTeammates `json:"team"`
+type UserRecord struct {
+	Id          int32            `json:"record_id"`
+	BossName    string           `json:"boss_name"`
+	DisplayName string           `json:"display_name"`
+	Category    string           `json:"category"`
+	Solo        bool             `json:"solo"`
+	ValueType   string           `json:"value_type"`
+	Date        time.Time        `json:"date"`
+	Value       int32            `json:"value"`
+	Teammates   []RecordTeammate `json:"team"`
 }
 
-func UserTimesFromRows(rows []database.GetUserTimesRow) []UserTime {
+func UserRecordsFromRows(rows []database.GetUserRecordsRow) []UserRecord {
 	if len(rows) == 0 {
-		return []UserTime{}
+		return []UserRecord{}
 	}
 
-	result := make([]UserTime, 0)
-	t := UserTime{
+	result := make([]UserRecord, 0)
+	r := UserRecord{
 		Id:        0,
-		Teammates: make([]TimeTeammates, 0),
+		Teammates: make([]RecordTeammate, 0),
 	}
 
 	for i := range rows {
-		if rows[i].RunID != t.Id {
+		if rows[i].RecordID != r.Id {
 			if i != 0 {
-				result = append(result, t)
+				result = append(result, r)
 			}
-			t = UserTime{
-				Id:          rows[i].RunID,
+			r = UserRecord{
+				Id:          rows[i].RecordID,
 				BossName:    rows[i].BossName,
 				DisplayName: rows[i].DisplayName,
 				Category:    rows[i].Category,
 				Solo:        rows[i].Solo,
+				ValueType:   rows[i].ValueType,
 				Date:        rows[i].Date.Time,
-				Time:        rows[i].Time,
-				Teammates:   make([]TimeTeammates, 0),
+				Value:       rows[i].Value,
+				Teammates:   make([]RecordTeammate, 0),
 			}
 		}
-		t.Teammates = append(t.Teammates, TimeTeammates{
+		r.Teammates = append(r.Teammates, RecordTeammate{
 			UserID:  rows[i].UserID,
 			GuildID: rows[i].GuildID,
 		})
 	}
 
-	result = append(result, t)
+	result = append(result, r)
 	return result
 }
 
@@ -147,12 +160,13 @@ func UserCombatAchievementsFromRows(rows []string) []UserCombatAchievement {
 	return result
 }
 
-// Time creation response
-type TimeResponse struct {
+// Record creation response
+type RecordResponse struct {
 	BossName string `json:"boss_name"`
-	Time     int    `json:"time"`
-	OldTime  int    `json:"time_old"`
-	RunID    int    `json:"run_id"`
+	Value    int    `json:"value"`
+	OldValue int    `json:"value_old"`
+	RecordID int    `json:"record_id"`
+	Position *int   `json:"position,omitempty"`
 }
 
 // Event detail response
@@ -165,38 +179,21 @@ type EventParticipation struct {
 	Placement int    `json:"placement"`
 }
 
-type GuildDetails struct {
-	Teammates       []GuildTeammate      `json:"teammates,omitempty"`
-	Pbs             []GuildPb            `json:"pbs,omitempty"`
-	Bosses          []GuildBoss          `json:"bosses,omitempty"`
-	Categories      []GuildCategory      `json:"categories,omitempty"`
-	GuildBosses     []GuildBossEntry     `json:"guild_bosses,omitempty"`
-	GuildCategories []GuildCategoryEntry `json:"guild_categories,omitempty"`
-}
-
-type Guild struct {
-	GuildID      string  `json:"guild_id"`
-	Multiplier   int32   `json:"multiplier"`
-	PbChannelID  *string `json:"pb_channel_id"`
-	ModChannelID *string `json:"mod_channel_id"`
-	UserCount    int64   `json:"user_count"`
-	TimeCount    int64   `json:"time_count"`
-
-	GuildDetails
-}
+// Guild response models
 
 type GuildTeammate struct {
-	RunID   int32  `json:"run_id"`
-	UserID  string `json:"user_id"`
-	GuildID string `json:"guild_id"`
+	RecordID int32  `json:"record_id"`
+	UserID   string `json:"user_id"`
+	GuildID  string `json:"guild_id"`
 }
 
-type GuildPb struct {
-	RunID    int32  `json:"run_id"`
-	Time     int32  `json:"time"`
+type GuildRecord struct {
+	RecordID int32  `json:"record_id"`
+	Value    int32  `json:"value"`
 	BossName string `json:"boss_name"`
 	Date     string `json:"date"`
 	GuildID  string `json:"guild_id"`
+	Position int64  `json:"position"`
 }
 
 type GuildBoss struct {
@@ -204,6 +201,7 @@ type GuildBoss struct {
 	DisplayName string `json:"display_name"`
 	Category    string `json:"category"`
 	Solo        bool   `json:"solo"`
+	ValueType   string `json:"value_type"`
 }
 
 type GuildCategory struct {
@@ -215,7 +213,6 @@ type GuildCategory struct {
 type GuildBossEntry struct {
 	Boss     string `json:"boss"`
 	GuildID  string `json:"guild_id"`
-	PbID     *int32 `json:"pb_id"`
 	Category string `json:"category"`
 }
 
@@ -225,7 +222,36 @@ type GuildCategoryEntry struct {
 	MessageID string `json:"message_id"`
 }
 
-func GuildResponseFromRow(row database.GetGuildRow) Guild {
+type GuildRankResponse struct {
+	Name         string  `json:"name"`
+	MinPoints    int32   `json:"min_points"`
+	Icon         *string `json:"icon,omitempty"`
+	RoleID       *string `json:"role_id,omitempty"`
+	DisplayOrder int16   `json:"display_order"`
+}
+
+type GuildDetails struct {
+	Teammates       []GuildTeammate      `json:"teammates,omitempty"`
+	Records         []GuildRecord        `json:"records,omitempty"`
+	Bosses          []GuildBoss          `json:"bosses,omitempty"`
+	Categories      []GuildCategory      `json:"categories,omitempty"`
+	GuildBosses     []GuildBossEntry     `json:"guild_bosses,omitempty"`
+	GuildCategories []GuildCategoryEntry `json:"guild_categories,omitempty"`
+}
+
+type GuildResponse struct {
+	GuildID       string  `json:"guild_id"`
+	Multiplier    int32   `json:"multiplier"`
+	PbChannelID   *string `json:"pb_channel_id"`
+	ModChannelID  *string `json:"mod_channel_id"`
+	PositionCount int16   `json:"position_count"`
+	UserCount     int64   `json:"user_count"`
+	RecordCount   int64   `json:"record_count"`
+
+	GuildDetails
+}
+
+func GuildResponseFromRow(row database.GetGuildRow) GuildResponse {
 	var pbChannelID *string
 	if row.PbChannelID.Valid {
 		pbChannelID = &row.PbChannelID.String
@@ -236,17 +262,18 @@ func GuildResponseFromRow(row database.GetGuildRow) Guild {
 		modChannelID = &row.ModChannelID.String
 	}
 
-	return Guild{
-		GuildID:      row.GuildID,
-		Multiplier:   row.Multiplier,
-		PbChannelID:  pbChannelID,
-		ModChannelID: modChannelID,
-		UserCount:    row.UserCount,
-		TimeCount:    row.TimeCount,
+	return GuildResponse{
+		GuildID:       row.GuildID,
+		Multiplier:    row.Multiplier,
+		PbChannelID:   pbChannelID,
+		ModChannelID:  modChannelID,
+		PositionCount: row.PositionCount,
+		UserCount:     row.UserCount,
+		RecordCount:   row.RecordCount,
 	}
 }
 
-func GuildResponseFromDetailedRow(row database.GetDetailedGuildRow) Guild {
+func GuildResponseFromDetailedRow(row database.GetDetailedGuildRow) GuildResponse {
 	var pbChannelID *string
 	if row.PbChannelID.Valid {
 		pbChannelID = &row.PbChannelID.String
@@ -257,16 +284,17 @@ func GuildResponseFromDetailedRow(row database.GetDetailedGuildRow) Guild {
 		modChannelID = &row.ModChannelID.String
 	}
 
-	g := Guild{
-		GuildID:      row.GuildID,
-		Multiplier:   row.Multiplier,
-		PbChannelID:  pbChannelID,
-		ModChannelID: modChannelID,
-		UserCount:    row.UserCount,
-		TimeCount:    row.TimeCount,
+	g := GuildResponse{
+		GuildID:       row.GuildID,
+		Multiplier:    row.Multiplier,
+		PbChannelID:   pbChannelID,
+		ModChannelID:  modChannelID,
+		PositionCount: row.PositionCount,
+		UserCount:     row.UserCount,
+		RecordCount:   row.RecordCount,
 		GuildDetails: GuildDetails{
 			Teammates:       []GuildTeammate{},
-			Pbs:             []GuildPb{},
+			Records:         []GuildRecord{},
 			Bosses:          []GuildBoss{},
 			Categories:      []GuildCategory{},
 			GuildBosses:     []GuildBossEntry{},
@@ -275,7 +303,7 @@ func GuildResponseFromDetailedRow(row database.GetDetailedGuildRow) Guild {
 	}
 
 	json.Unmarshal(row.Teammates, &g.Teammates)
-	json.Unmarshal(row.Pbs, &g.Pbs)
+	json.Unmarshal(row.Records, &g.Records)
 	json.Unmarshal(row.Bosses, &g.Bosses)
 	json.Unmarshal(row.Categories, &g.Categories)
 	json.Unmarshal(row.GuildBosses, &g.GuildBosses)
@@ -304,4 +332,23 @@ func LeaderboardFromRows(rows []database.GetLeaderboardRow) []LeaderboardUser {
 		list = append(list, user)
 	}
 	return list
+}
+
+func GuildRanksFromRows(rows []database.GetGuildRanksRow) []GuildRankResponse {
+	result := make([]GuildRankResponse, len(rows))
+	for i, row := range rows {
+		r := GuildRankResponse{
+			Name:         row.Name,
+			MinPoints:    row.MinPoints,
+			DisplayOrder: row.DisplayOrder,
+		}
+		if row.Icon.Valid {
+			r.Icon = &row.Icon.String
+		}
+		if row.RoleID.Valid {
+			r.RoleID = &row.RoleID.String
+		}
+		result[i] = r
+	}
+	return result
 }

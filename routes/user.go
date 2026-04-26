@@ -42,12 +42,12 @@ func RegisterUserRoutes(api huma.API, s *handlers.Server) {
 	}, s.GetUsersByWom)
 
 	huma.Register(api, huma.Operation{
-		OperationID: "get-user-times",
+		OperationID: "get-user-records",
 		Method:      http.MethodGet,
-		Path:        "/api/v1/guilds/{guild_id}/users/{user_id}/times",
-		Summary:     "Get user times",
+		Path:        "/api/v1/guilds/{guild_id}/users/{user_id}/records",
+		Summary:     "Get user records",
 		Tags:        []string{"User"},
-	}, s.GetUserTimes)
+	}, s.GetUserRecords)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "get-user-events",

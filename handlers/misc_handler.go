@@ -36,3 +36,18 @@ func (s *Server) GetCategories(ctx context.Context, input *GetCategoriesInput) (
 	}
 	return &GetCategoriesOutput{Body: categories}, nil
 }
+
+type (
+	GetValueTypesInput  struct{}
+	GetValueTypesOutput struct {
+		Body []database.ValueType
+	}
+)
+
+func (s *Server) GetValueTypes(ctx context.Context, input *GetValueTypesInput) (*GetValueTypesOutput, error) {
+	valueTypes, err := s.queries.GetValueTypes(ctx)
+	if ei := database.ClassifyError(err); ei != nil {
+		return nil, models.NewTectonicError(s.getConstraintError(*ei))
+	}
+	return &GetValueTypesOutput{Body: valueTypes}, nil
+}

@@ -24,4 +24,12 @@ func RegisterMiscRoutes(api huma.API, s *handlers.Server) {
 		Summary:     "Get all categories",
 		Tags:        []string{"Miscellaneous"},
 	}, s.GetCategories)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-value-types",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/value-types",
+		Summary:     "Get all value types",
+		Tags:        []string{"Miscellaneous"},
+	}, s.GetValueTypes)
 }
