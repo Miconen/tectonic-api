@@ -38,7 +38,7 @@ func (s *Server) getDetailedUsers(ctx context.Context, userIDs []string, guildID
 			return nil, err
 		}
 
-		timesRows, err := database.WrapQuery(s.queries.GetUserTimes, ctx, database.GetUserTimesParams{
+		recordsRows, err := database.WrapQuery(s.queries.GetUserRecords, ctx, database.GetUserRecordsParams{
 			UserID: userID, GuildID: guildID,
 		})
 		if err != nil {
@@ -64,12 +64,45 @@ func (s *Server) getDetailedUsers(ctx context.Context, userIDs []string, guildID
 			return nil, err
 		}
 
+		// Get user rank (leaderboard position)
+		var userRank int64
+		rank, rankErr := database.WrapQuery(s.queries.GetUserRank, ctx, database.GetUserRankParams{
+			GuildID: guildID,
+			UserID:  userID,
+		})
+		if rankErr == nil {
+			userRank = rank
+		}
+
+		// Get user tier (based on points)
+		var userTier *models.UserTier
+		tier, tierErr := database.WrapQuery(s.queries.GetUserTier, ctx, database.GetUserTierParams{
+			GuildID: guildID,
+			Points:  user.Points,
+		})
+		if tierErr == nil {
+			t := models.UserTier{
+				Name:         tier.Name,
+				MinPoints:    tier.MinPoints,
+				DisplayOrder: tier.DisplayOrder,
+			}
+			if tier.Icon.Valid {
+				t.Icon = &tier.Icon.String
+			}
+			if tier.RoleID.Valid {
+				t.RoleID = &tier.RoleID.String
+			}
+			userTier = &t
+		}
+
 		detailedUsers = append(detailedUsers, models.DetailedUser{
 			UserId:             user.UserID,
 			GuildId:            user.GuildID,
 			Points:             int(user.Points),
+			Rank:               userRank,
+			Tier:               userTier,
 			RSNs:               models.UserRsnsFromRows(rsnsRows),
-			Times:              models.UserTimesFromRows(timesRows),
+			Records:            models.UserRecordsFromRows(recordsRows),
 			Events:             models.UserEventFromRows(eventsRows),
 			Achievements:       models.UserAchievementsFromRows(achievementsRows),
 			CombatAchievements: models.UserCombatAchievementsFromRows(caRows),
@@ -180,23 +213,23 @@ func (s *Server) GetUserEvents(ctx context.Context, input *GetUserEventsInput) (
 	return &GetUserEventsOutput{Body: events}, nil
 }
 
-type GetUserTimesInput struct {
+type GetUserRecordsInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
 	UserID  string `path:"user_id" doc:"User Snowflake ID"`
 }
-type GetUserTimesOutput struct {
-	Body []models.UserTime
+type GetUserRecordsOutput struct {
+	Body []models.UserRecord
 }
 
-func (s *Server) GetUserTimes(ctx context.Context, input *GetUserTimesInput) (*GetUserTimesOutput, error) {
-	rows, ei := database.WrapQuery(s.queries.GetUserTimes, ctx, database.GetUserTimesParams{
+func (s *Server) GetUserRecords(ctx context.Context, input *GetUserRecordsInput) (*GetUserRecordsOutput, error) {
+	rows, ei := database.WrapQuery(s.queries.GetUserRecords, ctx, database.GetUserRecordsParams{
 		UserID:  input.UserID,
 		GuildID: input.GuildID,
 	})
 	if ei != nil {
 		return nil, s.dbError(*ei)
 	}
-	return &GetUserTimesOutput{Body: models.UserTimesFromRows(rows)}, nil
+	return &GetUserRecordsOutput{Body: models.UserRecordsFromRows(rows)}, nil
 }
 
 type CreateUserInput struct {

@@ -15,7 +15,7 @@ func AttachV1Routes(r chi.Router, s *handlers.Server) huma.API {
 
 	RegisterGuildRoutes(api, s)
 	RegisterUserRoutes(api, s)
-	RegisterTimeRoutes(api, s)
+	RegisterRecordRoutes(api, s)
 	RegisterTeamRoutes(api, s)
 	RegisterEventRoutes(api, s)
 	RegisterPointRoutes(api, s)
@@ -24,6 +24,7 @@ func AttachV1Routes(r chi.Router, s *handlers.Server) huma.API {
 	RegisterLeaderboardRoutes(api, s)
 	RegisterAchievementRoutes(api, s)
 	RegisterCombatAchievementRoutes(api, s)
+	RegisterGuildRankRoutes(api, s)
 	RegisterMiscRoutes(api, s)
 
 	return api

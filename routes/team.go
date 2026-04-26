@@ -13,31 +13,31 @@ func RegisterTeamRoutes(api huma.API, s *handlers.Server) {
 		OperationID: "add-teammate-by-boss",
 		Method:      http.MethodPost,
 		Path:        "/api/v1/guilds/{guild_id}/teams/boss/{boss}",
-		Summary:     "Add a new teammate to time by boss",
+		Summary:     "Add a new teammate to record by boss",
 		Tags:        []string{"Team"},
 	}, s.AddTeammateByBoss)
 
 	huma.Register(api, huma.Operation{
-		OperationID: "add-teammate-by-run-id",
+		OperationID: "add-teammate-by-record-id",
 		Method:      http.MethodPost,
-		Path:        "/api/v1/guilds/{guild_id}/teams/id/{run_id}",
-		Summary:     "Add a new teammate to time by run ID",
+		Path:        "/api/v1/guilds/{guild_id}/teams/id/{record_id}",
+		Summary:     "Add a new teammate to record by record ID",
 		Tags:        []string{"Team"},
-	}, s.AddTeammateByRunId)
+	}, s.AddTeammateByRecordId)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "remove-teammate-by-boss",
 		Method:      http.MethodDelete,
 		Path:        "/api/v1/guilds/{guild_id}/teams/boss/{boss}",
-		Summary:     "Remove a teammate from time by boss",
+		Summary:     "Remove a teammate from record by boss",
 		Tags:        []string{"Team"},
 	}, s.RemoveTeammateByBoss)
 
 	huma.Register(api, huma.Operation{
-		OperationID: "remove-teammate-by-run-id",
+		OperationID: "remove-teammate-by-record-id",
 		Method:      http.MethodDelete,
-		Path:        "/api/v1/guilds/{guild_id}/teams/id/{run_id}",
-		Summary:     "Remove a teammate from time by run ID",
+		Path:        "/api/v1/guilds/{guild_id}/teams/id/{record_id}",
+		Summary:     "Remove a teammate from record by record ID",
 		Tags:        []string{"Team"},
-	}, s.RemoveTeammateByRunId)
+	}, s.RemoveTeammateByRecordId)
 }

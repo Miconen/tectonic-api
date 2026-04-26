@@ -4,8 +4,8 @@ type InputGuild struct {
 	GuildID DiscordSnowflake `json:"guild_id"`
 }
 
-type InputTime struct {
-	Time     int                `json:"time"      minimum:"1"`
+type InputRecord struct {
+	Value    int                `json:"value"      minimum:"1"`
 	BossName string             `json:"boss_name"  minLength:"1" maxLength:"50"`
 	UserIDs  []DiscordSnowflake `json:"user_ids"   minItems:"1"  maxItems:"8"`
 }
@@ -50,7 +50,23 @@ type PbUpdate struct {
 }
 
 type UpdateGuildBody struct {
-	Multiplier   *float64          `json:"multiplier,omitempty"`
-	ModChannelID *DiscordSnowflake `json:"mod_channel_id,omitempty"`
-	PbUpdate     *PbUpdate         `json:"pb_update,omitempty"`
+	Multiplier    *int              `json:"multiplier,omitempty" minimum:"1" maximum:"10"`
+	ModChannelID  *DiscordSnowflake `json:"mod_channel_id,omitempty"`
+	PbUpdate      *PbUpdate         `json:"pb_update,omitempty"`
+	PositionCount *int              `json:"position_count,omitempty"`
+}
+
+type CreateGuildRankBody struct {
+	Name         string  `json:"name"          minLength:"1" maxLength:"32"`
+	MinPoints    int     `json:"min_points"    minimum:"0"`
+	Icon         *string `json:"icon,omitempty"`
+	RoleID       *string `json:"role_id,omitempty"`
+	DisplayOrder int     `json:"display_order" minimum:"0"`
+}
+
+type UpdateGuildRankBody struct {
+	MinPoints    *int    `json:"min_points,omitempty"`
+	Icon         *string `json:"icon,omitempty"`
+	RoleID       *string `json:"role_id,omitempty"`
+	DisplayOrder *int    `json:"display_order,omitempty"`
 }

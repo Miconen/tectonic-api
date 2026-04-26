@@ -39,6 +39,10 @@ func (s *Server) getConstraintError(ei database.ErrorInfo) models.APIV1Error {
 			return models.ERROR_TEAM_NOT_FOUND
 		case "times":
 			return models.ERROR_TIME_NOT_FOUND
+		case "records":
+			return models.ERROR_RECORD_NOT_FOUND
+		case "guild_ranks":
+			return models.ERROR_GUILD_RANK_NOT_FOUND
 		case "user_achievement":
 			return models.ERROR_USER_ACHIEVEMENT_NOT_FOUND
 		case "users":
@@ -71,6 +75,10 @@ func (s *Server) getConstraintError(ei database.ErrorInfo) models.APIV1Error {
 			return models.ERROR_TEAM_EXISTS
 		case "times":
 			return models.ERROR_TIME_EXISTS
+		case "records":
+			return models.ERROR_RECORD_EXISTS
+		case "guild_ranks":
+			return models.ERROR_GUILD_RANK_EXISTS
 		case "user_achievement":
 			return models.ERROR_USER_ACHIEVEMENT_EXISTS
 		case "users":

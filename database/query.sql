@@ -109,7 +109,7 @@ INSERT INTO guilds (
 ) VALUES (
   $1
 )
-RETURNING guild_id, multiplier, pb_channel_id;
+RETURNING guild_id, multiplier, pb_channel_id, position_count;
 
 -- name: DeleteGuild :execrows
 DELETE FROM guilds
@@ -117,9 +117,9 @@ WHERE guild_id = $1;
 
 -- name: GetGuild :one
 SELECT
-    guilds.guild_id, guilds.multiplier, guilds.pb_channel_id, guilds.mod_channel_id,
+    guilds.guild_id, guilds.multiplier, guilds.pb_channel_id, guilds.mod_channel_id, guilds.position_count,
     (SELECT count(user_id) FROM users WHERE users.guild_id = $1) as user_count,
-    (SELECT count(run_id) FROM times WHERE times.guild_id = $1) as time_count
+    (SELECT count(record_id) FROM records WHERE records.guild_id = $1) as record_count
 FROM guilds
 WHERE guilds.guild_id = $1 LIMIT 1;
 
@@ -127,7 +127,8 @@ WHERE guilds.guild_id = $1 LIMIT 1;
 UPDATE guilds SET
     multiplier = CASE WHEN @multiplier::numeric IS NOT NULL AND @multiplier::numeric != 0 THEN @multiplier::numeric ELSE multiplier END,
     pb_channel_id = CASE WHEN @pb_channel_id::text IS NOT NULL AND @pb_channel_id::text != '' THEN @pb_channel_id::text ELSE pb_channel_id END,
-    mod_channel_id = CASE WHEN @mod_channel_id::text IS NOT NULL AND @mod_channel_id::text != '' THEN @mod_channel_id::text ELSE mod_channel_id END
+    mod_channel_id = CASE WHEN @mod_channel_id::text IS NOT NULL AND @mod_channel_id::text != '' THEN @mod_channel_id::text ELSE mod_channel_id END,
+    position_count = CASE WHEN @position_count::smallint IS NOT NULL AND @position_count::smallint != 0 THEN @position_count::smallint ELSE position_count END
 WHERE guild_id = @guild_id RETURNING guild_id, multiplier, pb_channel_id;
 
 -- name: UpdateEvent :one
@@ -152,124 +153,160 @@ INSERT INTO rsn (
     @wom_id
 );
 
+-- ==================== Teams ====================
+
 -- name: AddToTeamByBoss :exec
-INSERT INTO teams (run_id, user_id, guild_id)
+INSERT INTO teams (record_id, user_id, guild_id)
 VALUES (
-    (SELECT pb_id
-     FROM guild_bosses
-     WHERE guild_id = @guild_id
-       AND boss = @boss_name),
+    (SELECT r.record_id
+     FROM records r
+     JOIN bosses b ON r.boss_name = b.name
+     JOIN value_types vt ON b.value_type = vt.name
+     WHERE r.guild_id = @guild_id
+       AND r.boss_name = @boss_name
+     ORDER BY CASE WHEN vt.higher_is_better THEN -r.value ELSE r.value END ASC
+     LIMIT 1),
     @user_id,
     @guild_id
 );
 
 -- name: AddToTeamById :exec
-INSERT INTO teams (run_id, user_id, guild_id)
+INSERT INTO teams (record_id, user_id, guild_id)
 VALUES (
-    @run_id,
+    @record_id,
     @user_id,
     @guild_id
 );
 
 -- name: RemoveFromTeamByBoss :execrows
 DELETE FROM teams
-WHERE run_id = (
-    SELECT pb_id
-    FROM guild_bosses
-     WHERE guild_bosses.guild_id = @guild_id
-       AND boss = @boss_name
+WHERE record_id = (
+    SELECT r.record_id
+    FROM records r
+    JOIN bosses b ON r.boss_name = b.name
+    JOIN value_types vt ON b.value_type = vt.name
+    WHERE r.guild_id = @guild_id
+      AND r.boss_name = @boss_name
+    ORDER BY CASE WHEN vt.higher_is_better THEN -r.value ELSE r.value END ASC
+    LIMIT 1
 )
 AND user_id = @user_id
 AND guild_id = @guild_id;
 
 -- name: RemoveFromTeamById :execrows
 DELETE FROM teams
-WHERE run_id = @run_id
+WHERE record_id = @record_id
 AND user_id = @user_id
 AND guild_id = @guild_id;
 
--- name: DeleteRsn :execrows
-DELETE FROM rsn r
-WHERE r.guild_id = @guild_id AND r.user_id = @user_id AND r.rsn = @rsn;
+-- name: CreateTeam :exec
+INSERT INTO teams (record_id, user_id, guild_id)
+SELECT @record_id, unnest(@user_ids::text[]), @guild_id;
 
--- name: DeleteTime :execrows
-DELETE FROM times t
-WHERE t.guild_id = @guild_id AND t.run_id = @run_id;
+-- ==================== Records ====================
 
--- name: DeletePb :execrows
-DELETE FROM times t
-WHERE t.guild_id = @guild_id
-AND t.boss_name = @boss_name
-AND t.run_id = (
-    SELECT pb_id
-    FROM guild_bosses
-    WHERE guild_id = @guild_id
-    AND boss = @boss_name
-);
-
--- name: RevertGuildBossPb :exec
-UPDATE guild_bosses
-SET pb_id = (
-    SELECT run_id
-    FROM times
-    WHERE times.guild_id = @guild_id
-      AND times.boss_name = @boss_name
-    ORDER BY time ASC
-    LIMIT 1
-)
-WHERE guild_bosses.guild_id = @guild_id
-AND guild_bosses.boss = @boss_name;
-
--- name: CreateTime :one
-INSERT INTO times (
-    time,
+-- name: CreateRecord :one
+INSERT INTO records (
+    value,
     boss_name,
     date,
     guild_id
 )
 VALUES (
-    @time,
+    @value,
     @boss_name,
     @date,
     @guild_id
-) RETURNING run_id;
+) RETURNING record_id;
 
--- name: CheckPb :one
-SELECT gb.boss, t.time
-FROM guild_bosses gb
-LEFT JOIN times t ON gb.pb_id = t.run_id AND gb.guild_id = t.guild_id
-WHERE gb.boss = @boss
-AND gb.guild_id = @guild_id;
+-- name: DeleteRecord :execrows
+DELETE FROM records r
+WHERE r.guild_id = @guild_id AND r.record_id = @record_id;
 
--- name: UpdatePb :execrows
-UPDATE guild_bosses SET
-    pb_id = @run_id
-WHERE guild_id = @guild_id
-AND boss = @boss;
+-- name: DeleteBossRecords :execrows
+DELETE FROM records
+WHERE guild_id = @guild_id AND boss_name = @boss_name;
 
--- name: CreateTeam :exec
-INSERT INTO teams (run_id, user_id, guild_id)
-SELECT @run_id, unnest(@user_ids::text[]), @guild_id;
+-- name: DeleteTopRecord :execrows
+DELETE FROM records
+WHERE record_id = (
+    SELECT r.record_id
+    FROM records r
+    JOIN bosses b ON r.boss_name = b.name
+    JOIN value_types vt ON b.value_type = vt.name
+    WHERE r.guild_id = @guild_id AND r.boss_name = @boss_name
+    ORDER BY CASE WHEN vt.higher_is_better THEN -r.value ELSE r.value END ASC
+    LIMIT 1
+)
+AND guild_id = @guild_id;
+
+-- name: GetBossInfo :one
+SELECT b.name, b.display_name, b.category, b.solo, b.value_type, vt.higher_is_better
+FROM bosses b
+JOIN value_types vt ON b.value_type = vt.name
+WHERE b.name = @boss_name;
+
+-- name: GetBossRecords :many
+SELECT r.record_id, r.value, r.boss_name, r.date, r.guild_id, tm.user_id
+FROM records r
+JOIN teams tm ON r.record_id = tm.record_id AND r.guild_id = tm.guild_id
+WHERE r.guild_id = @guild_id AND r.boss_name = @boss_name
+ORDER BY r.record_id, tm.user_id;
+
+-- ==================== Detailed Guild ====================
 
 -- name: GetDetailedGuild :one
+WITH ranked_records AS (
+    -- Team boss records ranked directly
+    SELECT r.record_id, r.value, r.boss_name, r.date, r.guild_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY r.boss_name
+               ORDER BY CASE WHEN vt.higher_is_better THEN -r.value ELSE r.value END ASC
+           ) as position
+    FROM records r
+    JOIN bosses b ON r.boss_name = b.name
+    JOIN value_types vt ON b.value_type = vt.name
+    WHERE r.guild_id = @guild_id AND b.solo = false
+
+    UNION ALL
+
+    -- Solo boss records: best per user, then ranked
+    SELECT s.record_id, s.value, s.boss_name, s.date, s.guild_id,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.boss_name
+               ORDER BY CASE WHEN s.higher_is_better THEN -s.value ELSE s.value END ASC
+           ) as position
+    FROM (
+        SELECT DISTINCT ON (tm.user_id, r.boss_name)
+            r.record_id, r.value, r.boss_name, r.date, r.guild_id, vt.higher_is_better
+        FROM records r
+        JOIN teams tm ON r.record_id = tm.record_id AND r.guild_id = tm.guild_id
+        JOIN bosses b ON r.boss_name = b.name
+        JOIN value_types vt ON b.value_type = vt.name
+        WHERE r.guild_id = @guild_id AND b.solo = true
+        ORDER BY tm.user_id, r.boss_name,
+                 CASE WHEN vt.higher_is_better THEN -r.value ELSE r.value END ASC
+    ) s
+),
+top_records AS (
+    SELECT record_id, value, boss_name, date, guild_id, position
+    FROM ranked_records
+    WHERE position <= (SELECT position_count FROM guilds WHERE guild_id = @guild_id)
+)
 SELECT
     g.guild_id,
     g.multiplier,
     g.pb_channel_id,
     g.mod_channel_id,
+    g.position_count,
     (SELECT count(user_id) FROM users WHERE users.guild_id = @guild_id) as user_count,
-    (SELECT count(run_id) FROM times WHERE times.guild_id = @guild_id) as time_count,
-    (SELECT json_agg(tm) FROM teams tm
-     JOIN times t ON tm.run_id = t.run_id
-     JOIN guild_bosses gb ON t.run_id = gb.pb_id
-     WHERE t.guild_id = g.guild_id
-     	AND gb.guild_id = g.guild_id) AS teammates,
+    (SELECT count(record_id) FROM records WHERE records.guild_id = @guild_id) as record_count,
 
-    (SELECT json_agg(t) FROM times t
-     JOIN guild_bosses gb ON t.run_id = gb.pb_id
-     WHERE t.guild_id = g.guild_id
-     	AND gb.guild_id = g.guild_id
-     	AND gb.pb_id IS NOT NULL) AS pbs,
+    (SELECT json_agg(tm) FROM teams tm
+     WHERE tm.guild_id = g.guild_id
+     AND tm.record_id IN (SELECT tr.record_id FROM top_records tr)) AS teammates,
+
+    (SELECT json_agg(tr) FROM top_records tr) AS records,
 
     (SELECT json_agg(b) FROM bosses b
      JOIN guild_bosses gb ON b.name = gb.boss
@@ -288,6 +325,75 @@ SELECT
 FROM guilds g
 WHERE g.guild_id = @guild_id;
 
+-- ==================== User Records ====================
+
+-- name: GetUserRecords :many
+SELECT
+    r.record_id,
+    r.boss_name,
+    b.display_name,
+    b.category,
+    b.solo,
+    b.value_type,
+    r.date,
+    r.value,
+    tm.user_id,
+    tm.guild_id
+FROM records r
+JOIN teams tm ON r.record_id = tm.record_id AND r.guild_id = tm.guild_id
+JOIN bosses b ON r.boss_name = b.name
+WHERE tm.user_id = @user_id AND tm.guild_id = @guild_id
+ORDER BY r.record_id;
+
+-- ==================== User Rank & Tier ====================
+
+-- name: GetUserRank :one
+WITH ranked_users AS (
+    SELECT user_id, RANK() OVER (ORDER BY points DESC) as user_rank
+    FROM users
+    WHERE guild_id = @guild_id
+)
+SELECT user_rank FROM ranked_users
+WHERE user_id = @user_id;
+
+-- name: GetUserTier :one
+SELECT gr.name, gr.icon, gr.role_id, gr.min_points, gr.display_order
+FROM guild_ranks gr
+WHERE gr.guild_id = @guild_id
+AND gr.min_points <= @points
+ORDER BY gr.min_points DESC
+LIMIT 1;
+
+-- ==================== Guild Ranks ====================
+
+-- name: GetGuildRanks :many
+SELECT name, min_points, icon, role_id, display_order
+FROM guild_ranks
+WHERE guild_id = @guild_id
+ORDER BY display_order;
+
+-- name: CreateGuildRank :exec
+INSERT INTO guild_ranks (guild_id, name, min_points, icon, role_id, display_order)
+VALUES (@guild_id, @name, @min_points, @icon, @role_id, @display_order);
+
+-- name: UpdateGuildRank :execrows
+UPDATE guild_ranks SET
+    min_points = COALESCE(@min_points, min_points),
+    icon = CASE WHEN @icon::text IS NOT NULL AND @icon::text != '' THEN @icon::text ELSE icon END,
+    role_id = CASE WHEN @role_id::text IS NOT NULL AND @role_id::text != '' THEN @role_id::text ELSE role_id END,
+    display_order = COALESCE(@display_order, display_order)
+WHERE guild_id = @guild_id AND name = @name;
+
+-- name: DeleteGuildRank :execrows
+DELETE FROM guild_ranks WHERE guild_id = @guild_id AND name = @name;
+
+-- ==================== Value Types ====================
+
+-- name: GetValueTypes :many
+SELECT name, higher_is_better FROM value_types ORDER BY name;
+
+-- ==================== Misc ====================
+
 -- name: UpdateCategoryMessageIds :execrows
 UPDATE guild_categories
 SET message_id = u.message_id
@@ -297,7 +403,7 @@ WHERE guild_categories.guild_id = @guild_id
 AND guild_categories.category = u.category;
 
 -- name: GetBosses :many
-SELECT name, display_name, category, solo FROM bosses;
+SELECT name, display_name, category, solo, value_type FROM bosses;
 
 -- name: GetCategories :many
 SELECT "thumbnail", "order", "name" FROM categories;
@@ -390,24 +496,6 @@ FROM user_achievement ua
 JOIN achievement a ON ua.achievement_name = a.name
 WHERE ua.user_id = @user_id
 ORDER BY a.order;
-
--- name: GetUserTimes :many
-SELECT
-    t.run_id,
-    t.boss_name,
-    b.display_name,
-    b.category,
-    b.solo,
-    t.date,
-    t.time,
-    tm.user_id,
-    tm.guild_id
-FROM times t
-JOIN teams tm ON t.run_id = tm.run_id
-JOIN guild_bosses gb ON t.run_id = gb.pb_id AND tm.guild_id = gb.guild_id
-JOIN bosses b ON b.name = gb.boss
-WHERE tm.user_id = @user_id AND tm.guild_id = @guild_id AND gb.pb_id = t.run_id
-ORDER BY t.run_id;
 
 -- name: GetUserRsns :many
 SELECT
@@ -530,3 +618,7 @@ DELETE FROM user_combat_achievement
 WHERE user_id = @user_id
 AND guild_id = @guild_id
 AND combat_achievement_name = @combat_achievement_name;
+
+-- name: DeleteRsn :execrows
+DELETE FROM rsn r
+WHERE r.guild_id = @guild_id AND r.user_id = @user_id AND r.rsn = @rsn;

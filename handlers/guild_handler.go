@@ -18,7 +18,7 @@ type GetGuildInput struct {
 }
 
 type GetGuildOutput struct {
-	Body models.Guild
+	Body models.GuildResponse
 }
 
 func (s *Server) GetGuild(ctx context.Context, input *GetGuildInput) (*GetGuildOutput, error) {
@@ -103,12 +103,12 @@ func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*str
 		}
 	}
 
-	// Convert *float64 to pgtype.Numeric
+	// Convert *int to pgtype.Numeric
 	var multiplier pgtype.Numeric
 	if input.Body.Multiplier != nil {
 		multiplier.Valid = true
-		multiplier.Int = big.NewInt(int64(*input.Body.Multiplier * 100))
-		multiplier.Exp = -2
+		multiplier.Int = big.NewInt(int64(*input.Body.Multiplier))
+		multiplier.Exp = 0
 	}
 
 	// Convert *DiscordSnowflake to string
@@ -117,11 +117,18 @@ func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*str
 		modChannelID = utils.DerefOr(input.Body.ModChannelID, "").String()
 	}
 
+	// Convert *int to int16 for position_count
+	var positionCount int16
+	if input.Body.PositionCount != nil {
+		positionCount = int16(*input.Body.PositionCount)
+	}
+
 	_, err = q.UpdateGuild(ctx, database.UpdateGuildParams{
-		Multiplier:   multiplier,
-		PbChannelID:  pbChannelID,
-		ModChannelID: modChannelID,
-		GuildID:      input.GuildID,
+		Multiplier:    multiplier,
+		PbChannelID:   pbChannelID,
+		ModChannelID:  modChannelID,
+		PositionCount: positionCount,
+		GuildID:       input.GuildID,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
 		return nil, s.dbError(*ei)

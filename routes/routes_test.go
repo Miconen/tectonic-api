@@ -196,9 +196,9 @@ func TestRoutes(t *testing.T) {
 			StatusCode: 200,
 		},
 		{
-			Name:       "Get User Times",
+			Name:       "Get User Records",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/times", v.GuildID, v.UserID),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/records", v.GuildID, v.UserID),
 			StatusCode: 200,
 		},
 		{
@@ -324,22 +324,22 @@ func TestRoutes(t *testing.T) {
 			StatusCode: 200,
 		},
 
-		// === Times ===
+		// === Records ===
 		{
-			Name:   "Create Time",
+			Name:   "Create Record",
 			Method: "POST",
-			Path:   fmt.Sprintf("/api/v1/guilds/%s/times", v.GuildID),
-			Body: models.InputTime{
-				Time:     rand.Intn(100000) + 1,
+			Path:   fmt.Sprintf("/api/v1/guilds/%s/records", v.GuildID),
+			Body: models.InputRecord{
+				Value:    rand.Intn(100000) + 1,
 				BossName: "vardorvis",
 				UserIDs:  []models.DiscordSnowflake{models.DiscordSnowflake(v.UserID)},
 			},
 			StatusCode: 200,
 		},
 		{
-			Name:       "Get Guild Times",
+			Name:       "Get Guild Records",
 			Method:     "GET",
-			Path:       fmt.Sprintf("/api/v1/guilds/%s/times", v.GuildID),
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/records", v.GuildID),
 			StatusCode: 200,
 		},
 
