@@ -378,10 +378,10 @@ VALUES (@guild_id, @name, @min_points, @icon, @role_id, @display_order);
 
 -- name: UpdateGuildRank :execrows
 UPDATE guild_ranks SET
-    min_points = COALESCE(@min_points, min_points),
+    min_points = CASE WHEN @min_points::int IS NOT NULL AND @min_points::int != -1 THEN @min_points::int ELSE min_points END,
     icon = CASE WHEN @icon::text IS NOT NULL AND @icon::text != '' THEN @icon::text ELSE icon END,
     role_id = CASE WHEN @role_id::text IS NOT NULL AND @role_id::text != '' THEN @role_id::text ELSE role_id END,
-    display_order = COALESCE(@display_order, display_order)
+    display_order = CASE WHEN @display_order::smallint IS NOT NULL AND @display_order::smallint != -1 THEN @display_order::smallint ELSE display_order END
 WHERE guild_id = @guild_id AND name = @name;
 
 -- name: DeleteGuildRank :execrows

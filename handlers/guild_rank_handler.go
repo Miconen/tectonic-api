@@ -62,7 +62,8 @@ type UpdateGuildRankInput struct {
 }
 
 func (s *Server) UpdateGuildRank(ctx context.Context, input *UpdateGuildRankInput) (*struct{}, error) {
-	var minPoints int32
+	// Use -1 as sentinel for "don't update" on integer fields
+	var minPoints int32 = -1
 	if input.Body.MinPoints != nil {
 		minPoints = int32(*input.Body.MinPoints)
 	}
@@ -77,7 +78,7 @@ func (s *Server) UpdateGuildRank(ctx context.Context, input *UpdateGuildRankInpu
 		roleID = *input.Body.RoleID
 	}
 
-	var displayOrder int16
+	var displayOrder int16 = -1
 	if input.Body.DisplayOrder != nil {
 		displayOrder = int16(*input.Body.DisplayOrder)
 	}
