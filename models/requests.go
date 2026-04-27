@@ -21,6 +21,11 @@ type InputEvent struct {
 	PositionCutoff int      `json:"position_cutoff,omitempty" minimum:"1" maximum:"3"`
 }
 
+type InputLegacyEvent struct {
+	Name    string   `json:"name"     minLength:"1" maxLength:"128"`
+	UserIDs []string `json:"user_ids" minItems:"1"`
+}
+
 type CreateUserBody struct {
 	UserID DiscordSnowflake `json:"user_id"`
 	RSN    RSN              `json:"rsn"`

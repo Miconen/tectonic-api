@@ -48,4 +48,12 @@ func RegisterEventRoutes(api huma.API, s *handlers.Server) {
 		Summary:     "Update a guild event",
 		Tags:        []string{"Event"},
 	}, s.UpdateEvent)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "register-legacy-event",
+		Method:      http.MethodPost,
+		Path:        "/api/v1/guilds/{guild_id}/events/legacy",
+		Summary:     "Register a legacy event with Discord user IDs (no WOM)",
+		Tags:        []string{"Event"},
+	}, s.RegisterLegacyEvent)
 }
