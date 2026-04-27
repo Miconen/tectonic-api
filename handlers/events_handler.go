@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"tectonic-api/database"
 	"tectonic-api/logging"
@@ -135,6 +136,57 @@ func (s *Server) RegisterEvent(ctx context.Context, input *RegisterEventInput) (
 		}
 	} else {
 		return nil, models.NewTectonicError(models.ERROR_WRONG_BODY)
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
+	}
+	return nil, nil
+}
+
+type RegisterLegacyEventInput struct {
+	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
+	Body    models.InputLegacyEvent
+}
+
+func (s *Server) RegisterLegacyEvent(ctx context.Context, input *RegisterLegacyEventInput) (*struct{}, error) {
+	// Generate a synthetic event ID
+	eventID := fmt.Sprintf("legacy_%d", time.Now().Unix())
+
+	tx, err := database.CreateTx(ctx)
+	if err != nil {
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
+	}
+	defer tx.Rollback(ctx)
+
+	q := s.queries.WithTx(tx)
+
+	// Create the event
+	ei := database.WrapExec(q.CreateEvent, ctx, database.CreateEventParams{
+		Name:           input.Body.Name,
+		WomID:          eventID,
+		GuildID:        input.GuildID,
+		PositionCutoff: int16(len(input.Body.UserIDs)),
+		Solo:           false,
+	})
+	if ei != nil {
+		return nil, s.dbError(*ei)
+	}
+
+	// All participants get placement = 1 (all winners)
+	placements := make([]int32, len(input.Body.UserIDs))
+	for i := range placements {
+		placements[i] = 1
+	}
+
+	ei = database.WrapExec(q.InsertLegacyEventParticipants, ctx, database.InsertLegacyEventParticipantsParams{
+		UserIds:    input.Body.UserIDs,
+		Placements: placements,
+		GuildID:    input.GuildID,
+		EventID:    eventID,
+	})
+	if ei != nil {
+		return nil, s.dbError(*ei)
 	}
 
 	if err = tx.Commit(ctx); err != nil {
