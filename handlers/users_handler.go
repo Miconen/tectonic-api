@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"tectonic-api/database"
+	"tectonic-api/logging"
 	"tectonic-api/models"
 )
 
@@ -267,7 +268,26 @@ type RemoveUserByIDInput struct {
 }
 
 func (s *Server) RemoveUserById(ctx context.Context, input *RemoveUserByIDInput) (*struct{}, error) {
-	rows, err := s.queries.DeleteUserById(ctx, database.DeleteUserByIdParams{
+	tx, err := database.CreateTx(ctx)
+	if err != nil {
+		logging.Get().Error("Error creating transaction", "error", err)
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
+	}
+	defer tx.Rollback(ctx)
+
+	q := s.queries.WithTx(tx)
+
+	// Purge every record (time) the user is part of; cascades to all teammates.
+	if _, err := q.DeleteRecordsByUserId(ctx, database.DeleteRecordsByUserIdParams{
+		GuildID: input.GuildID,
+		UserID:  input.UserID,
+	}); err != nil {
+		if ei := database.ClassifyError(err); ei != nil {
+			return nil, s.dbError(*ei)
+		}
+	}
+
+	rows, err := q.DeleteUserById(ctx, database.DeleteUserByIdParams{
 		GuildID: input.GuildID,
 		UserID:  input.UserID,
 	})
@@ -276,6 +296,10 @@ func (s *Server) RemoveUserById(ctx context.Context, input *RemoveUserByIDInput)
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_USER_NOT_FOUND)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
 	return nil, nil
 }
@@ -286,7 +310,25 @@ type RemoveUserByRsnInput struct {
 }
 
 func (s *Server) RemoveUserByRsn(ctx context.Context, input *RemoveUserByRsnInput) (*struct{}, error) {
-	rows, err := s.queries.DeleteUserByRsn(ctx, database.DeleteUserByRsnParams{
+	tx, err := database.CreateTx(ctx)
+	if err != nil {
+		logging.Get().Error("Error creating transaction", "error", err)
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
+	}
+	defer tx.Rollback(ctx)
+
+	q := s.queries.WithTx(tx)
+
+	if _, err := q.DeleteRecordsByRsn(ctx, database.DeleteRecordsByRsnParams{
+		GuildID: input.GuildID,
+		Rsn:     input.RSN,
+	}); err != nil {
+		if ei := database.ClassifyError(err); ei != nil {
+			return nil, s.dbError(*ei)
+		}
+	}
+
+	rows, err := q.DeleteUserByRsn(ctx, database.DeleteUserByRsnParams{
 		GuildID: input.GuildID,
 		Rsn:     input.RSN,
 	})
@@ -295,6 +337,10 @@ func (s *Server) RemoveUserByRsn(ctx context.Context, input *RemoveUserByRsnInpu
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_USER_NOT_FOUND)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
 	return nil, nil
 }
@@ -305,7 +351,25 @@ type RemoveUserByWomInput struct {
 }
 
 func (s *Server) RemoveUserByWom(ctx context.Context, input *RemoveUserByWomInput) (*struct{}, error) {
-	rows, err := s.queries.DeleteUserByWom(ctx, database.DeleteUserByWomParams{
+	tx, err := database.CreateTx(ctx)
+	if err != nil {
+		logging.Get().Error("Error creating transaction", "error", err)
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
+	}
+	defer tx.Rollback(ctx)
+
+	q := s.queries.WithTx(tx)
+
+	if _, err := q.DeleteRecordsByWom(ctx, database.DeleteRecordsByWomParams{
+		GuildID: input.GuildID,
+		WomID:   input.WomID,
+	}); err != nil {
+		if ei := database.ClassifyError(err); ei != nil {
+			return nil, s.dbError(*ei)
+		}
+	}
+
+	rows, err := q.DeleteUserByWom(ctx, database.DeleteUserByWomParams{
 		GuildID: input.GuildID,
 		WomID:   input.WomID,
 	})
@@ -314,6 +378,10 @@ func (s *Server) RemoveUserByWom(ctx context.Context, input *RemoveUserByWomInpu
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_USER_NOT_FOUND)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
 	return nil, nil
 }

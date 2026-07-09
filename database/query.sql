@@ -68,6 +68,44 @@ AND users.user_id IN (
     WHERE rsn.guild_id = users.guild_id AND rsn.wom_id = $2
 );
 
+-- name: DeleteRecordsByUserId :execrows
+DELETE FROM records r
+WHERE r.guild_id = @guild_id
+AND record_id IN (
+    SELECT t.record_id
+    FROM teams t
+    WHERE t.guild_id = @guild_id
+      AND t.user_id = @user_id
+);
+
+-- name: DeleteRecordsByRsn :execrows
+DELETE FROM records r
+WHERE r.guild_id = @guild_id
+AND record_id IN (
+    SELECT t.record_id
+    FROM teams t
+    WHERE t.guild_id = @guild_id
+      AND t.user_id IN (
+          SELECT r.user_id
+          FROM rsn r
+          WHERE r.guild_id = @guild_id AND r.rsn = @rsn
+      )
+);
+
+-- name: DeleteRecordsByWom :execrows
+DELETE FROM records r
+WHERE r.guild_id = @guild_id
+AND record_id IN (
+    SELECT t.record_id
+    FROM teams t
+    WHERE t.guild_id = @guild_id
+      AND t.user_id IN (
+          SELECT r.user_id
+          FROM rsn r
+          WHERE r.guild_id = @guild_id AND r.wom_id = @wom_id
+      )
+);
+
 -- name: GetPointsValue :one
 SELECT points
 FROM point_sources
@@ -117,7 +155,7 @@ WHERE guild_id = $1;
 
 -- name: GetGuild :one
 SELECT
-    guilds.guild_id, guilds.multiplier, guilds.pb_channel_id, guilds.mod_channel_id, guilds.position_count,
+    guilds.guild_id, guilds.multiplier, guilds.pb_channel_id, guilds.mod_channel_id, guilds.log_channel_id, guilds.position_count,
     (SELECT count(user_id) FROM users WHERE users.guild_id = $1) as user_count,
     (SELECT count(record_id) FROM records WHERE records.guild_id = $1) as record_count
 FROM guilds
@@ -128,6 +166,7 @@ UPDATE guilds SET
     multiplier = CASE WHEN @multiplier::numeric IS NOT NULL AND @multiplier::numeric != 0 THEN @multiplier::numeric ELSE multiplier END,
     pb_channel_id = CASE WHEN @pb_channel_id::text IS NOT NULL AND @pb_channel_id::text != '' THEN @pb_channel_id::text ELSE pb_channel_id END,
     mod_channel_id = CASE WHEN @mod_channel_id::text IS NOT NULL AND @mod_channel_id::text != '' THEN @mod_channel_id::text ELSE mod_channel_id END,
+    log_channel_id = CASE WHEN @log_channel_id::text IS NOT NULL AND @log_channel_id::text != '' THEN @log_channel_id::text ELSE log_channel_id END,
     position_count = CASE WHEN @position_count::smallint IS NOT NULL AND @position_count::smallint != 0 THEN @position_count::smallint ELSE position_count END
 WHERE guild_id = @guild_id RETURNING guild_id, multiplier, pb_channel_id;
 
@@ -298,6 +337,7 @@ SELECT
     g.multiplier,
     g.pb_channel_id,
     g.mod_channel_id,
+    g.log_channel_id,
     g.position_count,
     (SELECT count(user_id) FROM users WHERE users.guild_id = @guild_id) as user_count,
     (SELECT count(record_id) FROM records WHERE records.guild_id = @guild_id) as record_count,

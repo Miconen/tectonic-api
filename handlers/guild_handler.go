@@ -117,6 +117,11 @@ func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*str
 		modChannelID = utils.DerefOr(input.Body.ModChannelID, "").String()
 	}
 
+	var logChannelID string
+	if input.Body.LogChannelID != nil {
+		logChannelID = utils.DerefOr(input.Body.LogChannelID, "").String()
+	}
+
 	// Convert *int to int16 for position_count
 	var positionCount int16
 	if input.Body.PositionCount != nil {
@@ -127,6 +132,7 @@ func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*str
 		Multiplier:    multiplier,
 		PbChannelID:   pbChannelID,
 		ModChannelID:  modChannelID,
+		LogChannelID:  logChannelID,
 		PositionCount: positionCount,
 		GuildID:       input.GuildID,
 	})

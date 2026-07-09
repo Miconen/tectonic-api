@@ -244,6 +244,7 @@ type GuildResponse struct {
 	Multiplier    int32   `json:"multiplier"`
 	PbChannelID   *string `json:"pb_channel_id"`
 	ModChannelID  *string `json:"mod_channel_id"`
+	LogChannelID  *string `json:"log_channel_id"`
 	PositionCount int16   `json:"position_count"`
 	UserCount     int64   `json:"user_count"`
 	RecordCount   int64   `json:"record_count"`
@@ -262,11 +263,17 @@ func GuildResponseFromRow(row database.GetGuildRow) GuildResponse {
 		modChannelID = &row.ModChannelID.String
 	}
 
+	var logChannelID *string
+	if row.LogChannelID.Valid {
+		logChannelID = &row.LogChannelID.String
+	}
+
 	return GuildResponse{
 		GuildID:       row.GuildID,
 		Multiplier:    row.Multiplier,
 		PbChannelID:   pbChannelID,
 		ModChannelID:  modChannelID,
+		LogChannelID:  logChannelID,
 		PositionCount: row.PositionCount,
 		UserCount:     row.UserCount,
 		RecordCount:   row.RecordCount,
@@ -284,11 +291,17 @@ func GuildResponseFromDetailedRow(row database.GetDetailedGuildRow) GuildRespons
 		modChannelID = &row.ModChannelID.String
 	}
 
+	var logChannelID *string
+	if row.LogChannelID.Valid {
+		logChannelID = &row.LogChannelID.String
+	}
+
 	g := GuildResponse{
 		GuildID:       row.GuildID,
 		Multiplier:    row.Multiplier,
 		PbChannelID:   pbChannelID,
 		ModChannelID:  modChannelID,
+		LogChannelID:  logChannelID,
 		PositionCount: row.PositionCount,
 		UserCount:     row.UserCount,
 		RecordCount:   row.RecordCount,

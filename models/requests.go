@@ -57,6 +57,7 @@ type PbUpdate struct {
 type UpdateGuildBody struct {
 	Multiplier    *int              `json:"multiplier,omitempty" minimum:"1" maximum:"10"`
 	ModChannelID  *DiscordSnowflake `json:"mod_channel_id,omitempty"`
+	LogChannelID  *DiscordSnowflake `json:"log_channel_id,omitempty"`
 	PbUpdate      *PbUpdate         `json:"pb_update,omitempty"`
 	PositionCount *int              `json:"position_count,omitempty"`
 }
