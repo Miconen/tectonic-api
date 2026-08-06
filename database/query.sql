@@ -163,21 +163,21 @@ WHERE guilds.guild_id = $1 LIMIT 1;
 
 -- name: UpdateGuild :one
 UPDATE guilds SET
-    multiplier = CASE WHEN @multiplier::numeric IS NOT NULL AND @multiplier::numeric != 0 THEN @multiplier::numeric ELSE multiplier END,
-    pb_channel_id = CASE WHEN @pb_channel_id::text IS NOT NULL AND @pb_channel_id::text != '' THEN @pb_channel_id::text ELSE pb_channel_id END,
-    mod_channel_id = CASE WHEN @mod_channel_id::text IS NOT NULL AND @mod_channel_id::text != '' THEN @mod_channel_id::text ELSE mod_channel_id END,
-    log_channel_id = CASE WHEN @log_channel_id::text IS NOT NULL AND @log_channel_id::text != '' THEN @log_channel_id::text ELSE log_channel_id END,
-    position_count = CASE WHEN @position_count::smallint IS NOT NULL AND @position_count::smallint != 0 THEN @position_count::smallint ELSE position_count END
-WHERE guild_id = @guild_id RETURNING guild_id, multiplier, pb_channel_id;
+    multiplier = COALESCE(sqlc.narg('multiplier'), multiplier),
+    pb_channel_id = COALESCE(sqlc.narg('pb_channel_id'), pb_channel_id),
+    mod_channel_id = COALESCE(sqlc.narg('mod_channel_id'), mod_channel_id),
+    log_channel_id = COALESCE(sqlc.narg('log_channel_id'), log_channel_id),
+    position_count = COALESCE(sqlc.narg('position_count'), position_count)
+WHERE guild_id = @guild_id
+RETURNING guild_id, multiplier, pb_channel_id;
 
 -- name: UpdateEvent :one
 UPDATE event SET
-    name = CASE WHEN @name::text IS NOT NULL AND @name::text != '' THEN @name::text ELSE name END,
-    position_cutoff = CASE WHEN @position_cutoff::numeric IS NOT NULL AND @position_cutoff::numeric != 0 THEN @position_cutoff::numeric ELSE position_cutoff END,
-    solo = CASE WHEN @solo::boolean IS NOT NULL THEN @solo::boolean ELSE solo END
-WHERE guild_id = @guild_id
-AND wom_id = @wom_id
-RETURNING name, guild_id, wom_id, position_cutoff;
+    name = COALESCE(sqlc.narg('name'), name),
+    position_cutoff = COALESCE(sqlc.narg('position_cutoff'), position_cutoff),
+    solo = COALESCE(sqlc.narg('solo'), solo)
+WHERE guild_id = @guild_id AND wom_id = @wom_id
+RETURNING name, guild_id, wom_id, position_cutoff, solo;
 
 -- name: CreateRsn :exec
 INSERT INTO rsn (
@@ -418,10 +418,10 @@ VALUES (@guild_id, @name, @min_points, @icon, @role_id, @display_order);
 
 -- name: UpdateGuildRank :execrows
 UPDATE guild_ranks SET
-    min_points = CASE WHEN @min_points::int IS NOT NULL AND @min_points::int != -1 THEN @min_points::int ELSE min_points END,
-    icon = CASE WHEN @icon::text IS NOT NULL AND @icon::text != '' THEN @icon::text ELSE icon END,
-    role_id = CASE WHEN @role_id::text IS NOT NULL AND @role_id::text != '' THEN @role_id::text ELSE role_id END,
-    display_order = CASE WHEN @display_order::smallint IS NOT NULL AND @display_order::smallint != -1 THEN @display_order::smallint ELSE display_order END
+    min_points = COALESCE(sqlc.narg('min_points'), min_points),
+    icon = COALESCE(sqlc.narg('icon'), icon),
+    role_id = COALESCE(sqlc.narg('role_id'), role_id),
+    display_order = COALESCE(sqlc.narg('display_order'), display_order)
 WHERE guild_id = @guild_id AND name = @name;
 
 -- name: DeleteGuildRank :execrows

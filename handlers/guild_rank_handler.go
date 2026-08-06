@@ -5,8 +5,6 @@ import (
 
 	"tectonic-api/database"
 	"tectonic-api/models"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type GetGuildRanksInput struct {
@@ -30,22 +28,12 @@ type CreateGuildRankInput struct {
 }
 
 func (s *Server) CreateGuildRank(ctx context.Context, input *CreateGuildRankInput) (*struct{}, error) {
-	var icon pgtype.Text
-	if input.Body.Icon != nil {
-		icon = pgtype.Text{String: *input.Body.Icon, Valid: true}
-	}
-
-	var roleID pgtype.Text
-	if input.Body.RoleID != nil {
-		roleID = pgtype.Text{String: *input.Body.RoleID, Valid: true}
-	}
-
 	params := database.CreateGuildRankParams{
 		GuildID:      input.GuildID,
 		Name:         input.Body.Name,
 		MinPoints:    int32(input.Body.MinPoints),
-		Icon:         icon,
-		RoleID:       roleID,
+		Icon:         input.Body.Icon,
+		RoleID:       input.Body.RoleID,
 		DisplayOrder: int16(input.Body.DisplayOrder),
 	}
 	ei := database.WrapExec(s.queries.CreateGuildRank, ctx, params)
@@ -62,34 +50,13 @@ type UpdateGuildRankInput struct {
 }
 
 func (s *Server) UpdateGuildRank(ctx context.Context, input *UpdateGuildRankInput) (*struct{}, error) {
-	// Use -1 as sentinel for "don't update" on integer fields
-	var minPoints int32 = -1
-	if input.Body.MinPoints != nil {
-		minPoints = int32(*input.Body.MinPoints)
-	}
-
-	var icon string
-	if input.Body.Icon != nil {
-		icon = *input.Body.Icon
-	}
-
-	var roleID string
-	if input.Body.RoleID != nil {
-		roleID = *input.Body.RoleID
-	}
-
-	var displayOrder int16 = -1
-	if input.Body.DisplayOrder != nil {
-		displayOrder = int16(*input.Body.DisplayOrder)
-	}
-
 	params := database.UpdateGuildRankParams{
 		GuildID:      input.GuildID,
 		Name:         input.Name,
-		MinPoints:    minPoints,
-		Icon:         icon,
-		RoleID:       roleID,
-		DisplayOrder: displayOrder,
+		MinPoints:    input.Body.MinPoints,
+		Icon:         input.Body.Icon,
+		RoleID:       input.Body.RoleID,
+		DisplayOrder: input.Body.DisplayOrder,
 	}
 	rows, ei := database.WrapQuery(s.queries.UpdateGuildRank, ctx, params)
 	if ei != nil {

@@ -86,12 +86,8 @@ func (s *Server) getDetailedUsers(ctx context.Context, userIDs []string, guildID
 				Name:         tier.Name,
 				MinPoints:    tier.MinPoints,
 				DisplayOrder: tier.DisplayOrder,
-			}
-			if tier.Icon.Valid {
-				t.Icon = &tier.Icon.String
-			}
-			if tier.RoleID.Valid {
-				t.RoleID = &tier.RoleID.String
+				Icon:         tier.Icon,
+				RoleID:       tier.RoleID,
 			}
 			userTier = &t
 		}

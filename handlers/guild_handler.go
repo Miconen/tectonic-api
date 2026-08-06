@@ -2,14 +2,11 @@ package handlers
 
 import (
 	"context"
-	"math/big"
 
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type GetGuildInput struct {
@@ -82,9 +79,9 @@ func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*str
 	q := s.queries.WithTx(tx)
 
 	// Handle PB update (channel + category messages)
-	var pbChannelID string
+	var pbChannelID *string
 	if input.Body.PbUpdate != nil {
-		pbChannelID = input.Body.PbUpdate.ChannelID.String()
+		pbChannelID = utils.Ptr(input.Body.PbUpdate.ChannelID.String())
 
 		categories := make([]string, len(input.Body.PbUpdate.CategoryMessages))
 		messageIds := make([]string, len(input.Body.PbUpdate.CategoryMessages))
@@ -103,37 +100,12 @@ func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*str
 		}
 	}
 
-	// Convert *int to pgtype.Numeric
-	var multiplier pgtype.Numeric
-	if input.Body.Multiplier != nil {
-		multiplier.Valid = true
-		multiplier.Int = big.NewInt(int64(*input.Body.Multiplier))
-		multiplier.Exp = 0
-	}
-
-	// Convert *DiscordSnowflake to string
-	var modChannelID string
-	if input.Body.ModChannelID != nil {
-		modChannelID = utils.DerefOr(input.Body.ModChannelID, "").String()
-	}
-
-	var logChannelID string
-	if input.Body.LogChannelID != nil {
-		logChannelID = utils.DerefOr(input.Body.LogChannelID, "").String()
-	}
-
-	// Convert *int to int16 for position_count
-	var positionCount int16
-	if input.Body.PositionCount != nil {
-		positionCount = int16(*input.Body.PositionCount)
-	}
-
 	_, err = q.UpdateGuild(ctx, database.UpdateGuildParams{
-		Multiplier:    multiplier,
+		Multiplier:    input.Body.Multiplier,
 		PbChannelID:   pbChannelID,
-		ModChannelID:  modChannelID,
-		LogChannelID:  logChannelID,
-		PositionCount: positionCount,
+		ModChannelID:  input.Body.ModChannelID.PtrString(),
+		LogChannelID:  input.Body.LogChannelID.PtrString(),
+		PositionCount: input.Body.PositionCount,
 		GuildID:       input.GuildID,
 	})
 	if ei := database.ClassifyError(err); ei != nil {

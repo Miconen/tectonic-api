@@ -9,8 +9,6 @@ import (
 	"tectonic-api/logging"
 	"tectonic-api/models"
 	"tectonic-api/utils"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type GetEventsInput struct {
@@ -208,14 +206,16 @@ func (s *Server) DeleteEvent(ctx context.Context, input *DeleteEventInput) (*str
 	return nil, nil
 }
 
+type UpdateEventBody struct {
+	Name           *string `json:"name,omitempty" minLength:"1" maxLength:"64"`
+	PositionCutoff *int16  `json:"position_cutoff,omitempty" minimum:"1" maximum:"3"`
+	Solo           *bool   `json:"solo,omitempty"`
+}
+
 type UpdateEventInput struct {
 	GuildID string `path:"guild_id" doc:"Guild Snowflake ID"`
 	EventID string `path:"event_id" doc:"Event WOM ID"`
-	Body    struct {
-		Name           string         `json:"name"`
-		PositionCutoff pgtype.Numeric `json:"position_cutoff"`
-		Solo           bool           `json:"solo"`
-	}
+	Body    UpdateEventBody
 }
 
 func (s *Server) UpdateEvent(ctx context.Context, input *UpdateEventInput) (*struct{}, error) {
@@ -224,6 +224,7 @@ func (s *Server) UpdateEvent(ctx context.Context, input *UpdateEventInput) (*str
 		logging.Get().Error("Error creating transaction", "error", err)
 		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
+
 	defer tx.Rollback(ctx)
 
 	q := s.queries.WithTx(tx)
@@ -235,6 +236,7 @@ func (s *Server) UpdateEvent(ctx context.Context, input *UpdateEventInput) (*str
 		GuildID:        input.GuildID,
 		WomID:          input.EventID,
 	})
+
 	if ei := database.ClassifyError(err); ei != nil {
 		return nil, s.dbError(*ei)
 	}

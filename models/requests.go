@@ -55,11 +55,11 @@ type PbUpdate struct {
 }
 
 type UpdateGuildBody struct {
-	Multiplier    *int              `json:"multiplier,omitempty" minimum:"1" maximum:"10"`
+	Multiplier    *int32            `json:"multiplier,omitempty" minimum:"1" maximum:"10"`
 	ModChannelID  *DiscordSnowflake `json:"mod_channel_id,omitempty"`
 	LogChannelID  *DiscordSnowflake `json:"log_channel_id,omitempty"`
 	PbUpdate      *PbUpdate         `json:"pb_update,omitempty"`
-	PositionCount *int              `json:"position_count,omitempty"`
+	PositionCount *int16            `json:"position_count,omitempty"`
 }
 
 type CreateGuildRankBody struct {
@@ -71,8 +71,8 @@ type CreateGuildRankBody struct {
 }
 
 type UpdateGuildRankBody struct {
-	MinPoints    *int    `json:"min_points,omitempty"`
+	MinPoints    *int32  `json:"min_points,omitempty"`
 	Icon         *string `json:"icon,omitempty"`
 	RoleID       *string `json:"role_id,omitempty"`
-	DisplayOrder *int    `json:"display_order,omitempty"`
+	DisplayOrder *int16  `json:"display_order,omitempty"`
 }
