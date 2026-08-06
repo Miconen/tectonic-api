@@ -9,6 +9,13 @@ import (
 type DiscordSnowflake string
 
 func (d DiscordSnowflake) String() string { return string(d) }
+func (d *DiscordSnowflake) PtrString() *string {
+	if d == nil {
+		return nil
+	}
+	s := string(*d)
+	return &s
+}
 
 func (d DiscordSnowflake) Resolve(ctx huma.Context, prefix *huma.PathBuffer) []error {
 	s := string(d)
