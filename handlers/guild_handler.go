@@ -6,7 +6,6 @@ import (
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
-	"tectonic-api/utils"
 )
 
 type GetGuildInput struct {
@@ -81,7 +80,7 @@ func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*str
 	// Handle PB update (channel + category messages)
 	var pbChannelID *string
 	if input.Body.PbUpdate != nil {
-		pbChannelID = utils.Ptr(input.Body.PbUpdate.ChannelID.String())
+		pbChannelID = input.Body.PbUpdate.ChannelID.PtrString()
 
 		categories := make([]string, len(input.Body.PbUpdate.CategoryMessages))
 		messageIds := make([]string, len(input.Body.PbUpdate.CategoryMessages))
