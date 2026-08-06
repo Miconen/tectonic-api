@@ -37,7 +37,7 @@ Content-Type: application/json
 }
 
 
-### Update event
+### Update event (all fields)
 
 PUT {{base_url}}/api/v1/guilds/{{guild_id}}/events/{{event_id}} HTTP/1.1
 Authorization: {{api_key}}
@@ -47,6 +47,39 @@ Content-Type: application/json
   "name": "Updated Event Name",
   "position_cutoff": 3,
   "solo": true
+}
+
+
+### Update event — name only
+
+PUT {{base_url}}/api/v1/guilds/{{guild_id}}/events/{{event_id}} HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "name": "Updated Event Name"
+}
+
+
+### Update event — position_cutoff only
+
+PUT {{base_url}}/api/v1/guilds/{{guild_id}}/events/{{event_id}} HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "position_cutoff": 3
+}
+
+
+### Update event — solo only
+
+PUT {{base_url}}/api/v1/guilds/{{guild_id}}/events/{{event_id}} HTTP/1.1
+Authorization: {{api_key}}
+Content-Type: application/json
+
+{
+  "solo": false
 }
 
 

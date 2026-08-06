@@ -253,27 +253,12 @@ type GuildResponse struct {
 }
 
 func GuildResponseFromRow(row database.GetGuildRow) GuildResponse {
-	var pbChannelID *string
-	if row.PbChannelID.Valid {
-		pbChannelID = &row.PbChannelID.String
-	}
-
-	var modChannelID *string
-	if row.ModChannelID.Valid {
-		modChannelID = &row.ModChannelID.String
-	}
-
-	var logChannelID *string
-	if row.LogChannelID.Valid {
-		logChannelID = &row.LogChannelID.String
-	}
-
 	return GuildResponse{
 		GuildID:       row.GuildID,
 		Multiplier:    row.Multiplier,
-		PbChannelID:   pbChannelID,
-		ModChannelID:  modChannelID,
-		LogChannelID:  logChannelID,
+		PbChannelID:   row.PbChannelID,
+		ModChannelID:  row.ModChannelID,
+		LogChannelID:  row.LogChannelID,
 		PositionCount: row.PositionCount,
 		UserCount:     row.UserCount,
 		RecordCount:   row.RecordCount,
@@ -281,27 +266,12 @@ func GuildResponseFromRow(row database.GetGuildRow) GuildResponse {
 }
 
 func GuildResponseFromDetailedRow(row database.GetDetailedGuildRow) GuildResponse {
-	var pbChannelID *string
-	if row.PbChannelID.Valid {
-		pbChannelID = &row.PbChannelID.String
-	}
-
-	var modChannelID *string
-	if row.ModChannelID.Valid {
-		modChannelID = &row.ModChannelID.String
-	}
-
-	var logChannelID *string
-	if row.LogChannelID.Valid {
-		logChannelID = &row.LogChannelID.String
-	}
-
 	g := GuildResponse{
 		GuildID:       row.GuildID,
 		Multiplier:    row.Multiplier,
-		PbChannelID:   pbChannelID,
-		ModChannelID:  modChannelID,
-		LogChannelID:  logChannelID,
+		PbChannelID:   row.PbChannelID,
+		ModChannelID:  row.ModChannelID,
+		LogChannelID:  row.LogChannelID,
 		PositionCount: row.PositionCount,
 		UserCount:     row.UserCount,
 		RecordCount:   row.RecordCount,
@@ -354,12 +324,8 @@ func GuildRanksFromRows(rows []database.GetGuildRanksRow) []GuildRankResponse {
 			Name:         row.Name,
 			MinPoints:    row.MinPoints,
 			DisplayOrder: row.DisplayOrder,
-		}
-		if row.Icon.Valid {
-			r.Icon = &row.Icon.String
-		}
-		if row.RoleID.Valid {
-			r.RoleID = &row.RoleID.String
+			Icon:         row.Icon,
+			RoleID:       row.RoleID,
 		}
 		result[i] = r
 	}
