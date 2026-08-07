@@ -66,7 +66,7 @@ func (s *Server) RegisterEvent(ctx context.Context, input *RegisterEventInput) (
 
 	c, err := s.womClient.GetCompetition(input.Body.EventID)
 	if err != nil {
-		return nil, s.womError(err)
+		return nil, s.womError(err, models.ERROR_WOM_COMPETITION_NOT_FOUND)
 	}
 
 	tx, err := database.CreateTx(ctx)

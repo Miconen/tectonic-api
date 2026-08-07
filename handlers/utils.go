@@ -103,13 +103,15 @@ func (s *Server) dbError(ei database.ErrorInfo) *models.TectonicError {
 	return models.NewTectonicError(s.getConstraintError(ei))
 }
 
-func (s *Server) womError(err error) *models.TectonicError {
+func (s *Server) womError(err error, notFound models.APIV1Error) *models.TectonicError {
 	var apiErr *utils.WomAPIError
 	if errors.As(err, &apiErr) {
 		switch apiErr.StatusCode {
 		case http.StatusNotFound:
-			return models.NewTectonicError(models.ERROR_WOMID_NOT_FOUND)
+			return models.NewTectonicError(notFound)
 		case http.StatusGatewayTimeout:
+			return models.NewTectonicError(models.ERROR_WOM_RATE_LIMITED)
+		case http.StatusInternalServerError:
 			return models.NewTectonicError(models.ERROR_WOM_UNAVAILABLE)
 		}
 	}
