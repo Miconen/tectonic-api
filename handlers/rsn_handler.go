@@ -17,7 +17,7 @@ type CreateRSNInput struct {
 func (s *Server) CreateRSN(ctx context.Context, input *CreateRSNInput) (*struct{}, error) {
 	wom, err := s.womClient.GetWom(input.Body.RSN)
 	if err != nil {
-		return nil, models.NewTectonicError(models.ERROR_RSN_NOT_FOUND)
+		return nil, s.womError(err, models.ERROR_WOM_USER_NOT_FOUND)
 	}
 
 	params := database.CreateRsnParams{

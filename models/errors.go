@@ -22,6 +22,7 @@ const (
 	ERROR_WRONG_BODY                              // Body is malformated, please check docs for example on how to send the request
 	ERROR_VALIDATION_FAILED                       // Request validation failed
 	ERROR_INVALID_TOKEN                           // Your token is invalid
+	ERROR_API_RATE_LIMITED                        // Too many requests to Tectonic API
 )
 
 // Model-based errors
@@ -79,15 +80,16 @@ const (
 	ERROR_GUILD_RANK_NOT_FOUND // Guild rank not found
 	ERROR_GUILD_RANK_EXISTS    // Guild rank already exists
 
-	ERROR_WOM_USER_NOT_FOUND        // Wise old man user not found or isn't tracked
-	ERROR_WOM_COMPETITION_NOT_FOUND // Wise old man competition not found
+	ERROR_WOM_USER_NOT_FOUND        // Wise Old Man user not found or isn't tracked
+	ERROR_WOM_COMPETITION_NOT_FOUND // Wise Old Man competition not found
 )
 
 // Server errors
 const (
-	ERROR_API_UNAVAILABLE APIV1ErrorCode = 2000 + iota // Something's wrong with the API, please try again later
-	ERROR_API_DEAD                                     // Server broke, contact us if you see this error
-	ERROR_WOM_UNAVAILABLE                              // Wise old man is unavaliable, please try again later
+	ERROR_API_UNAVAILABLE  APIV1ErrorCode = 2000 + iota // Something's wrong with the API, please try again later
+	ERROR_API_DEAD                                      // Server broke, contact us if you see this error
+	ERROR_WOM_UNAVAILABLE                               // Wise old man is unavaliable, please try again later
+	ERROR_WOM_RATE_LIMITED                              // Wise Old Man rate limited
 )
 
 const untreated APIV1ErrorCode = 10000 // Some error happened but left untreated, please file an issue here: https://github.com/Miconen/tectonic-api/issues/new
@@ -146,6 +148,10 @@ func (e APIV1ErrorCode) Status() int {
 		ERROR_COMBAT_ACHIEVEMENT_EXISTS,
 		ERROR_GUILD_RANK_EXISTS:
 		return http.StatusConflict
+
+	case ERROR_API_RATE_LIMITED,
+		ERROR_WOM_RATE_LIMITED:
+		return http.StatusTooManyRequests
 	}
 
 	return http.StatusInternalServerError

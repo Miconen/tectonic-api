@@ -1,8 +1,12 @@
 package middleware
 
 import (
-	"golang.org/x/time/rate"
+	"encoding/json"
 	"net/http"
+
+	"tectonic-api/models"
+
+	"golang.org/x/time/rate"
 )
 
 // Rate limiting
@@ -11,7 +15,11 @@ func RateLimit(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !limiter.Allow() {
-			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+			apiErr := models.NewTectonicError(models.ERROR_API_RATE_LIMITED)
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(apiErr.GetStatus())
+			json.NewEncoder(w).Encode(apiErr)
 			return
 		}
 		next.ServeHTTP(w, r)

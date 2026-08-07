@@ -29,7 +29,7 @@ type EndCompetitionOutput struct {
 func (s *Server) EndCompetition(ctx context.Context, input *EndCompetitionInput) (*EndCompetitionOutput, error) {
 	c, err := s.womClient.GetCompetition(input.CompetitionID)
 	if err != nil {
-		return nil, s.womError(err)
+		return nil, s.womError(err, models.ERROR_WOM_COMPETITION_NOT_FOUND)
 	}
 
 	emptyResponse := CompetitionResponse{
