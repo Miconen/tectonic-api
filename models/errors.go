@@ -78,6 +78,9 @@ const (
 
 	ERROR_GUILD_RANK_NOT_FOUND // Guild rank not found
 	ERROR_GUILD_RANK_EXISTS    // Guild rank already exists
+
+	ERROR_WOM_USER_NOT_FOUND        // Wise old man user not found or isn't tracked
+	ERROR_WOM_COMPETITION_NOT_FOUND // Wise old man competition not found
 )
 
 // Server errors
