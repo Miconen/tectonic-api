@@ -95,9 +95,10 @@ func LoggingHandler(h http.Handler) http.Handler {
 		h.ServeHTTP(recorder, r)
 		duration := time.Since(start)
 
+		title := fmt.Sprintf("%s %d %s", r.Method, recorder.statusCode, r.URL.Path)
 		if settings.jsonOutput {
 			Get().Info(
-				r.Method+" "+r.URL.Path,
+				title,
 				"status", recorder.statusCode,
 				"duration", duration.String(),
 				"host", r.Host,
@@ -109,7 +110,7 @@ func LoggingHandler(h http.Handler) http.Handler {
 			)
 		} else {
 			Get().Info(
-				r.Method+" "+r.URL.Path,
+				title,
 				"method", r.Method,
 				"status", recorder.statusCode,
 				"time", start,
