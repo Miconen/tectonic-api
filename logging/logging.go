@@ -6,12 +6,15 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"tectonic-api/config"
 	"time"
+
+	"tectonic-api/config"
 )
 
-var logger *slog.Logger
-var settings *LoggerConfig
+var (
+	logger   *slog.Logger
+	settings *LoggerConfig
+)
 
 func Get() *slog.Logger {
 	if logger == nil {
@@ -93,23 +96,25 @@ func LoggingHandler(h http.Handler) http.Handler {
 		duration := time.Since(start)
 
 		if settings.jsonOutput {
-			Get().Info(r.URL.Path,
-				"header", r.Header,
-				"method", r.Method,
+			Get().Info(
+				r.Method+" "+r.URL.Path,
 				"status", recorder.statusCode,
-				"path", r.URL,
-				"time", start,
-				"host", r.Host,
 				"duration", duration.String(),
+				"host", r.Host,
+				"origin", r.Header.Get("Origin"),
+				"user_agent", r.UserAgent(),
+				"content_type", r.Header.Get("Content-Type"),
+				"method", r.Method,
+				"path", r.URL.Path,
 			)
 		} else {
-			Get().Info(r.URL.Path,
+			Get().Info(
+				r.Method+" "+r.URL.Path,
 				"method", r.Method,
 				"status", recorder.statusCode,
 				"time", start,
 				"duration", duration.String(),
 			)
 		}
-
 	})
 }
