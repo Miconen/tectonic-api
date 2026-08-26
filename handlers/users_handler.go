@@ -10,103 +10,109 @@ import (
 	"tectonic-api/models"
 )
 
-// Unchanged private helper
-func (s *Server) getDetailedUsers(ctx context.Context, userIDs []string, guildID string) ([]models.DetailedUser, *database.ErrorInfo) {
+func (s *Server) getDetailedUsers(
+	ctx context.Context,
+	userIDs []string,
+	guildID string,
+) ([]models.DetailedUser, *database.ErrorInfo) {
 	if len(userIDs) == 0 {
 		return []models.DetailedUser{}, nil
 	}
 
-	detailedUsers := make([]models.DetailedUser, 0, len(userIDs))
-
-	for _, userID := range userIDs {
-		userRows, err := database.WrapQuery(s.queries.GetUsersById, ctx, database.GetUsersByIdParams{
-			GuildID: guildID,
-			UserIds: []string{userID},
-		})
-		if err != nil {
-			return nil, err
-		}
-		if len(userRows) != 1 {
-			continue
-		}
-
-		user := userRows[0]
-
-		rsnsRows, err := database.WrapQuery(s.queries.GetUserRsns, ctx, database.GetUserRsnsParams{
-			UserID: userID, GuildID: guildID,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		recordsRows, err := database.WrapQuery(s.queries.GetUserRecords, ctx, database.GetUserRecordsParams{
-			UserID: userID, GuildID: guildID,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		achievementsRows, err := database.WrapQuery(s.queries.GetUserAchievements, ctx, userID)
-		if err != nil {
-			return nil, err
-		}
-
-		eventsRows, err := database.WrapQuery(s.queries.GetUserEvents, ctx, database.GetUserEventsParams{
-			UserID: userID, GuildID: guildID,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		caRows, err := database.WrapQuery(s.queries.GetUserCombatAchievements, ctx, database.GetUserCombatAchievementsParams{
-			UserID: userID, GuildID: guildID,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		// Get user rank (leaderboard position)
-		var userRank int64
-		rank, rankErr := database.WrapQuery(s.queries.GetUserRank, ctx, database.GetUserRankParams{
-			GuildID: guildID,
-			UserID:  userID,
-		})
-		if rankErr == nil {
-			userRank = rank
-		}
-
-		// Get user tier (based on points)
-		var userTier *models.UserTier
-		tier, tierErr := database.WrapQuery(s.queries.GetUserTier, ctx, database.GetUserTierParams{
-			GuildID: guildID,
-			Points:  user.Points,
-		})
-		if tierErr == nil {
-			t := models.UserTier{
-				Name:         tier.Name,
-				MinPoints:    tier.MinPoints,
-				DisplayOrder: tier.DisplayOrder,
-				Icon:         tier.Icon,
-				RoleID:       tier.RoleID,
-			}
-			userTier = &t
-		}
-
-		detailedUsers = append(detailedUsers, models.DetailedUser{
-			UserId:             user.UserID,
-			GuildId:            user.GuildID,
-			Points:             int(user.Points),
-			Rank:               userRank,
-			Tier:               userTier,
-			RSNs:               models.UserRsnsFromRows(rsnsRows),
-			Records:            models.UserRecordsFromRows(recordsRows),
-			Events:             models.UserEventFromRows(eventsRows),
-			Achievements:       models.UserAchievementsFromRows(achievementsRows),
-			CombatAchievements: models.UserCombatAchievementsFromRows(caRows),
-		})
+	params := database.GetDetailedUserBasesParams{
+		GuildID: guildID,
+		UserIds: userIDs,
 	}
 
-	return detailedUsers, nil
+	bases, ei := database.WrapQuery(
+		s.queries.GetDetailedUserBases,
+		ctx,
+		params,
+	)
+	if ei != nil {
+		return nil, ei
+	}
+
+	// Do not query child collections when none of the requested users exist.
+	if len(bases) == 0 {
+		return []models.DetailedUser{}, nil
+	}
+
+	// Use IDs returned by the base query so child queries only process users
+	// that actually exist in this guild.
+	existingUserIDs := make([]string, len(bases))
+	for i, user := range bases {
+		existingUserIDs[i] = user.UserID
+	}
+
+	rsns, ei := database.WrapQuery(
+		s.queries.GetDetailedUserRsns,
+		ctx,
+		database.GetDetailedUserRsnsParams{
+			GuildID: guildID,
+			UserIds: existingUserIDs,
+		},
+	)
+	if ei != nil {
+		return nil, ei
+	}
+
+	records, ei := database.WrapQuery(
+		s.queries.GetDetailedUserRecords,
+		ctx,
+		database.GetDetailedUserRecordsParams{
+			GuildID: guildID,
+			UserIds: existingUserIDs,
+		},
+	)
+	if ei != nil {
+		return nil, ei
+	}
+
+	events, ei := database.WrapQuery(
+		s.queries.GetDetailedUserEvents,
+		ctx,
+		database.GetDetailedUserEventsParams{
+			GuildID: guildID,
+			UserIds: existingUserIDs,
+		},
+	)
+	if ei != nil {
+		return nil, ei
+	}
+
+	achievements, ei := database.WrapQuery(
+		s.queries.GetDetailedUserAchievements,
+		ctx,
+		database.GetDetailedUserAchievementsParams{
+			GuildID: guildID,
+			UserIds: existingUserIDs,
+		},
+	)
+	if ei != nil {
+		return nil, ei
+	}
+
+	combatAchievements, ei := database.WrapQuery(
+		s.queries.GetDetailedUserCombatAchievements,
+		ctx,
+		database.GetDetailedUserCombatAchievementsParams{
+			GuildID: guildID,
+			UserIds: existingUserIDs,
+		},
+	)
+	if ei != nil {
+		return nil, ei
+	}
+
+	return models.DetailedUsersFromRows(models.DetailedUserRows{
+		Bases:              bases,
+		RSNs:               rsns,
+		Records:            records,
+		Events:             events,
+		Achievements:       achievements,
+		CombatAchievements: combatAchievements,
+	}), nil
 }
 
 // Handlers
