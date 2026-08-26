@@ -18,6 +18,14 @@ func RegisterUserRoutes(api huma.API, s *handlers.Server) {
 	}, s.CreateUser)
 
 	huma.Register(api, huma.Operation{
+		OperationID: "get-basic-users-by-id",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/guilds/{guild_id}/users/basic/{user_ids}",
+		Summary:     "Get one or more basic users by ID(s)",
+		Tags:        []string{"User"},
+	}, s.GetBasicUsers)
+
+	huma.Register(api, huma.Operation{
 		OperationID: "get-users-by-id",
 		Method:      http.MethodGet,
 		Path:        "/api/v1/guilds/{guild_id}/users/{user_ids}",
