@@ -38,7 +38,8 @@ LEFT JOIN LATERAL (
     LIMIT 1
 ) tier ON TRUE
 WHERE u.guild_id = @guild_id
-  AND u.user_id = ANY(@user_ids::text[]);
+  AND u.user_id = ANY(@user_ids::text[])
+ORDER BY array_position(@user_ids::text[], u.user_id);
 
 -- name: GetDetailedUserRsns :many
 SELECT
