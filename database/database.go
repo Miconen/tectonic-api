@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+
 	"tectonic-api/config"
 
 	"github.com/Masterminds/squirrel"
@@ -12,8 +13,10 @@ import (
 
 const ERROR_UNACTIVATED_GUILD string = "insert or update on table \"users\" violates foreign key constraint \"users_ibfk_1\""
 
-var psql = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-var pool *pgxpool.Pool
+var (
+	psql = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+	pool *pgxpool.Pool
+)
 
 func InitDB(cfg *config.Config) (*pgxpool.Pool, error) {
 	conn, err := pgxpool.New(context.Background(), cfg.DatabaseURL)
@@ -46,7 +49,8 @@ func GetConstraintsTable(ctx context.Context, conn *pgxpool.Conn) (map[string]Co
 	}
 
 	result := make(map[string]ConstraintDetail)
-	rows, err := pool.Query(ctx, `
+	rows, err := pool.Query(
+		ctx, `
 		SELECT 
 			tc.constraint_name,
 			tc.table_name,
