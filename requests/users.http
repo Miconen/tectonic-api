@@ -10,6 +10,12 @@ Content-Type: application/json
 }
 
 
+### Get basic user by ID
+
+GET {{base_url}}/api/v1/guilds/{{guild_id}}/users/basic/{{user_id}} HTTP/1.1
+Authorization: {{api_key}}
+
+
 ### Get user by ID
 
 GET {{base_url}}/api/v1/guilds/{{guild_id}}/users/{{user_id}} HTTP/1.1

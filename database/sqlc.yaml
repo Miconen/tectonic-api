@@ -1,7 +1,20 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    queries: "query.sql"
+    queries:
+      - "queries/achievements"
+      - "queries/combat_achievements"
+      - "queries/events"
+      - "queries/guilds"
+      - "queries/points"
+      - "queries/ranks"
+      - "queries/records"
+      - "queries/rsns"
+      - "queries/teams"
+      - "queries/users"
+      - "queries/guild_details.sql"
+      - "queries/misc.sql"
+      - "queries/user_details.sql"
     schema: "migrations"
     gen:
       go:

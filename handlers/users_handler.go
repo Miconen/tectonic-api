@@ -381,3 +381,23 @@ func (s *Server) RemoveUserByWom(ctx context.Context, input *RemoveUserByWomInpu
 	}
 	return nil, nil
 }
+
+type GetBasicUsersOutput struct {
+	Body []database.User
+}
+
+func (s *Server) GetBasicUsers(ctx context.Context, input *GetUsersByIDInput) (*GetBasicUsersOutput, error) {
+	users, ei := database.WrapQuery(
+		s.queries.GetUsersById,
+		ctx,
+		database.GetUsersByIdParams{
+			GuildID: input.GuildID,
+			UserIds: strings.Split(input.UserIDs, ","),
+		},
+	)
+	if ei != nil {
+		return nil, s.dbError(*ei)
+	}
+
+	return &GetBasicUsersOutput{Body: users}, nil
+}
