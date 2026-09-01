@@ -18,11 +18,12 @@ type APIV1ErrorCode uint
 
 // Request-based errors
 const (
-	ERROR_WRONG_PARAMS      APIV1ErrorCode = iota // Params are malformated, please check docs for example on how to send the request
-	ERROR_WRONG_BODY                              // Body is malformated, please check docs for example on how to send the request
-	ERROR_VALIDATION_FAILED                       // Request validation failed
-	ERROR_INVALID_TOKEN                           // Your token is invalid
-	ERROR_API_RATE_LIMITED                        // Too many requests to Tectonic API
+	ERROR_WRONG_PARAMS       APIV1ErrorCode = iota // Params are malformated, please check docs for example on how to send the request
+	ERROR_WRONG_BODY                               // Body is malformated, please check docs for example on how to send the request
+	ERROR_VALIDATION_FAILED                        // Request validation failed
+	ERROR_INVALID_TOKEN                            // Your token is invalid
+	ERROR_INSUFFICIENT_SCOPE                       // Your token does not have permission to perform this operation
+	ERROR_API_RATE_LIMITED                         // Too many requests to Tectonic API
 )
 
 // Model-based errors
@@ -98,6 +99,8 @@ func (e APIV1ErrorCode) Status() int {
 	switch e {
 	case ERROR_INVALID_TOKEN:
 		return http.StatusUnauthorized
+	case ERROR_INSUFFICIENT_SCOPE:
+		return http.StatusForbidden
 	case ERROR_WOM_UNAVAILABLE:
 		return http.StatusServiceUnavailable
 	case ERROR_API_UNAVAILABLE, ERROR_API_DEAD:
