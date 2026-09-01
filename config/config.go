@@ -15,7 +15,8 @@ type Config struct {
 	LogLevel string `env:"LOG_LEVEL" envDefault:"info"`
 
 	// API Security
-	APIKey string `env:"API_KEY,required"`
+	APIKey     string `env:"API_KEY,required"`
+	APIReadKey string `env:"API_READ_KEY,required"`
 
 	// External Services
 	WOM struct {

@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -30,8 +30,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-        DATABASE_URL: postgresql://postgres:postgres@db:5432/tectonic
-        API_KEY: 123
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/tectonic
+      API_KEY: 123
+      API_READ_KEY: 321
     depends_on:
       db:
         condition: service_healthy
@@ -48,8 +49,9 @@ services:
     volumes:
       - ./:/api
     environment:
-        DATABASE_URL: postgresql://postgres:postgres@db:5432/tectonic
-        API_KEY: 123
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/tectonic
+      API_KEY: 123
+      API_READ_KEY: 321
     depends_on:
       db:
         condition: service_healthy
@@ -60,7 +62,7 @@ services:
     image: adminer
     restart: always
     ports:
-        - 5433:8080
+      - 5433:8080
     depends_on:
       db:
         condition: service_healthy
@@ -75,4 +77,3 @@ networks:
 
 volumes:
   postgres_data:
-    
