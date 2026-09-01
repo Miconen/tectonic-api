@@ -38,6 +38,7 @@ func Authentication(cfg *config.Config) func(http.Handler) http.Handler {
 			if token == cfg.APIKey {
 				rlog.Debug("Full-access API key is valid")
 				next.ServeHTTP(w, r)
+				return
 			}
 
 			if token == cfg.APIReadKey {
@@ -49,6 +50,7 @@ func Authentication(cfg *config.Config) func(http.Handler) http.Handler {
 
 				rlog.Debug("Read-only API key is valid")
 				next.ServeHTTP(w, r)
+				return
 			}
 
 			rlog.Warn("Authentication key is invalid")
