@@ -11,7 +11,7 @@ import (
 func RegisterWomRoutes(api huma.API, s *handlers.Server) {
 	huma.Register(api, huma.Operation{
 		OperationID: "end-competition",
-		Method:      http.MethodGet,
+		Method:      http.MethodPost,
 		Path:        "/api/v1/guilds/{guild_id}/wom/competition/{competition_id}/cutoff/{cutoff}",
 		Summary:     "Handle WOM competition end",
 		Tags:        []string{"WOM"},
