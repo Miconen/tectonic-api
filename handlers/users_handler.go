@@ -8,6 +8,7 @@ import (
 	"tectonic-api/database"
 	"tectonic-api/logging"
 	"tectonic-api/models"
+	"tectonic-api/utils"
 )
 
 func (s *Server) getDetailedUsers(
@@ -253,7 +254,7 @@ func (s *Server) CreateUser(ctx context.Context, input *CreateUserInput) (*Creat
 	params := database.CreateUserParams{
 		GuildID: input.GuildID,
 		WomID:   strconv.Itoa(wom.Id),
-		Rsn:     wom.DisplayName,
+		Rsn:     utils.RestoreSeparators(wom.DisplayName, input.Body.RSN),
 		UserID:  string(input.Body.UserID),
 	}
 

@@ -92,3 +92,20 @@ func handleResponse[T any](url string, c *WomClient) (T, error) {
 
 	return result, nil
 }
+
+// RestoreSeparators works around WOM turning "_" and "-" in display names into
+// spaces. Where the display name has a space and the input RSN has "_" or "-"
+// at the same position, the input's character is kept. Casing comes from WOM.
+func RestoreSeparators(displayName string, input models.RSN) string {
+	display := []rune(displayName)
+	in := []rune(string(input))
+	if len(display) != len(in) {
+		return displayName
+	}
+	for i, r := range display {
+		if r == ' ' && (in[i] == '_' || in[i] == '-') {
+			display[i] = in[i]
+		}
+	}
+	return string(display)
+}
