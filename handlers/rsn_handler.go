@@ -6,6 +6,7 @@ import (
 
 	"tectonic-api/database"
 	"tectonic-api/models"
+	"tectonic-api/utils"
 )
 
 type CreateRSNInput struct {
@@ -24,7 +25,7 @@ func (s *Server) CreateRSN(ctx context.Context, input *CreateRSNInput) (*struct{
 		GuildID: input.GuildID,
 		UserID:  input.UserID,
 		WomID:   strconv.Itoa(wom.Id),
-		Rsn:     wom.DisplayName,
+		Rsn:     utils.RestoreSeparators(wom.DisplayName, input.Body.RSN),
 	}
 
 	err = s.queries.CreateRsn(ctx, params)
