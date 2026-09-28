@@ -52,7 +52,7 @@ SELECT
 
     (SELECT json_agg(tr) FROM top_records tr) AS records,
 
-    (SELECT json_agg(b) FROM bosses b
+    (SELECT json_agg(b ORDER BY b.name) FROM bosses b
      JOIN guild_bosses gb ON b.name = gb.boss
      WHERE gb.guild_id = g.guild_id) AS bosses,
 

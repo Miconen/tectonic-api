@@ -1,5 +1,5 @@
 -- name: GetBosses :many
-SELECT name, display_name, category, solo, value_type FROM bosses;
+SELECT name, display_name, category, solo, value_type FROM bosses ORDER BY name;
 
 -- name: GetCategories :many
 SELECT "thumbnail", "order", "name" FROM categories;
