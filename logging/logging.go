@@ -1,7 +1,6 @@
 package logging
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 	"strings"
@@ -14,12 +13,12 @@ var (
 	settings *LoggerConfig
 )
 
+// Get returns the global logger. Before Init (in tests, say) it falls back to
+// slog's default instead of exiting.
 func Get() *slog.Logger {
 	if logger == nil {
-		fmt.Fprintf(os.Stderr, "Error loading logger")
-		os.Exit(1)
+		return slog.Default()
 	}
-
 	return logger
 }
 

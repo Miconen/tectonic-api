@@ -23,6 +23,7 @@ jobs:
 
     env:
       API_KEY: "foobar"
+      API_READ_KEY: "readonly"
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tectonic
 
     steps:
