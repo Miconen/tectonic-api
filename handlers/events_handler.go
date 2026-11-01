@@ -94,9 +94,12 @@ func (s *Server) RegisterEvent(ctx context.Context, input *RegisterEventInput) (
 	}
 
 	if c.Type == "classic" {
+		// Top PositionCutoff players win. This was a fixed [0:3], which
+		// ignored the cutoff and panicked with fewer than 3 participants.
 		winners := utils.MapField(c.Participations, func(p models.Participations) string {
 			return fmt.Sprintf("%d", p.PlayerID)
-		})[0:3]
+		})
+		winners = winners[:min(input.Body.PositionCutoff, len(winners))]
 
 		ei = database.WrapExec(q.InsertEventParticipants, ctx, database.InsertEventParticipantsParams{
 			ParticipantIds: winners,
