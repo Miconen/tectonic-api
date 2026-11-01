@@ -30,7 +30,7 @@ func Authentication(cfg *config.Config) func(http.Handler) http.Handler {
 				return
 			}
 
-			rlog := logging.Get().With("method", r.Method, "url", r.URL)
+			rlog := logging.From(r.Context())
 
 			token := r.Header.Get("Authorization")
 

@@ -29,7 +29,7 @@ func (s *Server) UpdatePoints(ctx context.Context, input *UpdatePointsInput) (*U
 		if ei.Recoverable && ei.Code == "23502" {
 			return nil, models.NewTectonicError(models.ERROR_POINT_SOURCE_NOT_FOUND)
 		}
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	if len(user) == 0 {
@@ -56,7 +56,7 @@ func (s *Server) UpdatePointsCustom(ctx context.Context, input *UpdatePointsCust
 
 	user, err := s.queries.UpdatePointsCustom(ctx, params)
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	if len(user) == 0 {
@@ -75,7 +75,7 @@ type GetPointSourcesOutput struct {
 func (s *Server) GetPointSources(ctx context.Context, input *GetPointSourcesInput) (*GetPointSourcesOutput, error) {
 	events, ei := database.WrapQuery(s.queries.GetGuildPointSources, ctx, input.GuildID)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return &GetPointSourcesOutput{Body: events}, nil
 }
@@ -95,7 +95,7 @@ func (s *Server) UpdateGuildPointSource(ctx context.Context, input *UpdateGuildP
 
 	rowsAf, err := s.queries.UpdateGuildPointSource(ctx, params)
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	if rowsAf == 0 {

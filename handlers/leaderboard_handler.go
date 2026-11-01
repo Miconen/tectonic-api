@@ -29,10 +29,10 @@ func (s *Server) GetLeaderboard(ctx context.Context, input *GetLeaderboardInput)
 		UserLimit: limit,
 	}
 
-	logging.Get().DebugContext(ctx, "querying leaderboard from database", "guild_id", params.GuildID, "user_limit", params.UserLimit)
+	logging.From(ctx).Debug("querying leaderboard from database", "guild_id", params.GuildID, "user_limit", params.UserLimit)
 	rows, err := s.queries.GetLeaderboard(ctx, params)
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	if len(rows) == 0 {

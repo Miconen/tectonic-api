@@ -16,7 +16,7 @@ type (
 func (s *Server) GetAchievements(ctx context.Context, input *GetAchievementsInput) (*GetAchievementsOutput, error) {
 	achievements, err := s.queries.GetAchievements(ctx)
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return &GetAchievementsOutput{Body: achievements}, nil
 }
@@ -44,7 +44,7 @@ func (s *Server) GiveAchievementById(ctx context.Context, input *AchievementById
 		GuildID:         input.GuildID,
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return nil, nil
 }
@@ -56,7 +56,7 @@ func (s *Server) GiveAchievementByRsn(ctx context.Context, input *AchievementByR
 		GuildID:         input.GuildID,
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return nil, nil
 }
@@ -70,7 +70,7 @@ func (s *Server) RemoveAchievementById(ctx context.Context, input *AchievementBy
 		GuildID:         input.GuildID,
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return nil, nil
 }
@@ -82,7 +82,7 @@ func (s *Server) RemoveAchievementByRsn(ctx context.Context, input *AchievementB
 		GuildID:         input.GuildID,
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return nil, nil
 }

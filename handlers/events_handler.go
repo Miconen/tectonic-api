@@ -21,7 +21,7 @@ type GetEventsOutput struct {
 func (s *Server) GetEvents(ctx context.Context, input *GetEventsInput) (*GetEventsOutput, error) {
 	events, ei := database.WrapQuery(s.queries.GetGuildEvents, ctx, input.GuildID)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if len(events) == 0 {
 		return &GetEventsOutput{Body: []database.Event{}}, nil
@@ -40,7 +40,7 @@ type GetDetailedEventOutput struct {
 func (s *Server) GetDetailedEvent(ctx context.Context, input *GetDetailedEventInput) (*GetDetailedEventOutput, error) {
 	events, ei := database.WrapQuery(s.queries.GetEventParticipation, ctx, input.EventID)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	res := models.DetailedEvent{
@@ -90,7 +90,7 @@ func (s *Server) RegisterEvent(ctx context.Context, input *RegisterEventInput) (
 		Solo:           solo,
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	if c.Type == "classic" {
@@ -104,7 +104,7 @@ func (s *Server) RegisterEvent(ctx context.Context, input *RegisterEventInput) (
 			WomID:          fmt.Sprintf("%d", c.ID),
 		})
 		if ei != nil {
-			return nil, s.dbError(*ei)
+			return nil, s.dbError(ctx, *ei)
 		}
 	} else if c.Type == "team" && len(input.Body.TeamNames) != 0 {
 		posMap := make(map[string]int32)
@@ -129,7 +129,7 @@ func (s *Server) RegisterEvent(ctx context.Context, input *RegisterEventInput) (
 				WomID:                 fmt.Sprintf("%d", c.ID),
 			})
 			if ei != nil {
-				return nil, s.dbError(*ei)
+				return nil, s.dbError(ctx, *ei)
 			}
 		}
 	} else {
@@ -168,7 +168,7 @@ func (s *Server) RegisterLegacyEvent(ctx context.Context, input *RegisterLegacyE
 		Solo:           false,
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	// All participants get placement = 1 (all winners)
@@ -184,7 +184,7 @@ func (s *Server) RegisterLegacyEvent(ctx context.Context, input *RegisterLegacyE
 		EventID:    eventID,
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	if err = tx.Commit(ctx); err != nil {
@@ -201,7 +201,7 @@ type DeleteEventInput struct {
 func (s *Server) DeleteEvent(ctx context.Context, input *DeleteEventInput) (*struct{}, error) {
 	ei := database.WrapExec(s.queries.DeleteEvent, ctx, input.EventID)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return nil, nil
 }
@@ -221,7 +221,7 @@ type UpdateEventInput struct {
 func (s *Server) UpdateEvent(ctx context.Context, input *UpdateEventInput) (*struct{}, error) {
 	tx, err := database.CreateTx(ctx)
 	if err != nil {
-		logging.Get().Error("Error creating transaction", "error", err)
+		logging.From(ctx).Error("Error creating transaction", "error", err)
 		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
 
@@ -238,7 +238,7 @@ func (s *Server) UpdateEvent(ctx context.Context, input *UpdateEventInput) (*str
 	})
 
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	tx.Commit(ctx)

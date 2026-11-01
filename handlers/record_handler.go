@@ -22,7 +22,7 @@ type GetGuildRecordsOutput struct {
 func (s *Server) GetGuildRecords(ctx context.Context, input *GetGuildRecordsInput) (*GetGuildRecordsOutput, error) {
 	row, err := s.queries.GetDetailedGuild(ctx, input.GuildID)
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	guild := models.GuildResponseFromDetailedRow(row)
 	return &GetGuildRecordsOutput{Body: guild}, nil
@@ -44,7 +44,7 @@ func (s *Server) AddTeammateByBoss(ctx context.Context, input *AddTeammateByBoss
 	}
 	ei := database.WrapExec(s.queries.AddToTeamByBoss, ctx, params)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return nil, nil
 }
@@ -63,7 +63,7 @@ func (s *Server) AddTeammateByRecordId(ctx context.Context, input *AddTeammateBy
 	}
 	ei := database.WrapExec(s.queries.AddToTeamById, ctx, params)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return nil, nil
 }
@@ -82,7 +82,7 @@ func (s *Server) RemoveTeammateByBoss(ctx context.Context, input *RemoveTeammate
 	}
 	rows, ei := database.WrapQuery(s.queries.RemoveFromTeamByBoss, ctx, params)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_TEAM_NOT_FOUND)
@@ -104,7 +104,7 @@ func (s *Server) RemoveTeammateByRecordId(ctx context.Context, input *RemoveTeam
 	}
 	rows, ei := database.WrapQuery(s.queries.RemoveFromTeamById, ctx, params)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_TEAM_NOT_FOUND)
@@ -134,12 +134,12 @@ func (s *Server) CreateRecord(ctx context.Context, input *CreateRecordInput) (*C
 		if ei.Recoverable && ei.Code == "P0002" {
 			return nil, models.NewTectonicError(models.ERROR_GUILD_BOSS_NOT_FOUND)
 		}
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	tx, err := database.CreateTx(ctx)
 	if err != nil {
-		logging.Get().Error("Error creating transaction", "error", err)
+		logging.From(ctx).Error("Error creating transaction", "error", err)
 		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
 	defer tx.Rollback(ctx)
@@ -154,7 +154,7 @@ func (s *Server) CreateRecord(ctx context.Context, input *CreateRecordInput) (*C
 		GuildID:  input.GuildID,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	// Create team entries
@@ -164,7 +164,7 @@ func (s *Server) CreateRecord(ctx context.Context, input *CreateRecordInput) (*C
 		GuildID:  input.GuildID,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	// Get all records for this boss to determine position
@@ -173,7 +173,7 @@ func (s *Server) CreateRecord(ctx context.Context, input *CreateRecordInput) (*C
 		BossName: input.Body.BossName,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	if err = tx.Commit(ctx); err != nil {
@@ -335,7 +335,7 @@ func (s *Server) RemoveRecord(ctx context.Context, input *RemoveRecordInput) (*s
 	}
 	deleted, err := s.queries.DeleteRecord(ctx, params)
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if deleted == 0 {
 		return nil, models.NewTectonicError(models.ERROR_RECORD_NOT_FOUND)
@@ -354,7 +354,7 @@ func (s *Server) ClearBossRecords(ctx context.Context, input *ClearBossRecordsIn
 		BossName: input.Boss,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if removed == 0 {
 		return nil, models.NewTectonicError(models.ERROR_RECORD_NOT_FOUND)
@@ -373,7 +373,7 @@ func (s *Server) RevertTopRecord(ctx context.Context, input *RevertTopRecordInpu
 		BossName: input.Boss,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if removed == 0 {
 		return nil, models.NewTectonicError(models.ERROR_RECORD_NOT_FOUND)

@@ -129,7 +129,7 @@ type GetUsersByIDOutput struct {
 func (s *Server) GetUsersById(ctx context.Context, input *GetUsersByIDInput) (*GetUsersByIDOutput, error) {
 	users, ei := s.getDetailedUsers(ctx, strings.Split(input.UserIDs, ","), input.GuildID)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return &GetUsersByIDOutput{Body: users}, nil
 }
@@ -148,12 +148,12 @@ func (s *Server) GetUsersByRsn(ctx context.Context, input *GetUsersByRsnInput) (
 		Rsns:    strings.Split(input.RSNs, ","),
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	users, ei := s.getDetailedUsers(ctx, userIDs, input.GuildID)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return &GetUsersByRsnOutput{Body: users}, nil
 }
@@ -172,12 +172,12 @@ func (s *Server) GetUsersByWom(ctx context.Context, input *GetUsersByWomInput) (
 		WomIds:  strings.Split(input.WomIDs, ","),
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	users, ei := s.getDetailedUsers(ctx, userIDs, input.GuildID)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return &GetUsersByWomOutput{Body: users}, nil
 }
@@ -193,7 +193,7 @@ type GetUserAchievementsOutput struct {
 func (s *Server) GetUserAchievements(ctx context.Context, input *GetUserAchievementsInput) (*GetUserAchievementsOutput, error) {
 	achievements, ei := database.WrapQuery(s.queries.GetUserAchievements, ctx, input.UserID)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return &GetUserAchievementsOutput{Body: achievements}, nil
 }
@@ -212,7 +212,7 @@ func (s *Server) GetUserEvents(ctx context.Context, input *GetUserEventsInput) (
 		GuildID: input.GuildID,
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return &GetUserEventsOutput{Body: events}, nil
 }
@@ -231,7 +231,7 @@ func (s *Server) GetUserRecords(ctx context.Context, input *GetUserRecordsInput)
 		GuildID: input.GuildID,
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return &GetUserRecordsOutput{Body: models.UserRecordsFromRows(rows)}, nil
 }
@@ -260,7 +260,7 @@ func (s *Server) CreateUser(ctx context.Context, input *CreateUserInput) (*Creat
 
 	user, err := s.queries.CreateUser(ctx, params)
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return &CreateUserOutput{Body: user}, nil
 }
@@ -273,7 +273,7 @@ type RemoveUserByIDInput struct {
 func (s *Server) RemoveUserById(ctx context.Context, input *RemoveUserByIDInput) (*struct{}, error) {
 	tx, err := database.CreateTx(ctx)
 	if err != nil {
-		logging.Get().Error("Error creating transaction", "error", err)
+		logging.From(ctx).Error("Error creating transaction", "error", err)
 		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
 	defer tx.Rollback(ctx)
@@ -286,7 +286,7 @@ func (s *Server) RemoveUserById(ctx context.Context, input *RemoveUserByIDInput)
 		UserID:  input.UserID,
 	}); err != nil {
 		if ei := database.ClassifyError(err); ei != nil {
-			return nil, s.dbError(*ei)
+			return nil, s.dbError(ctx, *ei)
 		}
 	}
 
@@ -295,7 +295,7 @@ func (s *Server) RemoveUserById(ctx context.Context, input *RemoveUserByIDInput)
 		UserID:  input.UserID,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_USER_NOT_FOUND)
@@ -315,7 +315,7 @@ type RemoveUserByRsnInput struct {
 func (s *Server) RemoveUserByRsn(ctx context.Context, input *RemoveUserByRsnInput) (*struct{}, error) {
 	tx, err := database.CreateTx(ctx)
 	if err != nil {
-		logging.Get().Error("Error creating transaction", "error", err)
+		logging.From(ctx).Error("Error creating transaction", "error", err)
 		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
 	defer tx.Rollback(ctx)
@@ -327,7 +327,7 @@ func (s *Server) RemoveUserByRsn(ctx context.Context, input *RemoveUserByRsnInpu
 		Rsn:     input.RSN,
 	}); err != nil {
 		if ei := database.ClassifyError(err); ei != nil {
-			return nil, s.dbError(*ei)
+			return nil, s.dbError(ctx, *ei)
 		}
 	}
 
@@ -336,7 +336,7 @@ func (s *Server) RemoveUserByRsn(ctx context.Context, input *RemoveUserByRsnInpu
 		Rsn:     input.RSN,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_USER_NOT_FOUND)
@@ -356,7 +356,7 @@ type RemoveUserByWomInput struct {
 func (s *Server) RemoveUserByWom(ctx context.Context, input *RemoveUserByWomInput) (*struct{}, error) {
 	tx, err := database.CreateTx(ctx)
 	if err != nil {
-		logging.Get().Error("Error creating transaction", "error", err)
+		logging.From(ctx).Error("Error creating transaction", "error", err)
 		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
 	defer tx.Rollback(ctx)
@@ -368,7 +368,7 @@ func (s *Server) RemoveUserByWom(ctx context.Context, input *RemoveUserByWomInpu
 		WomID:   input.WomID,
 	}); err != nil {
 		if ei := database.ClassifyError(err); ei != nil {
-			return nil, s.dbError(*ei)
+			return nil, s.dbError(ctx, *ei)
 		}
 	}
 
@@ -377,7 +377,7 @@ func (s *Server) RemoveUserByWom(ctx context.Context, input *RemoveUserByWomInpu
 		WomID:   input.WomID,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_USER_NOT_FOUND)
@@ -403,7 +403,7 @@ func (s *Server) GetBasicUsers(ctx context.Context, input *GetUsersByIDInput) (*
 		},
 	)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	return &GetBasicUsersOutput{Body: users}, nil

@@ -17,7 +17,7 @@ type GetGuildCombatAchievementsOutput struct {
 func (s *Server) GetGuildCombatAchievements(ctx context.Context, input *GetGuildCombatAchievementsInput) (*GetGuildCombatAchievementsOutput, error) {
 	cas, ei := database.WrapQuery(s.queries.GetGuildCombatAchievements, ctx, input.GuildID)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return &GetGuildCombatAchievementsOutput{Body: cas}, nil
 }
@@ -34,7 +34,7 @@ func (s *Server) CreateCombatAchievement(ctx context.Context, input *CreateComba
 		PointSource: input.Body.PointSource,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return nil, nil
 }
@@ -50,7 +50,7 @@ func (s *Server) DeleteCombatAchievement(ctx context.Context, input *DeleteComba
 		GuildID: input.GuildID,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_COMBAT_ACHIEVEMENT_NOT_FOUND)
@@ -81,7 +81,7 @@ func (s *Server) CompleteCombatAchievement(ctx context.Context, input *CompleteC
 		GuildID: input.GuildID,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	points, err := q.UpdatePointsByEvent(ctx, database.UpdatePointsByEventParams{
@@ -90,7 +90,7 @@ func (s *Server) CompleteCombatAchievement(ctx context.Context, input *CompleteC
 		UserIds: models.SnowflakesToStrings(input.Body.UserIDs),
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	err = q.CompleteCombatAchievement(ctx, database.CompleteCombatAchievementParams{
@@ -99,7 +99,7 @@ func (s *Server) CompleteCombatAchievement(ctx context.Context, input *CompleteC
 		CombatAchievementName: input.CAName,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	if err = tx.Commit(ctx); err != nil {
@@ -121,7 +121,7 @@ func (s *Server) GiveUserCombatAchievement(ctx context.Context, input *UserComba
 		CombatAchievementName: input.CAName,
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return nil, nil
 }
@@ -133,7 +133,7 @@ func (s *Server) RemoveUserCombatAchievement(ctx context.Context, input *UserCom
 		CombatAchievementName: input.CAName,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_COMBAT_ACHIEVEMENT_NOT_FOUND)

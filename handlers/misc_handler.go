@@ -17,7 +17,7 @@ type (
 func (s *Server) GetBosses(ctx context.Context, input *GetBossesInput) (*GetBossesOutput, error) {
 	bosses, err := s.queries.GetBosses(ctx)
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, models.NewTectonicError(s.getConstraintError(*ei))
+		return nil, models.NewTectonicError(s.getConstraintError(ctx, *ei))
 	}
 	return &GetBossesOutput{Body: bosses}, nil
 }
@@ -32,7 +32,7 @@ type (
 func (s *Server) GetCategories(ctx context.Context, input *GetCategoriesInput) (*GetCategoriesOutput, error) {
 	categories, err := s.queries.GetCategories(ctx)
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, models.NewTectonicError(s.getConstraintError(*ei))
+		return nil, models.NewTectonicError(s.getConstraintError(ctx, *ei))
 	}
 	return &GetCategoriesOutput{Body: categories}, nil
 }
@@ -47,7 +47,7 @@ type (
 func (s *Server) GetValueTypes(ctx context.Context, input *GetValueTypesInput) (*GetValueTypesOutput, error) {
 	valueTypes, err := s.queries.GetValueTypes(ctx)
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, models.NewTectonicError(s.getConstraintError(*ei))
+		return nil, models.NewTectonicError(s.getConstraintError(ctx, *ei))
 	}
 	return &GetValueTypesOutput{Body: valueTypes}, nil
 }
