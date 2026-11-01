@@ -69,6 +69,9 @@ func setupRouter(t *testing.T) http.Handler {
 		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
 		os.Exit(1)
 	}
+	// Never call the real Wise Old Man: it makes the test depend on the
+	// network and on WOM's data staying the same.
+	cfg.WOM.BaseURL = fakeWom(t)
 
 	conn, err := database.InitDB(cfg)
 	if err != nil {
@@ -108,7 +111,7 @@ func TestRoutes(t *testing.T) {
 		WomID:           "39527",
 		EventClassicID:  77922,
 		EventTeamID:     66321,
-		AchievementName: "Ironman",
+		AchievementName: "Maxed",
 	}
 
 	createUser := TestCase{
@@ -131,7 +134,7 @@ func TestRoutes(t *testing.T) {
 			Body: models.InputGuild{
 				GuildID: models.DiscordSnowflake(v.GuildID),
 			},
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 		{
 			Name:       "Get Guild",
@@ -146,7 +149,7 @@ func TestRoutes(t *testing.T) {
 			Body: models.UpdateGuildBody{
 				ModChannelID: ptrTo(models.DiscordSnowflake(v.ChannelID)),
 			},
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 
 		// === Misc ===
@@ -216,13 +219,13 @@ func TestRoutes(t *testing.T) {
 			Body: models.CreateRsnBody{
 				RSN: models.RSN(v.RsnExtra),
 			},
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 		{
 			Name:       "Delete RSN",
 			Method:     "DELETE",
 			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/rsns/%s", v.GuildID, v.UserID, v.RsnExtraEscaped()),
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 
 		// === Points ===
@@ -256,7 +259,7 @@ func TestRoutes(t *testing.T) {
 		// === WOM ===
 		{
 			Name:       "End Competition",
-			Method:     "GET",
+			Method:     "POST",
 			Path:       fmt.Sprintf("/api/v1/guilds/%s/wom/competition/66321/cutoff/30", v.GuildID),
 			StatusCode: 200,
 		},
@@ -268,9 +271,9 @@ func TestRoutes(t *testing.T) {
 			Path:   fmt.Sprintf("/api/v1/guilds/%s/events", v.GuildID),
 			Body: models.InputEvent{
 				EventID:        v.EventClassicID,
-				PositionCutoff: 5,
+				PositionCutoff: 3,
 			},
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 		{
 			Name:   "Create Team Event",
@@ -283,7 +286,7 @@ func TestRoutes(t *testing.T) {
 					"Green Fingerers",
 				},
 			},
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 		{
 			Name:       "List Events",
@@ -298,16 +301,30 @@ func TestRoutes(t *testing.T) {
 			StatusCode: 200,
 		},
 		{
+			// Fewer participants than the cutoff used to panic.
+			Name:       "Create Classic Event (fewer players than cutoff)",
+			Method:     "POST",
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/events", v.GuildID),
+			Body:       models.InputEvent{EventID: 11111, PositionCutoff: 3},
+			StatusCode: http.StatusNoContent,
+		},
+		{
+			Name:       "Delete Small Event",
+			Method:     "DELETE",
+			Path:       fmt.Sprintf("/api/v1/guilds/%s/events/11111", v.GuildID),
+			StatusCode: http.StatusNoContent,
+		},
+		{
 			Name:       "Delete Classic Event",
 			Method:     "DELETE",
 			Path:       fmt.Sprintf("/api/v1/guilds/%s/events/%d", v.GuildID, v.EventClassicID),
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 		{
 			Name:       "Delete Team Event",
 			Method:     "DELETE",
 			Path:       fmt.Sprintf("/api/v1/guilds/%s/events/%d", v.GuildID, v.EventTeamID),
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 
 		// === Achievements ===
@@ -315,13 +332,13 @@ func TestRoutes(t *testing.T) {
 			Name:       "Give Achievement",
 			Method:     "POST",
 			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/achievements/%s", v.GuildID, v.UserID, v.AchievementName),
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 		{
 			Name:       "Remove Achievement",
 			Method:     "DELETE",
 			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s/achievements/%s", v.GuildID, v.UserID, v.AchievementName),
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 
 		// === Records ===
@@ -348,21 +365,21 @@ func TestRoutes(t *testing.T) {
 			Name:       "Delete User (By ID)",
 			Method:     "DELETE",
 			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/%s", v.GuildID, v.UserID),
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 		createUser,
 		{
 			Name:       "Delete User (By WOM)",
 			Method:     "DELETE",
 			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/wom/%s", v.GuildID, v.WomID),
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 		createUser,
 		{
 			Name:       "Delete User (By RSN)",
 			Method:     "DELETE",
 			Path:       fmt.Sprintf("/api/v1/guilds/%s/users/rsn/%s", v.GuildID, v.RsnEscaped()),
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 
 		// === Cleanup ===
@@ -370,7 +387,7 @@ func TestRoutes(t *testing.T) {
 			Name:       "Delete Guild",
 			Method:     "DELETE",
 			Path:       fmt.Sprintf("/api/v1/guilds/%s", v.GuildID),
-			StatusCode: 200,
+			StatusCode: http.StatusNoContent,
 		},
 	}
 
@@ -395,6 +412,56 @@ func TestRoutes(t *testing.T) {
 			}
 		})
 	}
+}
+
+// fakeWom serves the players and competitions the test uses, in the shape of
+// the Wise Old Man v2 API.
+func fakeWom(t *testing.T) string {
+	t.Helper()
+	players := map[string]int{"Comfy hug": 39527, "Uncomfy hug": 39528, "Third": 39529}
+	participation := func(name, team string, gained float64) models.Participations {
+		return models.Participations{
+			PlayerID: players[name],
+			TeamName: team,
+			Player:   models.Player{ID: players[name], DisplayName: name},
+			Progress: models.Progress{Gained: gained},
+		}
+	}
+	competitions := map[string]models.WomCompetition{
+		"77922": {ID: 77922, Title: "Classic event", Type: "classic", ParticipantCount: 3, Participations: []models.Participations{
+			participation("Comfy hug", "", 100), participation("Uncomfy hug", "", 50), participation("Third", "", 10),
+		}},
+		"11111": {ID: 11111, Title: "Small event", Type: "classic", ParticipantCount: 2, Participations: []models.Participations{
+			participation("Comfy hug", "", 100), participation("Uncomfy hug", "", 50),
+		}},
+		"66321": {ID: 66321, Title: "Team event", Type: "team", ParticipantCount: 3, Participations: []models.Participations{
+			participation("Comfy hug", "The Jack Off Lanter", 100),
+			participation("Uncomfy hug", "Green Fingerers", 50),
+			participation("Third", "Green Fingerers", 10),
+		}},
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /players/{rsn}", func(w http.ResponseWriter, r *http.Request) {
+		name := r.PathValue("rsn")
+		id, ok := players[name]
+		if !ok {
+			http.Error(w, `{"message":"Player not found."}`, http.StatusNotFound)
+			return
+		}
+		json.NewEncoder(w).Encode(map[string]any{"id": id, "displayName": name})
+	})
+	mux.HandleFunc("GET /competitions/{id}", func(w http.ResponseWriter, r *http.Request) {
+		c, ok := competitions[r.PathValue("id")]
+		if !ok {
+			http.Error(w, `{"message":"Competition not found."}`, http.StatusNotFound)
+			return
+		}
+		json.NewEncoder(w).Encode(c)
+	})
+	srv := httptest.NewServer(mux)
+	t.Cleanup(srv.Close)
+	return srv.URL
 }
 
 // Helper for pointer fields

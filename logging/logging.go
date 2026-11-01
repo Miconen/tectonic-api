@@ -1,12 +1,9 @@
 package logging
 
 import (
-	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"tectonic-api/config"
 )
@@ -16,12 +13,12 @@ var (
 	settings *LoggerConfig
 )
 
+// Get returns the global logger. Before Init (in tests, say) it falls back to
+// slog's default instead of exiting.
 func Get() *slog.Logger {
 	if logger == nil {
-		fmt.Fprintf(os.Stderr, "Error loading logger")
-		os.Exit(1)
+		return slog.Default()
 	}
-
 	return logger
 }
 
@@ -70,52 +67,4 @@ func Init(cfg *config.Config) {
 	}
 
 	logger = slog.New(slog.NewTextHandler(os.Stderr, opts))
-}
-
-// statusRecorder wraps the ResponseWriter to capture the status code
-type statusRecorder struct {
-	http.ResponseWriter
-	statusCode int
-}
-
-// WriteHeader captures the status code before calling the wrapped WriteHeader
-func (sr *statusRecorder) WriteHeader(code int) {
-	sr.statusCode = code
-	sr.ResponseWriter.WriteHeader(code)
-}
-
-func LoggingHandler(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		recorder := &statusRecorder{
-			ResponseWriter: w,
-			statusCode:     http.StatusOK,
-		}
-
-		start := time.Now()
-		h.ServeHTTP(recorder, r)
-		duration := time.Since(start)
-
-		title := fmt.Sprintf("%s %d %s", r.Method, recorder.statusCode, r.URL.Path)
-		if settings.jsonOutput {
-			Get().Info(
-				title,
-				"status", recorder.statusCode,
-				"duration", duration.String(),
-				"host", r.Host,
-				"origin", r.Header.Get("Origin"),
-				"user_agent", r.UserAgent(),
-				"content_type", r.Header.Get("Content-Type"),
-				"method", r.Method,
-				"path", r.URL.Path,
-			)
-		} else {
-			Get().Info(
-				title,
-				"method", r.Method,
-				"status", recorder.statusCode,
-				"time", start,
-				"duration", duration.String(),
-			)
-		}
-	})
 }

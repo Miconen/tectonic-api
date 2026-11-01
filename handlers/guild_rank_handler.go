@@ -17,7 +17,7 @@ type GetGuildRanksOutput struct {
 func (s *Server) GetGuildRanks(ctx context.Context, input *GetGuildRanksInput) (*GetGuildRanksOutput, error) {
 	rows, ei := database.WrapQuery(s.queries.GetGuildRanks, ctx, input.GuildID)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return &GetGuildRanksOutput{Body: models.GuildRanksFromRows(rows)}, nil
 }
@@ -38,7 +38,7 @@ func (s *Server) CreateGuildRank(ctx context.Context, input *CreateGuildRankInpu
 	}
 	ei := database.WrapExec(s.queries.CreateGuildRank, ctx, params)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return nil, nil
 }
@@ -60,7 +60,7 @@ func (s *Server) UpdateGuildRank(ctx context.Context, input *UpdateGuildRankInpu
 	}
 	rows, ei := database.WrapQuery(s.queries.UpdateGuildRank, ctx, params)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_GUILD_RANK_NOT_FOUND)
@@ -79,7 +79,7 @@ func (s *Server) DeleteGuildRank(ctx context.Context, input *DeleteGuildRankInpu
 		Name:    input.Name,
 	})
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_GUILD_RANK_NOT_FOUND)

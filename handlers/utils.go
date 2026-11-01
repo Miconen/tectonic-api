@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -10,7 +11,7 @@ import (
 	"tectonic-api/utils"
 )
 
-func (s *Server) getConstraintError(ei database.ErrorInfo) models.APIV1Error {
+func (s *Server) getConstraintError(ctx context.Context, ei database.ErrorInfo) models.APIV1Error {
 	switch ei.Code {
 	case "23503":
 		c := s.constraintsMap[ei.Err.ConstraintName]
@@ -86,21 +87,32 @@ func (s *Server) getConstraintError(ei database.ErrorInfo) models.APIV1Error {
 		}
 	}
 
-	logging.Get().Error("Database untreated error", "error_info", ei)
+	logging.From(ctx).Error("Untreated database error", "err", ei.Error(), "code", ei.Code)
 	return models.ERROR_API_UNAVAILABLE
 }
 
-func (s *Server) dbError(ei database.ErrorInfo) *models.TectonicError {
+// dbError maps a database error to an API error and logs it with the
+// request's ID, so a failure can be found from the caller's Error ID.
+func (s *Server) dbError(ctx context.Context, ei database.ErrorInfo) *models.TectonicError {
+	log := logging.From(ctx)
 	if ei.Severity == database.SeverityFatal || ei.Severity == database.SeverityPanic {
-		logging.Get().Error("DATABASE FAILURE", "err", ei.Error())
+		log.Error("Database failure", "err", ei.Error())
 		return models.NewTectonicError(models.ERROR_API_DEAD)
 	}
 	if !ei.Recoverable {
-		logging.Get().Error("DATABASE NON-RECOVERABLE ERROR", "err", ei.Error())
+		log.Error("Non-recoverable database error", "err", ei.Error())
 		return models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
-	logging.Get().Warn("QUERY ERROR", "err", ei.Error())
-	return models.NewTectonicError(s.getConstraintError(ei))
+	code := s.getConstraintError(ctx, ei)
+	log.Warn("Query error", "err", ei.Error(), "code", ei.Code, "constraint", constraintName(ei))
+	return models.NewTectonicError(code)
+}
+
+func constraintName(ei database.ErrorInfo) string {
+	if ei.Err == nil {
+		return ""
+	}
+	return ei.Err.ConstraintName
 }
 
 func (s *Server) womError(err error, notFound models.APIV1Error) *models.TectonicError {

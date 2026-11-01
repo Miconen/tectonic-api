@@ -38,7 +38,7 @@ func (s *Server) CreateRSN(ctx context.Context, input *CreateRSNInput) (*struct{
 				return nil, models.NewTectonicError(models.ERROR_RSN_EXISTS)
 			}
 		}
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return nil, nil
 }
@@ -56,7 +56,7 @@ func (s *Server) RemoveRSN(ctx context.Context, input *RemoveRSNInput) (*struct{
 		Rsn:     input.RSN,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_RSN_NOT_FOUND)

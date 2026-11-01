@@ -85,7 +85,7 @@ func (s *Server) EndCompetition(
 		},
 	)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	points, err := q.UpdatePointsByEvent(
@@ -97,7 +97,7 @@ func (s *Server) EndCompetition(
 		},
 	)
 	if dbEi := database.ClassifyError(err); dbEi != nil {
-		return nil, s.dbError(*dbEi)
+		return nil, s.dbError(ctx, *dbEi)
 	}
 
 	if err = tx.Commit(ctx); err != nil {
@@ -105,7 +105,7 @@ func (s *Server) EndCompetition(
 	}
 
 	if len(points) == 0 {
-		logging.Get().Info(
+		logging.From(ctx).Info(
 			"no activated users found in competition",
 			"guild_id", input.GuildID,
 			"competition_id", input.CompetitionID,
@@ -128,7 +128,7 @@ func (s *Server) EndCompetition(
 
 	users, ei := s.getDetailedUsers(ctx, updatedUserIDs, input.GuildID)
 	if ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	return &EndCompetitionOutput{Body: CompetitionResponse{

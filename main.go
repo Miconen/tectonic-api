@@ -51,7 +51,7 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Use(
-		logging.LoggingHandler,
+		logging.RequestLogger,
 		middleware.CORS,
 		middleware.RateLimit,
 		middleware.Authentication(cfg),

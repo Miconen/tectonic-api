@@ -21,7 +21,7 @@ func (s *Server) GetGuild(ctx context.Context, input *GetGuildInput) (*GetGuildO
 	if input.Detailed {
 		row, err := s.queries.GetDetailedGuild(ctx, string(input.GuildID))
 		if ei := database.ClassifyError(err); ei != nil {
-			return nil, s.dbError(*ei)
+			return nil, s.dbError(ctx, *ei)
 		}
 		guild := models.GuildResponseFromDetailedRow(row)
 		return &GetGuildOutput{Body: guild}, nil
@@ -29,7 +29,7 @@ func (s *Server) GetGuild(ctx context.Context, input *GetGuildInput) (*GetGuildO
 
 	row, err := s.queries.GetGuild(ctx, string(input.GuildID))
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	guild := models.GuildResponseFromRow(row)
 	return &GetGuildOutput{Body: guild}, nil
@@ -42,7 +42,7 @@ type CreateGuildInput struct {
 func (s *Server) CreateGuild(ctx context.Context, input *CreateGuildInput) (*struct{}, error) {
 	_, err := s.queries.CreateGuild(ctx, string(input.Body.GuildID))
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	return nil, nil
 }
@@ -54,7 +54,7 @@ type DeleteGuildInput struct {
 func (s *Server) DeleteGuild(ctx context.Context, input *DeleteGuildInput) (*struct{}, error) {
 	rows, err := s.queries.DeleteGuild(ctx, input.GuildID)
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 	if rows == 0 {
 		return nil, models.NewTectonicError(models.ERROR_GUILD_NOT_FOUND)
@@ -70,7 +70,7 @@ type UpdateGuildInput struct {
 func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*struct{}, error) {
 	tx, err := database.CreateTx(ctx)
 	if err != nil {
-		logging.Get().Error("Error creating transaction", "error", err)
+		logging.From(ctx).Error("Error creating transaction", "error", err)
 		return nil, models.NewTectonicError(models.ERROR_API_UNAVAILABLE)
 	}
 	defer tx.Rollback(ctx)
@@ -95,7 +95,7 @@ func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*str
 			MessageIds: messageIds,
 		})
 		if ei := database.ClassifyError(err); ei != nil {
-			return nil, s.dbError(*ei)
+			return nil, s.dbError(ctx, *ei)
 		}
 	}
 
@@ -108,7 +108,7 @@ func (s *Server) UpdateGuild(ctx context.Context, input *UpdateGuildInput) (*str
 		GuildID:       input.GuildID,
 	})
 	if ei := database.ClassifyError(err); ei != nil {
-		return nil, s.dbError(*ei)
+		return nil, s.dbError(ctx, *ei)
 	}
 
 	tx.Commit(ctx)
